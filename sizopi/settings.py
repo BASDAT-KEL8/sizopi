@@ -37,6 +37,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'accounts',
+    'satwa',
+    'habitat',
+    'rekam_medis',
+    'penjadwalan',
+    'pakan',
+    'atraksi',
+    'booking',
+    'adopsi',
 ]
 
 MIDDLEWARE = [
