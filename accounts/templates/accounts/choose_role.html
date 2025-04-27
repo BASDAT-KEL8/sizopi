@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pilih Role</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+<div class="container">
+    <h2>Pilih Role Pendaftaran</h2>
+
+    <div class="role-selection">
+        <a href="{% url 'register_pengunjung' %}" class="role-card">Pengunjung</a>
+        <a href="{% url 'register_dokter' %}" class="role-card">Dokter Hewan</a>
+        <a href="{% url 'register_staff' %}" class="role-card">Staff</a>
+    </div>
+</div>
+</body>
+</html>

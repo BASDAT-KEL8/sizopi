@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Dokter Hewan</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+<div class="container">
+    <h2>Registrasi Dokter Hewan</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="nama_depan" placeholder="Nama Depan" required>
+        <input type="text" name="nama_tengah" placeholder="Nama Tengah (Opsional)">
+        <input type="text" name="nama_belakang" placeholder="Nama Belakang" required>
+        <input type="text" name="no_telepon" placeholder="Nomor Telepon" required>
+        <input type="text" name="no_str" placeholder="Nomor STR" required>
+
+        <label>Spesialisasi:</label>
+        <select name="spesialisasi">
+            <option value="Mamalia Besar">Mamalia Besar</option>
+            <option value="Reptil">Reptil</option>
+            <option value="Burung Eksotis">Burung Eksotis</option>
+            <option value="Primata">Primata</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+
+        <button type="submit">Daftar</button>
+    </form>
+</div>
+</body>
+</html>

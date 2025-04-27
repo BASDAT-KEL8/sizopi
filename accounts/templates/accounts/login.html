@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="login-section">
+            <h2>Sign-In</h2>
+            <p>Login with Email & Password</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="email" name="email" placeholder="Enter Email" required><br>
+                <input type="password" name="password" placeholder="Enter Password" required><br>
+                <button type="submit" class="btn-login">LOGIN</button>
+            </form>
+        </div>
+
+        <div class="register-section">
+            <h2>Hi, Welcome!</h2>
+            <p>Silakan daftar ke sistem</p>
+            <a href="{% url 'choose_role' %}" class="btn-register">REGISTER</a>
+        </div>
+    </div>
+</body>
+</html>
