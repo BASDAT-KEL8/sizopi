@@ -6,3 +6,14 @@ def dashboard_view(request):
 
     nama_lengkap = request.session.get('nama_lengkap', 'User')
     return render(request, 'dashboard/dashboard.html', {'nama_lengkap': nama_lengkap})
+
+
+
+
+
+
+
+
+
+
+# XXX
