@@ -1,0 +1,109 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard Admin - SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="section-title">Dashboard Admin - Manajemen Adopsi</h1>
+            <p class="section-subtitle">Kelola data adopsi satwa dan adopter dalam sistem.</p>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 bg-primary text-white">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Total Adopter</h5>
+                    <p class="card-text display-4">{{ total_adopter }}</p>
+                    <a href="{% url 'admin_daftar_adopter' %}" class="btn btn-light mt-3">Lihat Daftar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 bg-success text-white">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Adopsi Aktif</h5>
+                    <p class="card-text display-4">{{ adopsi_aktif }}</p>
+                    <a href="{% url 'admin_daftar_adopsi' %}" class="btn btn-light mt-3">Lihat Daftar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Total Kontribusi</h5>
+                    <p class="card-text display-4">Rp {{ total_kontribusi|intcomma }}</p>
+                    <p class="card-text">dari seluruh adopsi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary-green text-white">
+                    <h5 class="mb-0">Adopter dengan Kontribusi Tertinggi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Username</th>
+                                    <th>Nama</th>
+                                    <th>Tipe</th>
+                                    <th>Total Kontribusi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for adopter in adopter_teratas %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ adopter.username_adopter }}</td>
+                                        <td>
+                                            {% if adopter.individu %}
+                                                {{ adopter.individu.nama }}
+                                            {% elif adopter.organisasi %}
+                                                {{ adopter.organisasi.nama_organisasi }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if adopter.individu %}
+                                                Individu
+                                            {% elif adopter.organisasi %}
+                                                Organisasi
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>Rp {{ adopter.total_kontribusi|intcomma }}</td>
+                                        <td>
+                                            <a href="{% url 'admin_detail_adopter' adopter.id_adopter %}" class="btn btn-sm btn-primary">Detail</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">Belum ada data adopter.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'admin_daftar_adopter' %}" class="btn btn-primary">Lihat Semua Adopter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

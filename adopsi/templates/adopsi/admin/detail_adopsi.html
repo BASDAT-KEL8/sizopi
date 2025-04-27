@@ -1,0 +1,113 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Detail Adopsi - SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="section-title">Detail Adopsi</h1>
+            <p class="section-subtitle">Informasi lengkap tentang adopsi.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary-green text-white">
+                    <h5 class="mb-0">Informasi Adopsi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary-green">Data Hewan</h6>
+                            <p><strong>Nama:</strong> {{ adopsi.id_hewan.nama }}</p>
+                            <p><strong>Jenis:</strong> {{ adopsi.id_hewan.jenis }}</p>
+                            <p><strong>Habitat:</strong> {{ adopsi.id_hewan.habitat }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary-green">Data Adopter</h6>
+                            <p><strong>Username:</strong> {{ adopsi.id_adopter.username_adopter }}</p>
+                            {% if adopsi.id_adopter.individu %}
+                                <p><strong>Nama:</strong> {{ adopsi.id_adopter.individu.nama }}</p>
+                                <p><strong>NIK:</strong> {{ adopsi.id_adopter.individu.nik }}</p>
+                                <p><strong>Tipe:</strong> Individu</p>
+                            {% elif adopsi.id_adopter.organisasi %}
+                                <p><strong>Nama Organisasi:</strong> {{ adopsi.id_adopter.organisasi.nama_organisasi }}</p>
+                                <p><strong>NPP:</strong> {{ adopsi.id_adopter.organisasi.npp }}</p>
+                                <p><strong>Tipe:</strong> Organisasi</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary-green">Periode Adopsi</h6>
+                            <p><strong>Tanggal Mulai:</strong> {{ adopsi.tgl_mulai_adopsi|date:"d M Y" }}</p>
+                            <p><strong>Tanggal Berakhir:</strong> {{ adopsi.tgl_berhenti_adopsi|date:"d M Y" }}</p>
+                            <p><strong>Durasi:</strong> 
+                                {% with durasi=adopsi.tgl_berhenti_adopsi|timeuntil:adopsi.tgl_mulai_adopsi %}
+                                    {{ durasi }}
+                                {% endwith %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary-green">Informasi Kontribusi</h6>
+                            <p><strong>Jumlah Kontribusi:</strong> Rp {{ adopsi.kontribusi_finansial|intcomma }}</p>
+                            <p>
+                                <strong>Status Pembayaran:</strong> 
+                                <span class="badge {% if adopsi.status_pembayaran == 'lunas' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ adopsi.get_status_pembayaran_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Update Status Pembayaran</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
+                            <select name="status_pembayaran" id="status_pembayaran" class="form-select">
+                                <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
+                                <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
+                            </select>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Aksi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_daftar_adopsi' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Kembali ke Daftar Adopsi
+                        </a>
+                        <a href="{% url 'admin_daftar_adopter' %}" class="btn btn-primary">
+                            <i class="bi bi-people me-2"></i> Lihat Daftar Adopter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

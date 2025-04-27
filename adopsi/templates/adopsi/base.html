@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIZOPI - Sistem Zoo Pintar{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'adopsi/css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <!-- Top Navigation -->
+        <div class="top-nav bg-light py-2">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <ul class="list-inline mb-0">
+                            <li class="list-inline-item"><a href="#" class="text-muted small">Care for Planet</a></li>
+                            <li class="list-inline-item"><a href="#" class="text-muted small">Venues for Hire</a></li>
+                            <li class="list-inline-item"><a href="#" class="text-muted small">For Schools</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6 text-end">
+                        <div class="d-inline-flex align-items-center">
+                            {% if user.is_authenticated %}
+                                <a href="#" class="text-muted small me-3">
+                                    <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                                </a>
+                                <a href="#" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-search me-1"></i> Search
+                                </a>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="text-muted small me-3">
+                                    <i class="bi bi-person-circle me-1"></i> Sign in
+                                </a>
+                                <a href="#" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-search me-1"></i> Search
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Navigation -->
+        <nav class="navbar navbar-expand-lg bg-white">
+            <div class="container">
+                <a class="navbar-brand py-2" href="{% url 'home' %}">
+                    <img src="{% static 'adopsi/img/sizopi-logo.png' %}" alt="SIZOPI" height="36">
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="#">Discover SIZOPI</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="{% url 'daftar_hewan' %}">Tickets & Passes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="#">Plan Your Visit</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="#">See & Do</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="#">Dine & Shop</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="#">Stay</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="{% url 'pengunjung_dashboard' %}">Memberships</a>
+                        </li>
+                    </ul>
+                    
+                    <div>
+                        <a href="{% url 'daftar_hewan' %}" class="btn btn-warning rounded-pill">Buy Now</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer bg-dark text-white">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4 fw-bold">About SIZOPI</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">About Us</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Conservation</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Sustainability</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4 fw-bold">Visit Us</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Location</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Opening Hours</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Getting Here</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Attractions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4 fw-bold">Get Involved</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Adopt an Animal</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Donations</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Volunteer</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Corporate Partnership</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4 fw-bold">Connect With Us</h5>
+                    <div class="social-links mb-4">
+                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
+                    </div>
+                    <h5 class="text-uppercase mb-3 fw-bold">Contact Us</h5>
+                    <p class="text-white-50">
+                        <i class="bi bi-envelope-fill me-2"></i> info@sizopi.com<br>
+                        <i class="bi bi-telephone-fill me-2"></i> +62 123 4567 890
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom py-3 bg-black">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-md-0 small text-white-50">&copy; {% now "Y" %} SIZOPI. All Rights Reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <ul class="list-inline mb-0">
+                            <li class="list-inline-item"><a href="#" class="text-decoration-none text-white-50 small">Privacy Policy</a></li>
+                            <li class="list-inline-item"><a href="#" class="text-decoration-none text-white-50 small">Terms of Use</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'adopsi/js/scripts.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
