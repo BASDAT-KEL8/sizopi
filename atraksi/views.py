@@ -66,7 +66,8 @@ def tambah_atraksi(request):
         kapasitas = request.POST.get('kapasitas')
         jadwal = request.POST.get('jadwal')
         pelatih = request.POST.get('pelatih')
-        hewan = request.POST.getlist('hewan')
+        hewan_list = request.POST.getlist('hewan')
+        jadwal_pelatih = request.POST.get('jadwal_pelatih')
 
         # Create Fasilitas first
         fasilitas = Fasilitas.objects.create(
@@ -76,15 +77,49 @@ def tambah_atraksi(request):
         )
         
         # Create Atraksi
-        Atraksi.objects.create(
+        atraksi = Atraksi.objects.create(
             nama_atraksi=fasilitas,
             lokasi=lokasi
         )
+
+        # Create Berpartisipasi entries for selected animals
+        from .models import Berpartisipasi
+        from satwa.models import Hewan
+        
+        for hewan_id in hewan_list:
+            hewan = Hewan.objects.get(id=hewan_id)
+            Berpartisipasi.objects.create(
+                nama_fasilitas=fasilitas,
+                id_hewan=hewan
+            )
+
+        # Create JadwalPenugasan for the trainer
+        if pelatih and jadwal_pelatih:
+            from penjadwalan.models import JadwalPenugasan
+            from accounts.models import PelatihHewan
+            
+            pelatih_obj = PelatihHewan.objects.get(username_lh=pelatih)
+            JadwalPenugasan.objects.create(
+                username_lh=pelatih_obj,
+                tgl_penugasan=jadwal_pelatih,
+                nama_atraksi=atraksi
+            )
         
         messages.success(request, 'Atraksi berhasil ditambahkan')
         return redirect('manage_atraksi')
-        
-    return render(request, 'atraksi/tambah_atraksi.html')
+    
+    # Get data for the form
+    from accounts.models import PelatihHewan, Pengguna
+    from satwa.models import Hewan
+    
+    pelatih_list = PelatihHewan.objects.select_related('username_lh').all()
+    hewan_list = Hewan.objects.all()
+    
+    context = {
+        'pelatih_list': pelatih_list,
+        'hewan_list': hewan_list,
+    }
+    return render(request, 'atraksi/tambah_atraksi.html', context)
 
 def edit_atraksi(request, nama_atraksi):
     atraksi = Atraksi.objects.select_related('nama_atraksi').get(nama_atraksi=nama_atraksi)
@@ -92,16 +127,73 @@ def edit_atraksi(request, nama_atraksi):
     if request.method == 'POST':
         kapasitas = request.POST.get('kapasitas')
         jadwal = request.POST.get('jadwal')
+        pelatih = request.POST.get('pelatih')
+        jadwal_pelatih = request.POST.get('jadwal_pelatih')
+        hewan_list = request.POST.getlist('hewan')
         
         # Update Fasilitas
         atraksi.nama_atraksi.jadwal = jadwal
         atraksi.nama_atraksi.kapasitas_max = kapasitas
         atraksi.nama_atraksi.save()
+
+        # Update participating animals
+        from .models import Berpartisipasi
+        from satwa.models import Hewan
+        
+        # Remove existing participations
+        Berpartisipasi.objects.filter(nama_fasilitas=atraksi.nama_atraksi).delete()
+        
+        # Add new participations
+        for hewan_id in hewan_list:
+            hewan = Hewan.objects.get(id=hewan_id)
+            Berpartisipasi.objects.create(
+                nama_fasilitas=atraksi.nama_atraksi,
+                id_hewan=hewan
+            )
+
+        # Update trainer schedule
+        from penjadwalan.models import JadwalPenugasan
+        from accounts.models import PelatihHewan
+        
+        # Remove existing schedule
+        JadwalPenugasan.objects.filter(nama_atraksi=atraksi).delete()
+        
+        # Add new schedule if trainer is selected
+        if pelatih and jadwal_pelatih:
+            pelatih_obj = PelatihHewan.objects.get(username_lh=pelatih)
+            JadwalPenugasan.objects.create(
+                username_lh=pelatih_obj,
+                tgl_penugasan=jadwal_pelatih,
+                nama_atraksi=atraksi
+            )
         
         messages.success(request, 'Atraksi berhasil diperbarui')
         return redirect('manage_atraksi')
-        
-    context = {'atraksi': atraksi}
+
+    # Get current data
+    from .models import Berpartisipasi
+    from accounts.models import PelatihHewan, Pengguna
+    from satwa.models import Hewan
+    from penjadwalan.models import JadwalPenugasan
+    
+    current_animals = Berpartisipasi.objects.filter(
+        nama_fasilitas=atraksi.nama_atraksi
+    ).select_related('id_hewan')
+    
+    current_schedule = JadwalPenugasan.objects.filter(
+        nama_atraksi=atraksi
+    ).select_related('username_lh__username_lh').first()
+    
+    pelatih_list = PelatihHewan.objects.select_related('username_lh').all()
+    hewan_list = Hewan.objects.all()
+    
+    context = {
+        'atraksi': atraksi,
+        'pelatih_list': pelatih_list,
+        'hewan_list': hewan_list,
+        'current_animals': current_animals,
+        'current_schedule': current_schedule,
+    }
     return render(request, 'atraksi/edit_atraksi.html', context)
 
 def hapus_atraksi(request, nama_atraksi):

@@ -6,6 +6,7 @@
     <title>Tambah Atraksi Baru</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     {% load static %}
     <style>
         body {
@@ -15,6 +16,9 @@
             border-radius: 10px;
             border: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .select2-container .select2-selection--multiple {
+            min-height: 38px;
         }
     </style>
 </head>
@@ -50,9 +54,20 @@
                                 <input type="number" name="kapasitas" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Jadwal</label>
+                                <label class="form-label">Jadwal Atraksi</label>
                                 <input type="time" name="jadwal" class="form-control" required>
                             </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Hewan yang Berpartisipasi</label>
+                                <select name="hewan" class="form-select select2" multiple required>
+                                    {% for hewan in hewan_list %}
+                                    <option value="{{ hewan.id }}">{{ hewan.nama }} ({{ hewan.spesies }})</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Pilih satu atau lebih hewan yang akan berpartisipasi dalam atraksi</div>
+                            </div>
+
                             <div class="mb-3">
                                 <label class="form-label">Pelatih</label>
                                 <select name="pelatih" class="form-select">
@@ -62,6 +77,13 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Jadwal Pelatih</label>
+                                <input type="datetime-local" name="jadwal_pelatih" class="form-control">
+                                <div class="form-text">Pilih waktu penugasan untuk pelatih</div>
+                            </div>
+
                             <div class="text-end">
                                 <a href="{% url 'manage_atraksi' %}" class="btn btn-secondary">Batal</a>
                                 <button type="submit" class="btn btn-primary">Simpan</button>
@@ -73,6 +95,16 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                theme: "classic",
+                placeholder: "Pilih hewan yang berpartisipasi"
+            });
+        });
+    </script>
 </body>
 </html>
