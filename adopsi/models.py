@@ -3,24 +3,6 @@ from django.contrib.auth.models import User
 import uuid
 import datetime
 
-# Proxy model untuk tabel HEWAN dari modul satwa
-class Hewan(models.Model):
-    """
-    Model proxy untuk tabel HEWAN dari modul satwa
-    """
-    class Meta:
-        managed = False
-        db_table = 'HEWAN'
-
-# Proxy model untuk tabel PENGUNJUNG dari modul accounts
-class Pengunjung(models.Model):
-    """
-    Model proxy untuk tabel PENGUNJUNG dari modul accounts
-    """
-    class Meta:
-        managed = False
-        db_table = 'PENGUNJUNG'
-
 class Adopter(models.Model):
     username_adopter = models.OneToOneField('accounts.Pengunjung', models.DO_NOTHING, db_column='username_adopter', blank=True, null=True)
     id_adopter = models.UUIDField(primary_key=True)
