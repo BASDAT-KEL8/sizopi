@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Reservasi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Form Reservasi</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Nama Atraksi</label>
+                                <select name="nama_atraksi" class="form-select" required>
+                                    <option value="">Pilih Atraksi</option>
+                                    {% for attraction in attractions %}
+                                    <option value="{{ attraction.nama }}" 
+                                        data-lokasi="{{ attraction.lokasi }}"
+                                        data-jam="{{ attraction.jam }}">
+                                        {{ attraction.nama }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lokasi</label>
+                                <input type="text" id="lokasi" class="form-control" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jam</label>
+                                <input type="text" id="jam" class="form-control" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal</label>
+                                <input type="date" name="tanggal" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jumlah tiket yang ingin dibeli</label>
+                                <input type="number" name="jumlah_tiket" class="form-control" required min="1">
+                            </div>
+
+                            <div class="text-end">
+                                <a href="{% url 'booking_index' %}" class="btn btn-secondary">Batal</a>
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.querySelector('select[name="nama_atraksi"]').addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            document.getElementById('lokasi').value = selected.dataset.lokasi || '';
+            document.getElementById('jam').value = selected.dataset.jam || '';
+        });
+    </script>
+</body>
+</html>
