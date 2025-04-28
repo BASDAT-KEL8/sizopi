@@ -1,7 +1,7 @@
 from django.db import models
 
 class JadwalPenugasan(models.Model):
-    username_lh = models.ForeignKey('accounts.PelatihHewan', models.DO_NOTHING, db_column='username_lh')
+    username_lh = models.ForeignKey('accounts.PelatihHewan', models.DO_NOTHING, db_column='username_lh', primary_key=True)
     tgl_penugasan = models.DateTimeField()
     nama_atraksi = models.ForeignKey('atraksi.Atraksi', models.DO_NOTHING, db_column='nama_atraksi', blank=True, null=True)
 
@@ -9,3 +9,6 @@ class JadwalPenugasan(models.Model):
         managed = False
         db_table = 'jadwal_penugasan'
         unique_together = (('username_lh', 'tgl_penugasan'),)
+        constraints = [
+            models.UniqueConstraint(fields=['username_lh', 'tgl_penugasan'], name='jadwal_penugasan_pk')
+        ]
