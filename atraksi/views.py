@@ -18,21 +18,43 @@ def manage_atraksi(request):
     atraksi_list = Atraksi.objects.select_related('nama_atraksi').all()
     wahana_list = Wahana.objects.select_related('nama_wahana').all()
     
-    # Get participating animals for each attraction
+    # Get participating animals and assigned trainers for each attraction
     from .models import Berpartisipasi
+    from penjadwalan.models import JadwalPenugasan
+    from accounts.models import PelatihHewan, Pengguna
+    from datetime import datetime
     
-    atraksi_dengan_hewan = []
+    atraksi_dengan_detail = []
     for atraksi in atraksi_list:
+        # Get participating animals
         hewan_berpartisipasi = Berpartisipasi.objects.select_related('id_hewan').filter(
             nama_fasilitas=atraksi.nama_atraksi
         )
-        atraksi_dengan_hewan.append({
+        
+        # Get assigned trainer for the nearest schedule
+        jadwal_pelatih = JadwalPenugasan.objects.select_related(
+            'username_lh__username_lh'
+        ).filter(
+            nama_atraksi=atraksi,
+            tgl_penugasan__gte=datetime.now()
+        ).order_by('tgl_penugasan').first()
+        
+        pelatih = None
+        if jadwal_pelatih:
+            pengguna = jadwal_pelatih.username_lh.username_lh
+            pelatih = {
+                'nama': f"{pengguna.nama_depan} {pengguna.nama_belakang}",
+                'jadwal': jadwal_pelatih.tgl_penugasan
+            }
+        
+        atraksi_dengan_detail.append({
             'atraksi': atraksi,
-            'hewan_list': hewan_berpartisipasi
+            'hewan_list': hewan_berpartisipasi,
+            'pelatih': pelatih
         })
     
     context = {
-        'atraksi_list': atraksi_dengan_hewan,
+        'atraksi_list': atraksi_dengan_detail,
         'wahana_list': wahana_list
     }
     return render(request, 'atraksi/manage.html', context)

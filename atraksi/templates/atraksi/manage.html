@@ -76,7 +76,14 @@
                                 <td>{{ item.atraksi.lokasi }}</td>
                                 <td>{{ item.atraksi.nama_atraksi.kapasitas_max }} orang</td>
                                 <td>{{ item.atraksi.nama_atraksi.jadwal|date:"H:i" }}</td>
-                                <td>{{ item.atraksi.pelatih|default:"-" }}</td>
+                                <td>
+                                    {% if item.pelatih %}
+                                        <div>{{ item.pelatih.nama }}</div>
+                                        <small class="text-muted">{{ item.pelatih.jadwal|date:"d M Y H:i" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% for hewan in item.hewan_list %}
                                         <span class="badge bg-info">{{ hewan.id_hewan.nama }}</span>
