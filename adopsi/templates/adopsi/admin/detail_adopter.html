@@ -1,7 +1,8 @@
 {% extends 'adopsi/base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Detail Adopter - SIZOPI{% endblock %}
+{% block title %}Detail Adopter - Admin SIZOPI{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -126,23 +127,23 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded object-cover" src="{{ adoption.id_hewan.url_foto }}" alt="{{ adoption.id_hewan.nama|default:adoption.id_hewan.spesies }}">
+                                    <img class="h-10 w-10 rounded object-cover" src="{{ adoption.id_hewan__url_foto }}" alt="{{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}">
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ adoption.id_hewan.nama|default:adoption.id_hewan.spesies }}
+                                        {{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ adoption.id_hewan.spesies }}
+                                        {{ adoption.id_hewan__spesies }}
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ adoption.tgl_mulai_adopsi }}
+                            {{ adoption.tgl_mulai_adopsi|date:"d M Y" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ adoption.tgl_berhenti_adopsi }}
+                            {{ adoption.tgl_berhenti_adopsi|date:"d M Y" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             Rp{{ adoption.kontribusi_finansial|floatformat:0|intcomma }}
@@ -159,7 +160,7 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            {% if adoption.tgl_berhenti_adopsi|date:'Y-m-d' < now|date:'Y-m-d' %}
+                            {% if adoption.tgl_berhenti_adopsi < now.date %}
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                     Berakhir
                                 </span>
@@ -170,28 +171,32 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                            <a href="{% url 'adopsi:admin_detail_adopsi' adoption.id_adopter.id_adopter adoption.id_hewan.id adoption.tgl_mulai_adopsi %}" class="text-blue-600 hover:text-blue-900">Detail</a>
-                            
-                            {% if adoption.tgl_berhenti_adopsi|date:'Y-m-d' >= now|date:'Y-m-d' %}
-                                <button type="button" class="text-red-600 hover:text-red-900 show-modal" data-modal-target="endAdoptionModal-{{ adoption.id_hewan.id }}">
+                            <a href="{% url 'adopsi:admin_detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi|date:'Y-m-d' %}" class="text-blue-600 hover:text-blue-900">
+                                Detail
+                            </a>
+                
+                            {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                                <button type="button" class="text-red-600 hover:text-red-900 show-modal" data-modal-target="endAdoptionModal-{{ adoption.id_hewan__id }}">
                                     Hentikan
                                 </button>
-                                
+                
                                 <!-- Modal Konfirmasi Hentikan Adopsi -->
-                                <div id="endAdoptionModal-{{ adoption.id_hewan.id }}" class="hidden fixed inset-0 z-50">
+                                <div id="endAdoptionModal-{{ adoption.id_hewan__id }}" class="hidden fixed inset-0 z-50">
                                     <div class="fixed inset-0 bg-black opacity-50"></div>
                                     <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
                                         <div class="px-6 py-4 border-b border-gray-200">
                                             <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
                                         </div>
                                         <div class="p-6">
-                                            <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi {{ adoption.id_hewan.nama|default:adoption.id_hewan.spesies }} oleh adopter ini?</p>
-                                            
+                                            <p class="text-gray-700 mb-4">
+                                                Apakah Anda yakin ingin menghentikan adopsi {{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }} oleh adopter ini?
+                                            </p>
+                
                                             <div class="flex justify-end space-x-3">
                                                 <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                                                     Batal
                                                 </button>
-                                                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.id_adopter.id_adopter adoption.id_hewan.id adoption.tgl_mulai_adopsi %}">
+                                                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi|date:'Y-m-d' %}">
                                                     {% csrf_token %}
                                                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
                                                         Ya, Hentikan
@@ -212,6 +217,7 @@
                     </tr>
                     {% endfor %}
                 </tbody>
+                
             </table>
         </div>
     </div>
@@ -249,9 +255,7 @@
     </div>
 </div>
 
-{% block extra_js %}
 <script>
-    // Modal control
     document.addEventListener('DOMContentLoaded', function() {
         // Show modals
         const showModalButtons = document.querySelectorAll('.show-modal');
@@ -287,5 +291,4 @@
         });
     });
 </script>
-{% endblock %}
 {% endblock %}

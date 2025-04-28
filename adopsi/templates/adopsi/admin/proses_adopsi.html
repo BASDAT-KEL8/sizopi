@@ -1,0 +1,273 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+
+{% block title %}Daftarkan Adopsi - Admin SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'adopsi:admin_daftar_hewan' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Daftar Satwa
+        </a>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-8">Daftarkan Adopsi Satwa</h1>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-blue-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Detail Hewan</h2>
+        </div>
+        <div class="p-6 flex flex-col md:flex-row gap-6">
+            <div class="md:w-1/3">
+                <img src="{{ hewan.url_foto }}" alt="{{ hewan.nama|default:hewan.spesies }}" class="w-full h-64 object-cover rounded-lg">
+            </div>
+            <div class="md:w-2/3">
+                <h3 class="text-xl font-semibold mb-4">{{ hewan.nama|default:hewan.spesies }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-700"><span class="font-medium">ID:</span> {{ hewan.id }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Spesies:</span> {{ hewan.spesies }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Asal Hewan:</span> {{ hewan.asal_hewan }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700"><span class="font-medium">Status Kesehatan:</span> {{ hewan.status_kesehatan }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Habitat:</span> {{ hewan.id_habitat.nama_habitat }}</p>
+                        {% if hewan.tahun_lahir %}
+                        <p class="text-gray-700"><span class="font-medium">Tahun Lahir:</span> {{ hewan.tahun_lahir }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if hewan.deskripsi %}
+                <div class="mt-4">
+                    <p class="text-gray-700"><span class="font-medium">Deskripsi:</span></p>
+                    <p class="text-gray-700">{{ hewan.deskripsi }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Form Pendataan Adopter -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-green-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Pendataan Adopter</h2>
+        </div>
+        <div class="p-6">
+            <div class="mb-6">
+                <label for="username" class="block mb-2 font-medium text-gray-700">Username calon adopter:</label>
+                <div class="flex space-x-4">
+                    <input type="text" id="username" name="username" class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Masukkan username pengunjung">
+                    <button type="button" id="verify-username" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">
+                        Verifikasi Akun
+                    </button>
+                </div>
+                <div id="username-error" class="text-red-600 text-sm mt-1 hidden">Username tidak ditemukan.</div>
+            </div>
+            
+            <div id="adopter-type-selection" class="mb-6 hidden">
+                <p class="mb-2 font-medium text-gray-700">Calon Adopter akan mengadopsi satwa sebagai:</p>
+                <div class="flex space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="adopter_type" value="individu" class="mr-2">
+                        <span>Individu</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="adopter_type" value="organisasi" class="mr-2">
+                        <span>Organisasi</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Form untuk Individu -->
+            <form id="form-individu" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="username" id="individu-username">
+                <input type="hidden" name="adopter_type" value="individu">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nama" class="block mb-2 font-medium text-gray-700">Nama Lengkap <span class="text-red-600">*</span></label>
+                        <input type="text" name="nama" id="nama" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="nik" class="block mb-2 font-medium text-gray-700">NIK <span class="text-red-600">*</span></label>
+                        <input type="text" name="nik" id="nik" required pattern="[0-9]{16}" maxlength="16" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p class="text-xs text-gray-500 mt-1">NIK harus terdiri dari 16 digit</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="alamat" class="block mb-2 font-medium text-gray-700">Alamat <span class="text-red-600">*</span></label>
+                        <textarea name="alamat" id="alamat" rows="3" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 my-6 pt-6">
+                    <h3 class="text-lg font-semibold mb-4">Informasi Adopsi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="kontribusi" class="block mb-2 font-medium text-gray-700">Nominal Kontribusi (Rp) <span class="text-red-600">*</span></label>
+                            <input type="number" name="kontribusi" id="kontribusi" required min="500000" value="500000" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Minimal kontribusi Rp 500.000</p>
+                        </div>
+                        <div>
+                            <label for="periode" class="block mb-2 font-medium text-gray-700">Periode Adopsi <span class="text-red-600">*</span></label>
+                            <select name="periode" id="periode" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan</option>
+                                <option value="12">12 Bulan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="status_pembayaran" class="block mb-2 font-medium text-gray-700">Status Pembayaran <span class="text-red-600">*</span></label>
+                            <select name="status_pembayaran" id="status_pembayaran" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="tertunda">Tertunda</option>
+                                <option value="lunas">Lunas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" class="cancel-form px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-md transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition">
+                        Submit Form
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Form untuk Organisasi -->
+            <form id="form-organisasi" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="username" id="organisasi-username">
+                <input type="hidden" name="adopter_type" value="organisasi">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="nama_organisasi" class="block mb-2 font-medium text-gray-700">Nama Organisasi <span class="text-red-600">*</span></label>
+                        <input type="text" name="nama_organisasi" id="nama_organisasi" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="npp" class="block mb-2 font-medium text-gray-700">NPP <span class="text-red-600">*</span></label>
+                        <input type="text" name="npp" id="npp" required pattern="[A-Za-z0-9]{8}" maxlength="8" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p class="text-xs text-gray-500 mt-1">NPP harus terdiri dari 8 karakter</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="alamat_organisasi" class="block mb-2 font-medium text-gray-700">Alamat <span class="text-red-600">*</span></label>
+                        <textarea name="alamat_organisasi" id="alamat_organisasi" rows="3" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 my-6 pt-6">
+                    <h3 class="text-lg font-semibold mb-4">Informasi Adopsi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="kontribusi_organisasi" class="block mb-2 font-medium text-gray-700">Nominal Kontribusi (Rp) <span class="text-red-600">*</span></label>
+                            <input type="number" name="kontribusi_organisasi" id="kontribusi_organisasi" required min="500000" value="500000" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Minimal kontribusi Rp 500.000</p>
+                        </div>
+                        <div>
+                            <label for="periode_organisasi" class="block mb-2 font-medium text-gray-700">Periode Adopsi <span class="text-red-600">*</span></label>
+                            <select name="periode_organisasi" id="periode_organisasi" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan</option>
+                                <option value="12">12 Bulan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="status_pembayaran_organisasi" class="block mb-2 font-medium text-gray-700">Status Pembayaran <span class="text-red-600">*</span></label>
+                            <select name="status_pembayaran_organisasi" id="status_pembayaran_organisasi" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="tertunda">Tertunda</option>
+                                <option value="lunas">Lunas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" class="cancel-form px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-md transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition">
+                        Submit Form
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const usernameInput = document.getElementById('username');
+        const verifyButton = document.getElementById('verify-username');
+        const usernameError = document.getElementById('username-error');
+        const adopterTypeSelection = document.getElementById('adopter-type-selection');
+        const formIndividu = document.getElementById('form-individu');
+        const formOrganisasi = document.getElementById('form-organisasi');
+        const cancelButtons = document.querySelectorAll('.cancel-form');
+        
+        // Verify username button click handler
+        verifyButton.addEventListener('click', function() {
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                usernameError.textContent = 'Username tidak boleh kosong.';
+                usernameError.classList.remove('hidden');
+                return;
+            }
+            
+            // This would be an AJAX call in a real implementation
+            // For demo purposes, we'll just simulate success
+            fetch(`/api/verify-user/?username=${username}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        usernameError.classList.add('hidden');
+                        adopterTypeSelection.classList.remove('hidden');
+                        document.getElementById('individu-username').value = username;
+                        document.getElementById('organisasi-username').value = username;
+                    } else {
+                        usernameError.textContent = 'Username tidak ditemukan dalam sistem.';
+                        usernameError.classList.remove('hidden');
+                        adopterTypeSelection.classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    // For demo, just assume success since we don't have a real API
+                    usernameError.classList.add('hidden');
+                    adopterTypeSelection.classList.remove('hidden');
+                    document.getElementById('individu-username').value = username;
+                    document.getElementById('organisasi-username').value = username;
+                });
+        });
+        
+        // Radio button change handler
+        const radioButtons = document.querySelectorAll('input[name="adopter_type"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'individu') {
+                    formIndividu.classList.remove('hidden');
+                    formOrganisasi.classList.add('hidden');
+                } else {
+                    formIndividu.classList.add('hidden');
+                    formOrganisasi.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Cancel buttons click handler
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                formIndividu.classList.add('hidden');
+                formOrganisasi.classList.add('hidden');
+                adopterTypeSelection.classList.add('hidden');
+                usernameInput.value = '';
+                radioButtons.forEach(radio => {
+                    radio.checked = false;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Staff</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+<div class="container">
+    <h2>Registrasi Staff</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="nama_depan" placeholder="Nama Depan" required>
+        <input type="text" name="nama_tengah" placeholder="Nama Tengah (Opsional)">
+        <input type="text" name="nama_belakang" placeholder="Nama Belakang" required>
+        <input type="text" name="no_telepon" placeholder="Nomor Telepon" required>
+
+        <label>Pilih Peran:</label>
+        <select name="role_staff">
+            <option value="Penjaga Hewan">Penjaga Hewan</option>
+            <option value="Pelatih Hewan">Pelatih Hewan</option>
+            <option value="Staf Administrasi">Staf Administrasi</option>
+        </select>
+
+        <button type="submit">Daftar</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Pengunjung</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+<div class="container">
+    <h2>Registrasi Pengunjung</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="text" name="nama_depan" placeholder="Nama Depan" required>
+        <input type="text" name="nama_tengah" placeholder="Nama Tengah (Opsional)">
+        <input type="text" name="nama_belakang" placeholder="Nama Belakang" required>
+        <input type="text" name="no_telepon" placeholder="Nomor Telepon" required>
+        <input type="text" name="alamat" placeholder="Alamat Lengkap" required>
+        <label>Tanggal Lahir:</label>
+        <input type="date" name="tgl_lahir" required>
+        <button type="submit">Daftar</button>
+    </form>
+</div>
+</body>
+</html>

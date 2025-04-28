@@ -1,0 +1,218 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+
+{% block title %}Daftar Satwa - Admin SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <a href="{% url 'adopsi:admin_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
+            </a>
+        </div>
+        <div>
+            <a href="#" class="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition">
+                <i class="fas fa-plus mr-1"></i> Tambah Satwa Baru
+            </a>
+        </div>
+    </div>
+    
+    <h1 class="text-3xl font-bold mb-6">Manajemen Data Satwa</h1>
+    
+    <!-- Filter Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label for="status" class="block mb-2 font-medium text-gray-700">Status Adopsi</label>
+                <select name="status" id="status" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="" {% if not status_filter %}selected{% endif %}>Semua Status</option>
+                    <option value="diadopsi" {% if status_filter == 'diadopsi' %}selected{% endif %}>Sudah Diadopsi</option>
+                    <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Belum Diadopsi</option>
+                </select>
+            </div>
+            <div>
+                <label for="species" class="block mb-2 font-medium text-gray-700">Spesies</label>
+                <select name="species" id="species" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="" {% if not species_filter %}selected{% endif %}>Semua Spesies</option>
+                    {% for spesies in distinct_species %}
+                    <option value="{{ spesies }}" {% if species_filter == spesies %}selected{% endif %}>{{ spesies }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">Filter</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Animals Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama/ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spesies</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Kesehatan</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Adopsi</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for animal in animals %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full object-cover" src="{{ animal.url_foto }}" alt="{{ animal.nama|default:animal.spesies }}">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ animal.nama|default:"(Tanpa Nama)" }}</div>
+                            <div class="text-sm text-gray-500">ID: {{ animal.id|truncatechars:10 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ animal.spesies }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if animal.status_kesehatan == 'Sehat' %}
+                                    bg-green-100 text-green-800
+                                {% elif animal.status_kesehatan == 'Sakit' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-yellow-100 text-yellow-800
+                                {% endif %}
+                            ">
+                                {{ animal.status_kesehatan }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if animal.id in adopted_animal_ids %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Diadopsi
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Belum Diadopsi
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <a href="{% url 'adopsi:detail_hewan' animal.id %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-eye"></i> Lihat
+                            </a>
+                            {% if animal.id not in adopted_animal_ids %}
+                            <a href="#" class="text-green-600 hover:text-green-900 show-modal" data-modal-target="adoptModal-{{ animal.id }}">
+                                <i class="fas fa-heart"></i> Daftarkan Adopsi
+                            </a>
+                            
+                            <!-- Modal for Adoption Registration -->
+                            <div id="adoptModal-{{ animal.id }}" class="hidden fixed inset-0 z-50">
+                                <div class="fixed inset-0 bg-black opacity-50"></div>
+                                <div class="relative bg-white rounded-lg max-w-xl mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+                                    <div class="px-6 py-4 border-b border-gray-200">
+                                        <h3 class="text-xl font-bold text-gray-900">Daftarkan Adopsi untuk {{ animal.nama|default:animal.spesies }}</h3>
+                                    </div>
+                                    <div class="p-6">
+                                        <p class="mb-4">Anda akan mendaftarkan adopsi untuk satwa ini. Silahkan klik tombol di bawah untuk melanjutkan.</p>
+                                        <div class="flex justify-end space-x-3">
+                                            <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                                                Batal
+                                            </button>
+                                            <a href="{% url 'adopsi:admin_proses_adopsi' animal.id %}" class="px-4 py-2 bg-green-600 text-white rounded font-medium">
+                                                Lanjutkan
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                            Tidak ada data satwa. Silahkan tambahkan satwa baru.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if animals.has_other_pages %}
+    <div class="flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if animals.has_previous %}
+                <a href="?page={{ animals.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            {% endif %}
+            
+            {% for num in animals.paginator.page_range %}
+                {% if animals.number == num %}
+                    <span class="px-3 py-2 rounded-md bg-blue-600 text-white">{{ num }}</span>
+                {% elif num > animals.number|add:'-3' and num < animals.number|add:'3' %}
+                    <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if animals.has_next %}
+                <a href="?page={{ animals.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show modals
+        const showModalButtons = document.querySelectorAll('.show-modal');
+        showModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-modal-target');
+                const modal = document.getElementById(targetId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Close modals
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.fixed.inset-0');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Close modal when clicking outside
+        const modals = document.querySelectorAll('.fixed.inset-0');
+        modals.forEach(modal => {
+            modal.addEventListener('click', function(event) {
+                if (event.target === this.firstElementChild) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

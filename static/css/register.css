@@ -1,0 +1,77 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background: #f0f6f7;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 800px;
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+h2 {
+    text-align: center;
+    color: #56ab2f;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input, select {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px;
+    background: #56ab2f;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #3c8d24;
+}
+
+.role-selection {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 30px;
+}
+
+.role-card {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+    width: 200px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.3s;
+}
+
+.role-card:hover {
+    background: white;
+    color: #56ab2f;
+    border: 2px solid #56ab2f;
+    transform: translateY(-5px);
+}

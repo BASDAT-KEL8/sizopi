@@ -1,0 +1,153 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Daftar Adopter - Admin SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'adopsi:admin_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
+        </a>
+    </div>
+    
+    <h1 class="text-3xl font-bold mb-6">Daftar Adopter</h1>
+    
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form method="get" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+            <div class="flex-grow">
+                <label for="search" class="sr-only">Cari Adopter</label>
+                <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" name="search" id="search" value="{{ search_query|default:'' }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Cari berdasarkan nama...">
+                </div>
+            </div>
+            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2 transition">
+                Cari
+            </button>
+        </form>
+    </div>
+    
+    <!-- Top Adopters -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-green-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Adopter dengan Kontribusi Tertinggi</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Adopter</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Kontribusi</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for adopter in adopters %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-user text-gray-500"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {% if adopter.individu_set.first %}
+                                            {{ adopter.individu_set.first.nama }}
+                                        {% elif adopter.organisasi_set.first %}
+                                            {{ adopter.organisasi_set.first.nama_organisasi }}
+                                        {% else %}
+                                            {{ adopter.username_adopter.username_p }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ adopter.username_adopter.username_p }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {% if adopter.individu_set.exists %}
+                                    bg-blue-100 text-blue-800
+                                {% elif adopter.organisasi_set.exists %}
+                                    bg-purple-100 text-purple-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}
+                            ">
+                                {% if adopter.individu_set.exists %}
+                                    Individu
+                                {% elif adopter.organisasi_set.exists %}
+                                    Organisasi
+                                {% else %}
+                                    Undefined
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ adopter.username_adopter.username_p.no_telepon }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye mr-1"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                            Belum ada data adopter.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if adopters.has_other_pages %}
+    <div class="flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if adopters.has_previous %}
+                <a href="?page={{ adopters.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            {% endif %}
+            
+            {% for num in adopters.paginator.page_range %}
+                {% if adopters.number == num %}
+                    <span class="px-3 py-2 rounded-md bg-blue-600 text-white">{{ num }}</span>
+                {% elif num > adopters.number|add:'-3' and num < adopters.number|add:'3' %}
+                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if adopters.has_next %}
+                <a href="?page={{ adopters.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

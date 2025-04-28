@@ -22,8 +22,14 @@ class Adopsi(models.Model):
 
     class Meta:
         managed = False
+        
         db_table = 'adopsi'
         unique_together = (('id_adopter', 'id_hewan', 'tgl_mulai_adopsi'),)
+        # default_related_name = '+'
+
+    @property
+    def id_adopsi(self):
+        return f"{self.id_adopter.id_adopter}_{self.id_hewan.id}_{self.tgl_mulai_adopsi.strftime('%Y%m%d')}"
 
 class Individu(models.Model):
     nik = models.CharField(primary_key=True, max_length=16)
