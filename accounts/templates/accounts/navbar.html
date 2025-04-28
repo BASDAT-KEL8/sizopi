@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navbar Sizopi</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-white">
+  <nav class="bg-green-700 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <div class="flex items-center space-x-3 text-2xl font-bold tracking-wide">
+        <img src="{% static 'images/sizopi_logo.png' %}" alt="Zoo Logo" class="h-10 w-10 object-contain transform scale-150">
+      <span class="hover:text-green-200 transition">SIZOPI</span>
+    </div>
+
+    <div class="space-x-4 text-sm font-medium">
+      {% if user_role == "guest" %}
+        <a href="/accounts/login/" class="hover:text-green-200 transition">Login</a>
+        <a href="/accounts/register/" class="hover:text-green-200 transition">Registrasi</a>
+      {% else %}
+        <a href="/dashboard/" class="hover:text-green-200 transition">Dashboard</a>
+
+        {% if user_role == "dokter" %}
+          <a href="/rekam-medis/" class="hover:text-green-200 transition">Rekam Medis Hewan</a>
+        {% elif user_role == "penjaga" %}
+          <a href="/catatan-perawatan/" class="hover:text-green-200 transition">Catatan Perawatan</a>
+        {% elif user_role == "admin" %}
+          <a href="/kelola-pengunjung/" class="hover:text-green-200 transition">Kelola Pengunjung</a>
+          <a href="/kelola-adopsi/" class="hover:text-green-200 transition">Kelola Adopsi</a>
+          <a href="/kelola-adopter/" class="hover:text-green-200 transition">Kelola Adopter</a>
+        {% elif user_role == "pelatih" %}
+          <a href="/jadwal-pertunjukan/" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
+        {% elif user_role == "pengunjung" %}
+          <a href="/informasi-kebun/" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
+        {% endif %}
+
+        {% if user_role == "pengunjung_adopter" %}
+          <a href="/hewan-adopsi/" class="hover:text-green-200 transition">Hewan Adopsi</a>
+        {% endif %}
+
+        <a href="/accounts/profile/" class="hover:text-green-200 transition">Profil</a>
+        <a href="/accounts/logout/" class="hover:text-green-200 transition">Logout</a>
+      {% endif %}
+    </div>
+  </nav>
+</body>
+</html>

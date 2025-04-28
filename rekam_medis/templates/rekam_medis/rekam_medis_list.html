@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Rekam Medis Hewan</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-green-700 mb-6">Daftar Rekam Medis Hewan</h1>
+
+        <div class="flex justify-end mb-4">
+            <a href="{% url 'rekam_medis:tambah_rekam_medis' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                + Tambah Rekam Medis
+            </a>
+        </div>
+
+        <div class="bg-white shadow-md rounded">
+            <table class="min-w-full table-auto">
+                <thead class="bg-green-700 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Tanggal Pemeriksaan</th>
+                        <th class="px-6 py-3 text-left">Nama Dokter</th>
+                        <th class="px-6 py-3 text-left">Status Kesehatan</th>
+                        <th class="px-6 py-3 text-left">Diagnosis</th>
+                        <th class="px-6 py-3 text-left">Pengobatan</th>
+                        <th class="px-6 py-3 text-left">Catatan Tindak Lanjut</th>
+                        <th class="px-6 py-3 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white">
+                    {% for item in rekam_medis %}
+                    <tr class="border-b">
+                        <td class="px-6 py-4">{{ item.tanggal_pemeriksaan }}</td>
+                        <td class="px-6 py-4">
+                            {{ item.username_dh.username_dh.nama_depan }}
+                            {% if item.username_dh.username_dh.nama_tengah %} {{ item.username_dh.username_dh.nama_tengah }}{% endif %}
+                            {{ item.username_dh.username_dh.nama_belakang }}
+                        </td>                        
+                        <td class="px-6 py-4 capitalize">{{ item.status_kesehatan }}</td>
+                        <td class="px-6 py-4">{{ item.diagnosis|default:"-" }}</td>
+                        <td class="px-6 py-4">{{ item.pengobatan|default:"-" }}</td>
+                        <td class="px-6 py-4">{{ item.catatan_tindak_lanjut|default:"-" }}</td>
+                        <td class="px-6 py-4 flex space-x-2 justify-center">
+                            <a href="{% url 'rekam_medis:edit_rekam_medis' item.id_hewan.id item.tanggal_pemeriksaan %}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">Edit</a>
+                            <a href="{% url 'rekam_medis:hapus_rekam_medis' item.id_hewan.id item.tanggal_pemeriksaan %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded">Hapus</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-gray-500">Belum ada data rekam medis.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

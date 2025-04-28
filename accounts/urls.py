@@ -10,5 +10,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 
     path('', lambda request: redirect('/accounts/login/')),
-
+    path('navbar/', views.navbar_view, name='navbar'),
 ]
