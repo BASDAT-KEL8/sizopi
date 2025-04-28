@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
 from datetime import date, datetime, timedelta
-from accounts.models import Pengguna, DokterHewan, PenjagaHewan, StafAdmin, PelatihHewan, Pengunjung
+from accounts.models import Pengguna, DokterHewan, PenjagaHewan, Spesialisasi, StafAdmin, PelatihHewan, Pengunjung
 from rekam_medis.models import CatatanMedis
 from penjadwalan.models import JadwalPenugasan
 from atraksi.models import Atraksi, Berpartisipasi
@@ -31,8 +31,14 @@ def dashboard_view(request):
         context['role'] = 'Dokter Hewan'
         dokter = DokterHewan.objects.get(username_dh=username)
         context['no_str'] = dokter.no_str
-        # Get specializations (dummy data)
+        
+        # # Get real specialization data from database
+        # spesialisasi = Spesialisasi.objects.filter(username_sh=username).values_list('nama_spesialisasi', flat=True)
+        # context['spesialisasi'] = list(spesialisasi)
+
+        # Dummy data for specialization
         context['spesialisasi'] = ['Mamalia Besar', 'Reptil']
+        
         # Count handled medical records
         context['jumlah_hewan_ditangani'] = CatatanMedis.objects.filter(username_dh=username).count()
     
