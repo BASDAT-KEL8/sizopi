@@ -468,16 +468,13 @@ def admin_daftar_adopter(request):
 
 # @login_required
 def admin_detail_adopter(request, adopter_id):
-    """Menampilkan detail adopter untuk admin"""
-    # Check if user is admin
     try:
         staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
     except:
-        pass  # For development, allow all access
-    
+        pass
+
     adopter = get_object_or_404(Adopter, id_adopter=adopter_id)
-    
-    # Check the adopter type (individual or organization)
+
     try:
         individu = Individu.objects.get(id_adopter=adopter)
         adopter_type = 'individu'
@@ -490,10 +487,33 @@ def admin_detail_adopter(request, adopter_id):
         except Organisasi.DoesNotExist:
             adopter_type = 'unknown'
             adopter_detail = None
-    
-    # Get adoption history
-    adoptions = Adopsi.objects.filter(id_adopter=adopter).order_by('-tgl_mulai_adopsi')
-    
+
+    adoptions_query = Adopsi.objects.filter(id_adopter=adopter).values(
+        'id_adopter__id_adopter',
+        'id_hewan__id',
+        'id_hewan__nama',
+        'id_hewan__spesies',
+        'id_hewan__url_foto',
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    ).order_by('-tgl_mulai_adopsi')
+
+    adoptions = []
+    for adoption in adoptions_query:
+        adoptions.append({
+            'id_adopsi': f"{adoption['id_adopter__id_adopter']}_{adoption['id_hewan__id']}_{adoption['tgl_mulai_adopsi'].strftime('%Y%m%d')}",
+            'id_hewan__nama': adoption['id_hewan__nama'],
+            'id_hewan__spesies': adoption['id_hewan__spesies'],
+            'id_hewan__id': adoption['id_hewan__id'],
+            'id_hewan__url_foto': adoption['id_hewan__url_foto'],
+            'tgl_mulai_adopsi': adoption['tgl_mulai_adopsi'],
+            'tgl_berhenti_adopsi': adoption['tgl_berhenti_adopsi'],
+            'kontribusi_finansial': adoption['kontribusi_finansial'],
+            'status_pembayaran': adoption['status_pembayaran'],
+        })
+
     context = {
         'adopter': adopter,
         'adopter_type': adopter_type,
@@ -503,6 +523,7 @@ def admin_detail_adopter(request, adopter_id):
         'now': timezone.now(),
     }
     return render(request, 'adopsi/admin/detail_adopter.html', context)
+
 
 # @login_required
 def admin_update_payment(request, adopsi_id):
@@ -534,7 +555,7 @@ def admin_update_payment(request, adopsi_id):
     return render(request, 'adopsi/admin/update_payment.html', context)
 
 # @login_required
-def admin_detail_adopsi(request, adopsi_id):
+def admin_detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     """Menampilkan detail adopsi untuk admin"""
     # Check if user is admin
     try:
@@ -543,7 +564,10 @@ def admin_detail_adopsi(request, adopsi_id):
         pass  # For development, allow all access
     
     # Get the adoption by ID
-    adopsi = get_object_or_404(Adopsi, pk=adopsi_id)
+    adopsi = get_object_or_404(Adopsi, 
+                              id_adopter__id_adopter=id_adopter,
+                              id_hewan__id=id_hewan,
+                              tgl_mulai_adopsi=tgl_mulai_adopsi)
     
     # Get adopter details
     adopter = adopsi.id_adopter

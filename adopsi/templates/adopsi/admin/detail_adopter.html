@@ -171,7 +171,7 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                            <a href="{% url 'adopsi:admin_detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi|date:'Y-m-d' %}" class="text-blue-600 hover:text-blue-900">
+                            <a href="{% url 'adopsi:admin_detail_adopsi' adoption.id_adopsi %}" class="text-blue-600 hover:text-blue-900">
                                 Detail
                             </a>
                 
@@ -196,7 +196,7 @@
                                                 <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                                                     Batal
                                                 </button>
-                                                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi|date:'Y-m-d' %}">
+                                                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.id_adopsi %}">
                                                     {% csrf_token %}
                                                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
                                                         Ya, Hentikan
