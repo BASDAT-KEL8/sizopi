@@ -65,29 +65,37 @@
                                 <th>Kapasitas</th>
                                 <th>Jadwal</th>
                                 <th>Pelatih</th>
+                                <th>Hewan</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for atraksi in atraksi_list %}
+                            {% for item in atraksi_list %}
                             <tr>
-                                <td>{{ atraksi.nama_atraksi.nama }}</td>
-                                <td>{{ atraksi.lokasi }}</td>
-                                <td>{{ atraksi.nama_atraksi.kapasitas_max }} orang</td>
-                                <td>{{ atraksi.nama_atraksi.jadwal|date:"H:i" }}</td>
-                                <td>{{ atraksi.pelatih|default:"-" }}</td>
+                                <td>{{ item.atraksi.nama_atraksi.nama }}</td>
+                                <td>{{ item.atraksi.lokasi }}</td>
+                                <td>{{ item.atraksi.nama_atraksi.kapasitas_max }} orang</td>
+                                <td>{{ item.atraksi.nama_atraksi.jadwal|date:"H:i" }}</td>
+                                <td>{{ item.atraksi.pelatih|default:"-" }}</td>
                                 <td>
-                                    <a href="{% url 'edit_atraksi' atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-warning">
+                                    {% for hewan in item.hewan_list %}
+                                        <span class="badge bg-info">{{ hewan.id_hewan.nama }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">-</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'edit_atraksi' item.atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'hapus_atraksi' atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-danger">
+                                    <a href="{% url 'hapus_atraksi' item.atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center">Belum ada data atraksi</td>
+                                <td colspan="7" class="text-center">Belum ada data atraksi</td>
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -7,7 +7,7 @@ def manage_atraksi(request):
     if 'email' not in request.session:
         return redirect('login')
     
-    # Check if user is staff admin - need to check based on StafAdmin model
+    # Check if user is staff admin
     username = request.session.get('username')
     from accounts.models import StafAdmin
     
@@ -18,8 +18,21 @@ def manage_atraksi(request):
     atraksi_list = Atraksi.objects.select_related('nama_atraksi').all()
     wahana_list = Wahana.objects.select_related('nama_wahana').all()
     
+    # Get participating animals for each attraction
+    from .models import Berpartisipasi
+    
+    atraksi_dengan_hewan = []
+    for atraksi in atraksi_list:
+        hewan_berpartisipasi = Berpartisipasi.objects.select_related('id_hewan').filter(
+            nama_fasilitas=atraksi.nama_atraksi
+        )
+        atraksi_dengan_hewan.append({
+            'atraksi': atraksi,
+            'hewan_list': hewan_berpartisipasi
+        })
+    
     context = {
-        'atraksi_list': atraksi_list,
+        'atraksi_list': atraksi_dengan_hewan,
         'wahana_list': wahana_list
     }
     return render(request, 'atraksi/manage.html', context)
