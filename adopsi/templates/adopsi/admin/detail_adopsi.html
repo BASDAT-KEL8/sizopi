@@ -32,9 +32,6 @@
                         <p class="text-gray-800"><span class="font-medium">Spesies:</span> {{ adopsi.id_hewan.spesies }}</p>
                         <p class="text-gray-800"><span class="font-medium">ID Hewan:</span> {{ adopsi.id_hewan.id|truncatechars:10 }}</p>
                         <p class="text-gray-800"><span class="font-medium">Status Kesehatan:</span> {{ adopsi.id_hewan.status_kesehatan }}</p>
-                        <a href="{% url 'adopsi:detail_hewan' adopsi.id_hewan.id %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
-                            Lihat Detail Hewan
-                        </a>
                     </div>
                 </div>
                 
@@ -77,7 +74,8 @@
                         <p class="text-gray-800"><span class="font-medium">ID Adopter:</span> {{ adopsi.id_adopter.id_adopter|truncatechars:10 }}</p>
                         <p class="text-gray-800"><span class="font-medium">Username:</span> {{ pengunjung.username_p }}</p>
                         <p class="text-gray-800"><span class="font-medium">Email:</span> {{ pengunjung.username_p.email }}</p>
-                        <a href="{% url 'adopsi:admin_detail_adopter' adopsi.id_adopter.id_adopter %}" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
+                        <a href="{% url 'adopsi:admin_detail_adopter' adopsi.id_adopter.id_adopter %}
+                        " class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
                             Lihat Detail Adopter
                         </a>
                     </div>
@@ -162,36 +160,7 @@
                         <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tindakan</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for record in medical_records %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ record.tanggal_pemeriksaan|date:"d F Y" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ record.id_dokter.username_dh.nama_depan }} {{ record.id_dokter.username_dh.nama_belakang }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ record.jenis_pemeriksaan }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ record.diagnosa|truncatechars:50 }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <a href="#" class="text-blue-600 hover:text-blue-900">Lihat Detail</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                            Belum ada catatan medis selama periode adopsi.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+                <
 </div>
 
 <!-- Update Payment Modal -->
@@ -208,7 +177,7 @@
                 <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                     Batal
                 </button>
-                <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id %}">
+                <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
                     {% csrf_token %}
                     <input type="hidden" name="status_pembayaran" value="lunas">
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded font-medium">
@@ -234,7 +203,7 @@
                 <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                     Batal
                 </button>
-                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopsi.id %}">
+                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
                     {% csrf_token %}
                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
                         Ya, Hentikan

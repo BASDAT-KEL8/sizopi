@@ -1,5 +1,6 @@
 {% extends 'adopsi/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Dashboard Adopter - SIZOPI{% endblock %}
 
@@ -127,7 +128,7 @@
                         {% if not adoption.is_active %}
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ adoption.hewan.nama|default:adoption.hewan.spesies }}
+                                    {{ adoption.hewan.nama }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ adoption.hewan.spesies }}
@@ -172,7 +173,7 @@
                     <i class="fas fa-certificate text-green-600 text-4xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-center mb-2">
-                    {{ adoption.hewan.nama|default:adoption.hewan.spesies }}
+                    {{ adoption.hewan.nama }}
                 </h3>
                 <p class="text-gray-600 text-center mb-4">
                     Periode: {{ adoption.adopsi.tgl_mulai_adopsi }} - {{ adoption.adopsi.tgl_berhenti_adopsi }}

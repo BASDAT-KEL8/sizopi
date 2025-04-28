@@ -13,6 +13,7 @@
 
     <h1 class="text-3xl font-bold mb-8">Daftarkan Adopsi Satwa</h1>
     
+    <!-- Detail Hewan Card -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div class="bg-blue-600 px-6 py-4">
             <h2 class="text-xl font-semibold text-white">Detail Hewan</h2>
@@ -30,7 +31,19 @@
                         <p class="text-gray-700"><span class="font-medium">Asal Hewan:</span> {{ hewan.asal_hewan }}</p>
                     </div>
                     <div>
-                        <p class="text-gray-700"><span class="font-medium">Status Kesehatan:</span> {{ hewan.status_kesehatan }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Status Kesehatan:</span> 
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if hewan.status_kesehatan == 'Sehat' %}
+                                    bg-green-100 text-green-800
+                                {% elif hewan.status_kesehatan == 'Sakit' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-yellow-100 text-yellow-800
+                                {% endif %}
+                            ">
+                                {{ hewan.status_kesehatan }}
+                            </span>
+                        </p>
                         <p class="text-gray-700"><span class="font-medium">Habitat:</span> {{ hewan.id_habitat.nama_habitat }}</p>
                         {% if hewan.tahun_lahir %}
                         <p class="text-gray-700"><span class="font-medium">Tahun Lahir:</span> {{ hewan.tahun_lahir }}</p>
@@ -53,7 +66,8 @@
             <h2 class="text-xl font-semibold text-white">Pendataan Adopter</h2>
         </div>
         <div class="p-6">
-            <div class="mb-6">
+            <!-- Username Verification Section (Always Visible First) -->
+            <div id="username-verification-section">
                 <label for="username" class="block mb-2 font-medium text-gray-700">Username calon adopter:</label>
                 <div class="flex space-x-4">
                     <input type="text" id="username" name="username" class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Masukkan username pengunjung">
@@ -64,7 +78,8 @@
                 <div id="username-error" class="text-red-600 text-sm mt-1 hidden">Username tidak ditemukan.</div>
             </div>
             
-            <div id="adopter-type-selection" class="mb-6 hidden">
+            <!-- Adopter Type Selection (Hidden until verified) -->
+            <div id="adopter-type-selection" class="mt-6 hidden">
                 <p class="mb-2 font-medium text-gray-700">Calon Adopter akan mengadopsi satwa sebagai:</p>
                 <div class="flex space-x-4">
                     <label class="inline-flex items-center">
@@ -78,8 +93,8 @@
                 </div>
             </div>
             
-            <!-- Form untuk Individu -->
-            <form id="form-individu" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden">
+            <!-- Form untuk Individu (Hidden until type is selected) -->
+            <form id="form-individu" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden mt-6">
                 {% csrf_token %}
                 <input type="hidden" name="username" id="individu-username">
                 <input type="hidden" name="adopter_type" value="individu">
@@ -136,8 +151,8 @@
                 </div>
             </form>
             
-            <!-- Form untuk Organisasi -->
-            <form id="form-organisasi" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden">
+            <!-- Form untuk Organisasi (Hidden until type is selected) -->
+            <form id="form-organisasi" method="post" action="{% url 'adopsi:admin_proses_adopsi' hewan.id %}" class="hidden mt-6">
                 {% csrf_token %}
                 <input type="hidden" name="username" id="organisasi-username">
                 <input type="hidden" name="adopter_type" value="organisasi">
@@ -206,68 +221,81 @@
         const formIndividu = document.getElementById('form-individu');
         const formOrganisasi = document.getElementById('form-organisasi');
         const cancelButtons = document.querySelectorAll('.cancel-form');
-        
-        // Verify username button click handler
+    
         verifyButton.addEventListener('click', function() {
             const username = usernameInput.value.trim();
             
             if (!username) {
                 usernameError.textContent = 'Username tidak boleh kosong.';
                 usernameError.classList.remove('hidden');
+                adopterTypeSelection.classList.add('hidden');
                 return;
             }
-            
-            // This would be an AJAX call in a real implementation
-            // For demo purposes, we'll just simulate success
-            fetch(`/api/verify-user/?username=${username}`)
+    
+            fetch(`/adopsi/api/verify-user/?username=${username}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.exists) {
+                      
                         usernameError.classList.add('hidden');
                         adopterTypeSelection.classList.remove('hidden');
                         document.getElementById('individu-username').value = username;
                         document.getElementById('organisasi-username').value = username;
+    
+                     
+                        const oldSuccess = document.getElementById('username-success');
+                        if (oldSuccess) {
+                            oldSuccess.remove();
+                        }
+    
+                        const successMessage = document.createElement('div');
+                        successMessage.id = 'username-success';
+                        successMessage.textContent = 'Username terverifikasi sebagai pengunjung.';
+                        successMessage.className = 'text-green-600 text-sm mt-1';
+                        usernameInput.parentNode.parentNode.appendChild(successMessage);
+    
+                      
+                        usernameInput.disabled = true;
+                        verifyButton.disabled = true;
+                        verifyButton.classList.add('opacity-50', 'cursor-not-allowed');
                     } else {
-                        usernameError.textContent = 'Username tidak ditemukan dalam sistem.';
+                     
+                        usernameError.textContent = 'Username tidak ditemukan atau bukan role pengunjung.';
                         usernameError.classList.remove('hidden');
                         adopterTypeSelection.classList.add('hidden');
                     }
                 })
                 .catch(error => {
-                    // For demo, just assume success since we don't have a real API
-                    usernameError.classList.add('hidden');
-                    adopterTypeSelection.classList.remove('hidden');
-                    document.getElementById('individu-username').value = username;
-                    document.getElementById('organisasi-username').value = username;
+                    console.error(error);
+                    usernameError.textContent = 'Terjadi kesalahan saat menghubungi server.';
+                    usernameError.classList.remove('hidden');
+                    adopterTypeSelection.classList.add('hidden');
                 });
         });
-        
-        // Radio button change handler
+    
         const radioButtons = document.querySelectorAll('input[name="adopter_type"]');
         radioButtons.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.value === 'individu') {
                     formIndividu.classList.remove('hidden');
                     formOrganisasi.classList.add('hidden');
-                } else {
+                } else if (this.value === 'organisasi') {
                     formIndividu.classList.add('hidden');
                     formOrganisasi.classList.remove('hidden');
                 }
             });
         });
-        
-        // Cancel buttons click handler
+   
         cancelButtons.forEach(button => {
             button.addEventListener('click', function() {
                 formIndividu.classList.add('hidden');
                 formOrganisasi.classList.add('hidden');
-                adopterTypeSelection.classList.add('hidden');
-                usernameInput.value = '';
                 radioButtons.forEach(radio => {
                     radio.checked = false;
                 });
             });
         });
     });
-</script>
+    </script>
+    
 {% endblock %}
