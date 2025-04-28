@@ -1,57 +1,131 @@
-
+# forms.py
 from django import forms
-from django.utils import timezone
-from .models import Adopsi, Individu, Organisasi, Adopter
+from .models import Adopter
+from satwa.models import Hewan
 
-class AdopsiForm(forms.ModelForm):
-    PERIODE_CHOICES = [
-        (3, '3 bulan'),
-        (6, '6 bulan'),
-        (12, '12 bulan'),
+class AdopsiForm(forms.Form):
+    """Form untuk pendaftaran adopsi hewan baru"""
+    ADOPTER_TYPE_CHOICES = [
+        ('individu', 'Individu'),
+        ('organisasi', 'Organisasi'),
     ]
     
-    periode = forms.ChoiceField(choices=PERIODE_CHOICES, widget=forms.Select)
+    PERIODE_CHOICES = [
+        (3, '3 Bulan'),
+        (6, '6 Bulan'),
+        (12, '12 Bulan'),
+    ]
     
-    class Meta:
-        model = Adopsi
-        fields = ['kontribusi_finansial']
-        widgets = {
-            'kontribusi_finansial': forms.NumberInput(attrs={'min': '100000'}),
-        }
+    adopter_type = forms.ChoiceField(
+        label='Tipe Adopter',
+        choices=ADOPTER_TYPE_CHOICES,
+        widget=forms.RadioSelect(),
+        initial='individu'
+    )
     
-    def __init__(self, *args, **kwargs):
-        self.hewan = kwargs.pop('hewan', None)
-        self.adopter = kwargs.pop('adopter', None)
-        super(AdopsiForm, self).__init__(*args, **kwargs)
+    # Fields untuk individu
+    nama = forms.CharField(
+        label='Nama Lengkap',
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    nik = forms.CharField(
+        label='NIK',
+        max_length=16,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
+    # Fields untuk organisasi
+    npp = forms.CharField(
+        label='NPP (Nomor Pokok Perusahaan)',
+        max_length=8,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
+    # Fields umum
+    alamat = forms.CharField(
+        label='Alamat',
+        max_length=200,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+    no_telepon = forms.CharField(
+        label='Nomor Telepon',
+        max_length=15,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    kontribusi = forms.IntegerField(
+        label='Nominal Kontribusi Finansial (Rp)',
+        min_value=500000,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    periode = forms.ChoiceField(
+        label='Periode Adopsi',
+        choices=PERIODE_CHOICES,
+        initial=3,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        adopter_type = cleaned_data.get('adopter_type')
         
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        instance.id_hewan = self.hewan
-        instance.id_adopter = self.adopter
+        if adopter_type == 'individu':
+            # Validasi field individu
+            nama = cleaned_data.get('nama')
+            nik = cleaned_data.get('nik')
+            
+            if not nama:
+                self.add_error('nama', 'Nama lengkap wajib diisi untuk individu')
+            
+            if not nik:
+                self.add_error('nik', 'NIK wajib diisi untuk individu')
+            elif len(nik) != 16:
+                self.add_error('nik', 'NIK harus terdiri dari 16 digit')
         
-        # Menentukan tanggal mulai dan selesai berdasarkan periode
-        instance.tgl_mulai_adopsi = timezone.now().date()
-        periode_bulan = int(self.cleaned_data['periode'])
-        instance.tgl_berhenti_adopsi = instance.tgl_mulai_adopsi + timezone.timedelta(days=30*periode_bulan)
+        elif adopter_type == 'organisasi':
+            # Validasi field organisasi
+            nama = cleaned_data.get('nama')
+            npp = cleaned_data.get('npp')
+            
+            if not nama:
+                self.add_error('nama', 'Nama organisasi wajib diisi')
+            
+            if not npp:
+                self.add_error('npp', 'NPP wajib diisi untuk organisasi')
+            elif len(npp) != 8:
+                self.add_error('npp', 'NPP harus terdiri dari 8 karakter')
         
-        if commit:
-            instance.save()
-        return instance
+        return cleaned_data
 
-class IndividuForm(forms.ModelForm):
-    class Meta:
-        model = Individu
-        fields = ['nik', 'nama']
-        widgets = {
-            'nik': forms.TextInput(attrs={'placeholder': 'Masukkan 16 digit NIK', 'maxlength': '16'}),
-            'nama': forms.TextInput(attrs={'placeholder': 'Nama lengkap'})
-        }
 
-class OrganisasiForm(forms.ModelForm):
-    class Meta:
-        model = Organisasi
-        fields = ['npp', 'nama_organisasi']
-        widgets = {
-            'npp': forms.TextInput(attrs={'placeholder': 'Masukkan 8 digit NPP', 'maxlength': '8'}),
-            'nama_organisasi': forms.TextInput(attrs={'placeholder': 'Nama organisasi/perusahaan'})
-        }
+class PerpanjangAdopsiForm(forms.Form):
+    """Form untuk perpanjangan periode adopsi hewan"""
+    PERIODE_CHOICES = [
+        (3, '3 Bulan'),
+        (6, '6 Bulan'),
+        (12, '12 Bulan'),
+    ]
+    
+    kontribusi = forms.IntegerField(
+        label='Nominal Kontribusi Finansial (Rp)',
+        min_value=500000,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    periode = forms.ChoiceField(
+        label='Perpanjang Periode Adopsi',
+        choices=PERIODE_CHOICES,
+        initial=3,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        kontribusi = cleaned_data.get('kontribusi')
+        
+        if kontribusi < 500000:
+            self.add_error('kontribusi', 'Minimal kontribusi adalah Rp 500.000')
+        
+        return cleaned_data

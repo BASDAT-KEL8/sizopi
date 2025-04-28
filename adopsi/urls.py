@@ -1,6 +1,28 @@
+# urls.py
 from django.urls import path
 from . import views
 
+app_name = 'adopsi'
+
 urlpatterns = [
-    path('', views.index, name='index'),
+    # Halaman publik
+    path('', views.home, name='home'),
+    path('daftar-hewan/', views.list_hewan, name='list_hewan'),
+    path('hewan/<uuid:hewan_id>/', views.detail_hewan, name='detail_hewan'),
+    
+    # Halaman pengunjung/adopter
+    path('hewan/<uuid:hewan_id>/adopt/', views.adopt_hewan, name='adopt_hewan'),
+    path('dashboard/', views.dashboard_adopter, name='dashboard_adopter'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/', views.detail_adopsi, name='detail_adopsi'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/perpanjang/', views.perpanjang_adopsi, name='perpanjang_adopsi'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/berhenti/', views.berhenti_adopsi, name='berhenti_adopsi'),
+    
+    # Halaman admin
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/daftar-hewan/', views.admin_daftar_hewan, name='admin_daftar_hewan'),
+    path('admin/daftar-adopsi/', views.admin_daftar_adopsi, name='admin_daftar_adopsi'),
+    path('admin/daftar-adopter/', views.admin_daftar_adopter, name='admin_daftar_adopter'),
+    path('admin/adopter/<uuid:adopter_id>/', views.admin_detail_adopter, name='admin_detail_adopter'),
+    path('admin/adopsi/<int:adopsi_id>/', views.admin_detail_adopsi, name='admin_detail_adopsi'),
+    path('admin/adopsi/<int:adopsi_id>/payment/', views.admin_update_payment, name='admin_update_payment'),
 ]
