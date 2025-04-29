@@ -23,7 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('satwa/', include('satwa.urls')),
-    path('habitat/', include('habitat.urls')),
+    path('habitat/', include('habitat.urls', namespace='habitat')),
     path('rekam-medis/', include('rekam_medis.urls')),
     path('penjadwalan/', include('penjadwalan.urls')),
     path('pakan/', include('pakan.urls')),

@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Satwa</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  {% include 'accounts/navbar.html' %}
+<main class="max-w-3xl mx-auto px-6 py-10">
+  <div class="bg-white shadow-xl rounded-2xl p-8">
+    <h1 class="text-2xl font-bold text-green-800 mb-6">Form Edit Data Satwa</h1>
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Individu (opsional)</label>
+        <input type="text" name="nama" value="{{ satwa.nama }}" 
+          class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Spesies</label>
+        <input type="text" name="spesies" value="{{ satwa.spesies }}" 
+          class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Asal Hewan</label>
+        <input type="text" name="asal" value="{{ satwa.asal }}" 
+          class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir (opsional)</label>
+        <input type="date" name="tanggal_lahir" value="{{ satwa.tanggal_lahir }}" 
+          class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Status Kesehatan</label>
+        <select name="status" class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4" required>
+          <option value="Sehat" {% if satwa.status == "Sehat" %}selected{% endif %}>Sehat</option>
+          <option value="Sakit" {% if satwa.status == "Sakit" %}selected{% endif %}>Sakit</option>
+          <option value="Dalam Pemantauan" {% if satwa.status == "Dalam Pemantauan" %}selected{% endif %}>Dalam Pemantauan</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Habitat</label>
+        <select name="habitat" class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4" required>
+          <option value="">Pilih Habitat</option>
+          {% for habitat in habitat_options %}
+            <option value="{{ habitat }}" {% if habitat == satwa.habitat %}selected{% endif %}>
+              {{ habitat }}
+            </option>
+          {% endfor %}
+        </select>        
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">URL Foto Satwa</label>
+        <input type="text" name="foto" value="{{ satwa.foto }}" 
+          class="w-full border border-gray-500 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 py-2 px-4">
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+          Simpan Perubahan
+        </button>
+        <a href="{% url 'satwa:view_satwa' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg">
+          Batal
+        </a>
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>
