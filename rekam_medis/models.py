@@ -14,6 +14,11 @@ class CatatanMedis(models.Model):
         db_table = 'catatan_medis'
         unique_together = (('id_hewan', 'tanggal_pemeriksaan'),)
 
+    @property
+    def id(self):
+        """Properti id palsu untuk menghindari error 'id tidak ada'."""
+        return f"{self.id_hewan_id}_{self.tanggal_pemeriksaan.strftime('%Y%m%d')}"
+
 class JadwalPemeriksaanKesehatan(models.Model):
     id_hewan = models.ForeignKey('satwa.Hewan', models.DO_NOTHING, db_column='id_hewan')
     tgl_pemeriksaan_selanjutnya = models.DateField()

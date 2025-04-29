@@ -1,0 +1,78 @@
+{% extends "adopsi/base.html" %}
+{% load static humanize %}
+
+{% block title %}Perpanjang Adopsi - SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <a href="{{ back_url|default:'javascript:history.back()' }}"
+       class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
+        <i class="fas fa-arrow-left mr-2"></i>Kembali
+    </a>
+
+    <h1 class="text-3xl font-bold mb-8 text-center">Form Perpanjang Periode Adopsi Satwa</h1>
+
+    <!-- Ringkasan Hewan -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Hewan yang Diadopsi</h2>
+        <div class="flex flex-col sm:flex-row gap-6">
+            <img src="{{ hewan.url_foto }}" alt="{{ hewan.nama|default:hewan.spesies }}"
+                 class="w-40 h-40 object-cover rounded">
+            <div class="flex-1 space-y-1">
+                <p><span class="font-medium">Nama:</span> {{ hewan.nama|default:"-" }}</p>
+                <p><span class="font-medium">Jenis:</span> {{ hewan.spesies }}</p>
+                <p><span class="font-medium">Habitat:</span> {{ hewan.nama_habitat|default:"-" }}</p>
+                <p><span class="font-medium">Status Kesehatan:</span> {{ hewan.status_kesehatan }}</p>
+                <p><span class="font-medium">Periode Saat Ini:</span>
+                    {{ adopsi.tgl_mulai_adopsi|date:"d M Y" }} –
+                    {{ adopsi.tgl_berhenti_adopsi|date:"d M Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Perpanjang -->
+    <form method="post" class="bg-white rounded-lg shadow p-6 space-y-6">
+        {% csrf_token %}
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Data Adopter</h2>
+
+        {% if adopter_type == "individu" %}
+            <p><span class="font-medium">Nama:</span> {{ adopter_detail.nama }}</p>
+            <p><span class="font-medium">NIK:</span> {{ adopter_detail.nik }}</p>
+        {% elif adopter_type == "organisasi" %}
+            <p><span class="font-medium">Nama Organisasi:</span> {{ adopter_detail.nama_organisasi }}</p>
+            <p><span class="font-medium">NPP:</span> {{ adopter_detail.npp }}</p>
+        {% endif %}
+        <p><span class="font-medium">Alamat:</span> {{ pengunjung.alamat }}</p>
+
+        <hr class="border-gray-300">
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Detail Perpanjangan</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                {{ form.kontribusi.label_tag }}
+                {{ form.kontribusi }}
+                {% if form.kontribusi.errors %}
+                    <p class="text-sm text-red-600">{{ form.kontribusi.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                {{ form.periode.label_tag }}
+                {{ form.periode }}
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 mt-6">
+            <a href="{{ back_url|default:'javascript:history.back()' }}"
+               class="px-4 py-2 bg-gray-200 text-gray-800 rounded">
+               Batal
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                Submit Form
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

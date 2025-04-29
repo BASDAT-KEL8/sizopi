@@ -1,0 +1,81 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Update Status Pembayaran - Admin SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'adopsi:admin_detail_adopsi' adopsi.id %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Detail Adopsi
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto">
+        <div class="bg-blue-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Update Status Pembayaran</h2>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center mb-6">
+                <div class="flex-shrink-0 h-16 w-16">
+                    <img class="h-16 w-16 rounded-full object-cover" src="{{ adopsi.id_hewan.url_foto }}" alt="{{ adopsi.id_hewan.nama|default:adopsi.id_hewan.spesies }}">
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">{{ adopsi.id_hewan.nama|default:adopsi.id_hewan.spesies }}</h3>
+                    <p class="text-sm text-gray-500">
+                        Adopsi oleh: 
+                        {% if adopsi.id_adopter.individu_set.first %}
+                            {{ adopsi.id_adopter.individu_set.first.nama }}
+                        {% elif adopsi.id_adopter.organisasi_set.first %}
+                            {{ adopsi.id_adopter.organisasi_set.first.nama_organisasi }}
+                        {% else %}
+                            {{ adopsi.id_adopter.username_adopter.username_p }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Detail Adopsi:</h4>
+                <div class="space-y-1">
+                    <p><span class="font-medium">Tanggal Mulai:</span> {{ adopsi.tgl_mulai_adopsi|date:"d F Y" }}</p>
+                    <p><span class="font-medium">Tanggal Berakhir:</span> {{ adopsi.tgl_berhenti_adopsi|date:"d F Y" }}</p>
+                    <p><span class="font-medium">Nominal Kontribusi:</span> Rp{{ adopsi.kontribusi_finansial|floatformat:0|intcomma }}</p>
+                    <p><span class="font-medium">Status Pembayaran Saat Ini:</span> 
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if adopsi.status_pembayaran == 'lunas' %}
+                                bg-green-100 text-green-800
+                            {% else %}
+                                bg-yellow-100 text-yellow-800
+                            {% endif %}
+                        ">
+                            {{ adopsi.status_pembayaran|title }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id %}">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label for="status_pembayaran" class="block mb-2 font-medium text-gray-700">Pilih Status Pembayaran Baru</label>
+                    <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
+                        <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'adopsi:admin_detail_adopsi' adopsi.id %}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-md transition">
+                        Batal
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

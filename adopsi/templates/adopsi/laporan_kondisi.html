@@ -1,0 +1,73 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Laporan Kondisi Hewan - SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+
+    <div class="flex items-center space-x-3 mb-8">
+        <a href="{% url 'adopsi:dashboard_adopter' %}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
+        </a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Laporan Kondisi Satwa</h1>
+    </div>
+    
+
+    <!-- Informasi Hewan -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-600"><strong>Nama Hewan:</strong> {{ hewan.nama }}</p>
+                <p class="text-gray-600"><strong>Jenis Hewan:</strong> {{ hewan.spesies }}</p>
+                <p class="text-gray-600"><strong>Habitat:</strong> {{ hewan.habitat }}</p>
+            </div>
+            <div>
+                {% if hewan.url_foto %}
+                <img src="{{ hewan.url_foto.url }}" alt="Foto Hewan" class="rounded-lg w-full h-48 object-cover">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Rekam Medis Satwa -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold mb-6">Rekam Medis Satwa</h2>
+
+        {% if medical_records %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Pemeriksaan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Dokter</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status Kesehatan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diagnosa</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pengobatan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catatan Tindak Lanjut</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for record in medical_records %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.tanggal_pemeriksaan }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.nama_dokter }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.status_kesehatan }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.diagnosa }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.pengobatan }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ record.catatan_tindak_lanjut }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500">
+            Belum ada rekam medis setelah tanggal adopsi.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
