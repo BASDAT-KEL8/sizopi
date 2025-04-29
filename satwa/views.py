@@ -3,6 +3,8 @@ from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
+from accounts.models import DokterHewan, PenjagaHewan, StafAdmin
+
 
 def view_satwa(request):
     with connection.cursor() as cursor:
@@ -27,7 +29,8 @@ def view_satwa(request):
     ]
 
     context = {
-        "satwa_list": satwa_list
+        "satwa_list": satwa_list,
+        'role' : get_user_role(request)
     }
     return render(request, 'view_satwa.html', context)
 
@@ -62,7 +65,8 @@ def create_satwa(request):
         habitat_options = [row[0] for row in cursor.fetchall()]
 
     return render(request, 'create_satwa.html', {
-        "habitat_options": habitat_options
+        "habitat_options": habitat_options,
+        'role' : get_user_role(request)
     })
 
 def delete_satwa(request, id):
@@ -111,7 +115,20 @@ def edit_satwa(request, id):
             "habitat": data[6],
             "foto": data[7]
         },
-        "habitat_options": habitat_options
+        "habitat_options": habitat_options,
+        'role' : get_user_role(request)
     }
 
     return render(request, 'edit_satwa.html', context)
+
+def get_user_role(request):
+    username = request.session.get('username')
+    
+    if DokterHewan.objects.filter(username_dh=username).exists():
+        return 'Dokter Hewan'
+    elif PenjagaHewan.objects.filter(username_jh=username).exists():
+        return 'Penjaga Hewan'
+    elif StafAdmin.objects.filter(username_sa=username).exists():
+        return 'Staf Administrasi'
+    
+    return ""
