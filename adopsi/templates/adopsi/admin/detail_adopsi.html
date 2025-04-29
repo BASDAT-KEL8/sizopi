@@ -2,112 +2,231 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Detail Adopsi - SIZOPI{% endblock %}
+{% block title %}Detail Adopsi - Admin SIZOPI{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="section-title">Detail Adopsi</h1>
-            <p class="section-subtitle">Informasi lengkap tentang adopsi.</p>
-        </div>
+<div class="container mx-auto px-4 py-8">
+    <!-- Kembali + Judul -->
+    <div class="flex items-center space-x-3 mb-8">
+        <a href="{{ back_url|default:'javascript:history.back()' }}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
+        </a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Detail Adopsi Satwa</h1>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-primary-green text-white">
-                    <h5 class="mb-0">Informasi Adopsi</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6 class="text-primary-green">Data Hewan</h6>
-                            <p><strong>Nama:</strong> {{ adopsi.id_hewan.nama }}</p>
-                            <p><strong>Jenis:</strong> {{ adopsi.id_hewan.jenis }}</p>
-                            <p><strong>Habitat:</strong> {{ adopsi.id_hewan.habitat }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-primary-green">Data Adopter</h6>
-                            <p><strong>Username:</strong> {{ adopsi.id_adopter.username_adopter }}</p>
-                            {% if adopsi.id_adopter.individu %}
-                                <p><strong>Nama:</strong> {{ adopsi.id_adopter.individu.nama }}</p>
-                                <p><strong>NIK:</strong> {{ adopsi.id_adopter.individu.nik }}</p>
-                                <p><strong>Tipe:</strong> Individu</p>
-                            {% elif adopsi.id_adopter.organisasi %}
-                                <p><strong>Nama Organisasi:</strong> {{ adopsi.id_adopter.organisasi.nama_organisasi }}</p>
-                                <p><strong>NPP:</strong> {{ adopsi.id_adopter.organisasi.npp }}</p>
-                                <p><strong>Tipe:</strong> Organisasi</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6 class="text-primary-green">Periode Adopsi</h6>
-                            <p><strong>Tanggal Mulai:</strong> {{ adopsi.tgl_mulai_adopsi|date:"d M Y" }}</p>
-                            <p><strong>Tanggal Berakhir:</strong> {{ adopsi.tgl_berhenti_adopsi|date:"d M Y" }}</p>
-                            <p><strong>Durasi:</strong> 
-                                {% with durasi=adopsi.tgl_berhenti_adopsi|timeuntil:adopsi.tgl_mulai_adopsi %}
-                                    {{ durasi }}
-                                {% endwith %}
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-primary-green">Informasi Kontribusi</h6>
-                            <p><strong>Jumlah Kontribusi:</strong> Rp {{ adopsi.kontribusi_finansial|intcomma }}</p>
-                            <p>
-                                <strong>Status Pembayaran:</strong> 
-                                <span class="badge {% if adopsi.status_pembayaran == 'lunas' %}bg-success{% else %}bg-warning{% endif %}">
-                                    {{ adopsi.get_status_pembayaran_display }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Update Status Pembayaran</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
-                            <select name="status_pembayaran" id="status_pembayaran" class="form-select">
-                                <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
-                                <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
-                            </select>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Update Status</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <!-- Card Info Adopsi -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-green-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Informasi Adopsi</h2>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card sticky-top" style="top: 20px;">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Aksi</h5>
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Info Hewan -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Satwa</h3>
+                    <div class="mb-4">
+                        <img src="{{ adopsi.id_hewan.url_foto }}" alt="{{ adopsi.id_hewan.nama|default:adopsi.id_hewan.spesies }}" class="w-full h-48 object-cover rounded">
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-gray-800"><span class="font-medium">Nama:</span> {{ adopsi.id_hewan.nama|default:"-" }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Spesies:</span> {{ adopsi.id_hewan.spesies }}</p>
+                        <p class="text-gray-800"><span class="font-medium">ID Hewan:</span> {{ adopsi.id_hewan.id|truncatechars:10 }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Status Kesehatan:</span> {{ adopsi.id_hewan.status_kesehatan }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Asal:</span> {{ adopsi.id_hewan.asal_hewan|default:"-" }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Habitat:</span> {{ adopsi.id_hewan.nama_habitat|default:"-" }}</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'admin_daftar_adopsi' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i> Kembali ke Daftar Adopsi
+
+                <!-- Info Adopter -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Adopter</h3>
+                    <div class="flex justify-center mb-4">
+                        <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-500 text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-gray-800"><span class="font-medium">Nama:</span> 
+                            {% if adopter_type == 'individu' %}
+                                {{ adopter_detail.nama }}
+                            {% elif adopter_type == 'organisasi' %}
+                                {{ adopter_detail.nama_organisasi }}
+                            {% else %}
+                                {{ pengunjung.username_p }}
+                            {% endif %}
+                        </p>
+                        <p class="text-gray-800"><span class="font-medium">Tipe:</span> 
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {% if adopter_type == 'individu' %}
+                                    bg-blue-100 text-blue-800
+                                {% elif adopter_type == 'organisasi' %}
+                                    bg-purple-100 text-purple-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}
+                            ">
+                                {{ adopter_type|title }}
+                            </span>
+                        </p>
+                        {% if adopter_type == 'individu' %}
+                            <p class="text-gray-800"><span class="font-medium">NIK:</span> {{ adopter_detail.nik }}</p>
+                        {% elif adopter_type == 'organisasi' %}
+                            <p class="text-gray-800"><span class="font-medium">NPP:</span> {{ adopter_detail.npp }}</p>
+                        {% endif %}
+                        <p class="text-gray-800"><span class="font-medium">ID Adopter:</span> {{ adopsi.id_adopter.id_adopter|truncatechars:10 }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Username:</span> {{ pengunjung.username_p }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Email:</span> {{ pengunjung.username_p.email }}</p>
+                        <a href="{% url 'adopsi:admin_detail_adopter' adopsi.id_adopter.id_adopter %}" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
+                            Lihat Detail Adopter
                         </a>
-                        <a href="{% url 'admin_daftar_adopter' %}" class="btn btn-primary">
-                            <i class="bi bi-people me-2"></i> Lihat Daftar Adopter
-                        </a>
+                    </div>
+                </div>
+
+                <!-- Info Adopsi -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Periode &amp; Pembayaran</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-800">Status Adopsi:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if adopsi.tgl_berhenti_adopsi < now.date %}
+                                    bg-gray-100 text-gray-800
+                                {% else %}
+                                    bg-green-100 text-green-800
+                                {% endif %}
+                            ">
+                                {% if adopsi.tgl_berhenti_adopsi < now.date %}
+                                    Berakhir
+                                {% else %}
+                                    Aktif
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-800">Status Pembayaran:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if adopsi.status_pembayaran == 'lunas' %}
+                                    bg-green-100 text-green-800
+                                {% else %}
+                                    bg-yellow-100 text-yellow-800
+                                {% endif %}
+                            ">
+                                {{ adopsi.status_pembayaran|title }}
+                            </span>
+                        </div>
+                        <hr class="border-gray-300 my-2">
+                        <p class="text-gray-800"><span class="font-medium">Tanggal Mulai:</span> {{ adopsi.tgl_mulai_adopsi|date:"d F Y" }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Tanggal Berakhir:</span> {{ adopsi.tgl_berhenti_adopsi|date:"d F Y" }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Durasi:</span> 
+                            {% with duration=adopsi.tgl_berhenti_adopsi|timeuntil:adopsi.tgl_mulai_adopsi %}
+                                {{ duration }}
+                            {% endwith %}
+                        </p>
+                        <hr class="border-gray-300 my-2">
+                        <p class="text-gray-800"><span class="font-medium">Kontribusi:</span> Rp{{ adopsi.kontribusi_finansial|floatformat:0|intcomma }}</p>
+                    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="space-y-3 mt-6">
+                        <button type="button" class="show-modal block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal-target="updatePaymentModal">
+                            <i class="fas fa-money-check-alt mr-1"></i> Update Status Pembayaran
+                        </button>
+                        {% if adopsi.tgl_berhenti_adopsi >= now.date %}
+                        <button type="button" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition show-modal" data-modal-target="terminateModal">
+                            <i class="fas fa-times-circle mr-1"></i> Hentikan Adopsi
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Update Payment Status Modal -->
+<div id="updatePaymentModal" class="hidden fixed inset-0 z-50">
+    <div class="fixed inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900">Update Status Pembayaran</h3>
+        </div>
+        <div class="p-6">
+            <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
+                    <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
+                        <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded font-medium">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Terminate Adoption Modal -->
+<div id="terminateModal" class="hidden fixed inset-0 z-50">
+    <div class="fixed inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi ini? Tindakan ini akan mengubah tanggal berakhir adopsi menjadi hari ini.</p>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                    Batal
+                </button>
+                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
+                        Ya, Hentikan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tombol untuk membuka modal
+        const modalButtons = document.querySelectorAll('.show-modal');
+        modalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modalId = this.getAttribute('data-modal-target');
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.remove('hidden');
+            });
+        });
+        
+        // Tombol untuk menutup modal
+        const closeButtons = document.querySelectorAll('.close-modal');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('[id]');
+                if (modal) modal.classList.add('hidden');
+            });
+        });
+        
+        // Menutup modal saat mengklik backdrop (latar belakang)
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('fixed') && event.target.classList.contains('inset-0') && !event.target.classList.contains('bg-black')) {
+                const modals = document.querySelectorAll('.fixed.inset-0.z-50');
+                modals.forEach(modal => modal.classList.add('hidden'));
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+
+{% block title %}Program Adopsi Satwa: Bantu Mereka dengan Cinta{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{% static "adopsi/images/hero-bg.jpg" %}');
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-cover bg-center py-24 -mt-6">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white text-shadow-md">Program Adopsi Satwa</h1>
+        <h2 class="text-xl md:text-2xl mb-8 text-white text-shadow">Bantu Mereka dengan Cinta</h2>
+        <p class="text-lg text-white mb-10 max-w-3xl mx-auto">Pihak taman safari mengadakan program adopsi satwa secara simbolis untuk mengajak para pengunjung maupun organisasi menumbuhkan kepedulian mereka terhadap satwa.</p>
+        <a href="{% url 'adopsi:list_hewan' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 inline-block">Lihat Satwa</a>
+    </div>
+</section>
+
+<!-- Cara Kerja Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Bagaimana Program Adopsi Satwa Bekerja?</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 transform transition duration-300 hover:-translate-y-2">
+                <div class="text-center">
+                    <span class="inline-block p-4 rounded-full bg-green-100 text-green-600 mb-4">
+                        <i class="fas fa-search text-3xl"></i>
+                    </span>
+                    <h3 class="text-xl font-semibold mb-3">1. Pilih Satwa</h3>
+                    <p class="text-gray-600">Pilih satwa yang ingin Anda adopsi secara simbolis dari berbagai spesies yang kami pelihara.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 transform transition duration-300 hover:-translate-y-2">
+                <div class="text-center">
+                    <span class="inline-block p-4 rounded-full bg-green-100 text-green-600 mb-4">
+                        <i class="fas fa-hand-holding-heart text-3xl"></i>
+                    </span>
+                    <h3 class="text-xl font-semibold mb-3">2. Berikan Kontribusi</h3>
+                    <p class="text-gray-600">Berikan kontribusi finansial dengan nominal yang Anda tentukan untuk menunjukkan komitmen Anda.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 transform transition duration-300 hover:-translate-y-2">
+                <div class="text-center">
+                    <span class="inline-block p-4 rounded-full bg-green-100 text-green-600 mb-4">
+                        <i class="fas fa-certificate text-3xl"></i>
+                    </span>
+                    <h3 class="text-xl font-semibold mb-3">3. Dapatkan Manfaat</h3>
+                    <p class="text-gray-600">Terima sertifikat digital, laporan berkala, dan kunjungan eksklusif ke satwa yang Anda adopsi.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Animals Section -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Satwa yang Dapat Diadopsi</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for animal in featured_animals|slice:":6" %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:-translate-y-2">
+                <div class="relative">
+                    <img src="{{ animal.url_foto }}" class="w-full h-64 object-cover" alt="{{ animal.nama|default:animal.spesies }}">
+                    <div class="absolute top-3 right-3">
+                        {% if animal.is_adopted %}
+                            <span class="bg-green-600 text-white text-sm font-medium px-3 py-1 rounded-full">Diadopsi</span>
+                        {% else %}
+                            <span class="bg-gray-500 text-white text-sm font-medium px-3 py-1 rounded-full">Belum Diadopsi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-2">{% if animal.nama %}{{ animal.nama }}{% else %}{{ animal.spesies }}{% endif %}</h3>
+                    <div class="space-y-1 mb-4">
+                        <p class="text-gray-700"><span class="font-medium">Spesies:</span> {{ animal.spesies }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Status Kesehatan:</span> {{ animal.status_kesehatan }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Habitat:</span> {{ animal.nama_habitat }}</p>
+                    </div>
+                    <a href="{% url 'adopsi:detail_hewan' animal.id %}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center font-medium py-2 rounded-md transition">Lihat Detail</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-10">
+                <p class="text-gray-600 text-lg">Tidak ada satwa yang tersedia saat ini. Silakan cek kembali nanti.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-12">
+            <a href="{% url 'adopsi:list_hewan' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition">Lihat Semua Satwa</a>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Manfaat Menjadi Adopter</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start">
+                    <span class="bg-green-100 text-green-600 p-3 rounded-full mr-4">
+                        <i class="fas fa-file-certificate text-xl"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Sertifikat Digital</h3>
+                        <p class="text-gray-600">Dapatkan sertifikat adopsi digital yang dapat Anda bagikan di media sosial atau cetak sebagai kenang-kenangan.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start">
+                    <span class="bg-green-100 text-green-600 p-3 rounded-full mr-4">
+                        <i class="fas fa-clipboard-list text-xl"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Laporan Berkala</h3>
+                        <p class="text-gray-600">Terima laporan kondisi dan perkembangan satwa yang Anda adopsi secara berkala melalui email.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start">
+                    <span class="bg-green-100 text-green-600 p-3 rounded-full mr-4">
+                        <i class="fas fa-user-clock text-xl"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Sesi Eksklusif</h3>
+                        <p class="text-gray-600">Kunjungi satwa yang Anda adopsi dalam sesi eksklusif dengan panduan dari petugas taman safari.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start">
+                    <span class="bg-green-100 text-green-600 p-3 rounded-full mr-4">
+                        <i class="fas fa-hand-holding-seedling text-xl"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Kontribusi Konservasi</h3>
+                        <p class="text-gray-600">Berkontribusi langsung terhadap upaya konservasi dan perlindungan satwa liar di Indonesia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Apa Kata Adopter Kami</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <img src="{% static 'adopsi/images/testimonial-1.jpg' %}" alt="Testimonial" class="w-20 h-20 object-cover rounded-full mx-auto mb-4">
+                <h3 class="text-xl font-semibold mb-2">Bambang Susanto</h3>
+                <div class="flex justify-center text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600">"Mengadopsi Melly si Gajah adalah keputusan terbaik! Saya selalu mendapatkan laporan berkala dan foto-foto terbaru Melly. Rasanya seperti menjadi bagian dari keluarga taman safari."</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <img src="{% static 'adopsi/images/testimonial-2.jpg' %}" alt="Testimonial" class="w-20 h-20 object-cover rounded-full mx-auto mb-4">
+                <h3 class="text-xl font-semibold mb-2">Cindy Larasati</h3>
+                <div class="flex justify-center text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <p class="text-gray-600">"Anak-anak saya sangat senang bisa mengunjungi Simba si Singa dalam sesi eksklusif. Mereka belajar banyak tentang pentingnya konservasi satwa liar. Program yang sangat mendidik!"</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <img src="{% static 'adopsi/images/testimonial-3.jpg' %}" alt="Testimonial" class="w-20 h-20 object-cover rounded-full mx-auto mb-4">
+                <h3 class="text-xl font-semibold mb-2">PT Hijau Lestari</h3>
+                <div class="flex justify-center text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600">"Sebagai perusahaan yang peduli lingkungan, mengadopsi satwa di taman safari adalah bagian dari program CSR kami. Proses adopsinya mudah dan transparan. Sangat memuaskan!"</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-green-600 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-6">Siap Menjadi Adopter?</h2>
+        <p class="text-xl mb-8 max-w-3xl mx-auto">Bergabunglah dengan program adopsi satwa kami dan jadilah bagian dari upaya pelestarian satwa liar di Indonesia.</p>
+        <a href="{% url 'adopsi:list_hewan' %}" class="bg-white text-green-600 hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 inline-block">Mulai Adopsi Sekarang</a>
+    </div>
+</section>
+{% endblock %}

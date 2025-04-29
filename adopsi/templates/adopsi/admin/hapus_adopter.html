@@ -1,0 +1,61 @@
+{% extends 'adopsi/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Hapus Adopter - Admin SIZOPI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Detail Adopter
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto">
+        <div class="bg-red-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Konfirmasi Hapus Adopter</h2>
+        </div>
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <div class="mx-auto h-20 w-20 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-center mb-4">Apakah Anda yakin ingin menghapus adopter ini?</h3>
+            
+            <p class="text-gray-700 mb-6 text-center">
+                Tindakan ini akan menghapus semua data terkait adopter beserta riwayat adopsinya dan tidak dapat dibatalkan.
+            </p>
+            
+            <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Informasi Adopter:</h4>
+                <p><span class="font-medium">Nama:</span> 
+                    {% if adopter.individu_set.first %}
+                        {{ adopter.individu_set.first.nama }}
+                    {% elif adopter.organisasi_set.first %}
+                        {{ adopter.organisasi_set.first.nama_organisasi }}
+                    {% else %}
+                        {{ adopter.username_adopter.username_p }}
+                    {% endif %}
+                </p>
+                <p><span class="font-medium">Username:</span> {{ adopter.username_adopter.username_p }}</p>
+                <p><span class="font-medium">Total Kontribusi:</span> Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</p>
+            </div>
+            
+            <div class="flex justify-center space-x-6">
+                <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-md transition">
+                    Batal
+                </a>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition">
+                        Ya, Hapus Adopter
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -30,8 +30,8 @@
                 
                 {% if role == "Staf Administrasi" %}
                     <a href="/kelola-pengunjung/" class="hover:text-green-200 transition">Kelola Pengunjung</a>
-                    <a href="/kelola-adopsi/" class="hover:text-green-200 transition">Kelola Adopsi</a>
-                    <a href="/kelola-adopter/" class="hover:text-green-200 transition">Kelola Adopter</a>
+                    <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopsi</a>
+                    <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopter</a>
                 {% endif %}
                 
                 {% if role == "Staf Pelatih Pertunjukan" %}
@@ -43,7 +43,7 @@
                 {% endif %}
 
                 {% if role == "pengunjung_adopter" %}
-                    <a href="/hewan-adopsi/" class="hover:text-green-200 transition">Hewan Adopsi</a>
+                    <a href="{% url 'adopsi:dashboard_adopter' %}" class="hover:text-green-200 transition">Hewan Adopsi</a>
                 {% endif %}
 
                 <a href="/accounts/profile/" class="hover:text-green-200 transition">Pengaturan Profil</a>

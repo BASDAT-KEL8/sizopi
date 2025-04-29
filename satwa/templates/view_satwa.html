@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Satwa</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    {% include 'accounts/navbar.html' %}
+<main class="max-w-7xl mx-auto px-6 py-10">
+  <div class="bg-white shadow-xl rounded-2xl p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-green-800">Data Satwa</h1>
+      <a href="{% url 'satwa:create_satwa' %}" 
+         class="inline-flex items-center gap-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 transition">
+        Tambah Satwa
+      </a>
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-200">
+      <table class="min-w-full text-sm text-gray-700">
+        <thead class="bg-green-100 text-green-800 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3">Nama Individu</th>
+            <th class="px-4 py-3">Spesies</th>
+            <th class="px-4 py-3">Asal Hewan</th>
+            <th class="px-4 py-3">Tanggal Lahir</th>
+            <th class="px-4 py-3">Status Kesehatan</th>
+            <th class="px-4 py-3">Habitat</th>
+            <th class="px-4 py-3">URL</th>
+            <th class="px-4 py-3">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for satwa in satwa_list %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-2">{{ satwa.nama }}</td>
+            <td class="px-4 py-2">{{ satwa.spesies }}</td>
+            <td class="px-4 py-2">{{ satwa.asal }}</td>
+            <td class="px-4 py-2">{{ satwa.tanggal_lahir }}</td>
+            <td class="px-4 py-2">{{ satwa.status }}</td>
+            <td class="px-4 py-2">{{ satwa.habitat }}</td>
+            <td class="px-4 py-2">
+              {% if satwa.foto %}
+                <a href="{{ satwa.foto }}" class="text-blue-600 hover:underline" target="_blank">{{ satwa.foto }}</a>
+              {% else %}
+                <span class="text-gray-400 italic">Tidak ada URL</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 flex flex-wrap gap-2">
+              <a href="{% url 'satwa:edit_satwa' satwa.id %}" 
+                 class="inline-flex items-center rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium px-3 py-1 transition">
+                Edit
+              </a>
+              <form method="post" action="{% url 'satwa:delete_satwa' satwa.id %}" onsubmit="return confirm('Yakin ingin menghapus satwa ini?');">
+                {% csrf_token %}
+                <button type="submit"
+                        class="inline-flex items-center rounded-lg bg-green-700 hover:bg-green-800 text-white text-xs font-medium px-3 py-1 transition">
+                  Hapus
+                </button>
+              </form>              
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-4 py-6 text-center text-gray-500">Belum ada data satwa.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>

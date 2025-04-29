@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Jadwal Pemberian Pakan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Edit Jadwal Pemberian Pakan</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Pakan</label>
+                                <select name="jenis_pakan" class="form-select" required>
+                                    <option value="Daging Sapi" {% if pakan.jenis == 'Daging Sapi' %}selected{% endif %}>Daging Sapi</option>
+                                    <option value="Daging Ayam" {% if pakan.jenis == 'Daging Ayam' %}selected{% endif %}>Daging Ayam</option>
+                                    <option value="Daging Kambing" {% if pakan.jenis == 'Daging Kambing' %}selected{% endif %}>Daging Kambing</option>
+                                    <option value="Rumput Segar" {% if pakan.jenis == 'Rumput Segar' %}selected{% endif %}>Rumput Segar</option>
+                                    <option value="Buah-buahan" {% if pakan.jenis == 'Buah-buahan' %}selected{% endif %}>Buah-buahan</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Jumlah (gram)</label>
+                                <input type="number" name="jumlah_pakan" class="form-control" value="{{ pakan.jumlah }}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Jadwal</label>
+                                <input type="datetime-local" name="jadwal" class="form-control" value="{{ pakan.jadwal|date:'Y-m-d\TH:i' }}" required>
+                            </div>
+
+                            <div class="text-end">
+                                <a href="{% url 'pakan:list_pemberian_pakan' id_hewan=id_hewan %}" class="btn btn-secondary">Batal</a>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
