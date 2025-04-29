@@ -53,3 +53,13 @@ class StafAdmin(models.Model):
     class Meta:
         managed = False
         db_table = 'staf_admin'
+
+class Spesialisasi(models.Model):
+    pk = models.CompositePrimaryKey('username_sh', 'nama_spesialisasi')
+    username_sh = models.ForeignKey(DokterHewan, models.DO_NOTHING, db_column='username_sh')
+    nama_spesialisasi = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'spesialisasi'
+        unique_together = (('username_sh', 'nama_spesialisasi'),)

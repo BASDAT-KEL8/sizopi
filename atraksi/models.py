@@ -29,10 +29,13 @@ class Wahana(models.Model):
         db_table = 'wahana'
 
 class Berpartisipasi(models.Model):
-    nama_fasilitas = models.ForeignKey('atraksi.Fasilitas', models.DO_NOTHING, db_column='nama_fasilitas')
+    nama_fasilitas = models.ForeignKey('atraksi.Fasilitas', models.DO_NOTHING, db_column='nama_fasilitas', primary_key=True)
     id_hewan = models.ForeignKey('satwa.Hewan', models.DO_NOTHING, db_column='id_hewan')
 
     class Meta:
         managed = False
         db_table = 'berpartisipasi'
         unique_together = (('nama_fasilitas', 'id_hewan'),)
+        constraints = [
+            models.UniqueConstraint(fields=['nama_fasilitas', 'id_hewan'], name='berpartisipasi_pk')
+        ]

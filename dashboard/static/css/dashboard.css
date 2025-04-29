@@ -1,0 +1,153 @@
+/* Base styles */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Card styles */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,.08);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: none;
+    padding: 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Table styles */
+.table-borderless th {
+    font-weight: 600;
+    color: #6c757d;
+    padding: 0.75rem 0;
+}
+
+.table-borderless td {
+    padding: 0.75rem 0;
+    color: #2d3748;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.01);
+    transition: background-color 0.2s ease;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem;
+}
+
+/* Badge styles */
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+}
+
+.badge.rounded-pill {
+    padding-right: 1em;
+    padding-left: 1em;
+}
+
+/* Button styles */
+.btn {
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-sm {
+    padding: 0.4rem 1rem;
+}
+
+.btn-outline-danger {
+    border-width: 2px;
+}
+
+/* Icon styles */
+.icon-box {
+    transition: all 0.3s ease;
+}
+
+.icon-box:hover {
+    transform: scale(1.05);
+}
+
+/* Glass effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Statistics cards */
+.stat-card .card-header {
+    padding: 1.5rem;
+}
+
+.stat-card .icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Gradient backgrounds */
+.bg-gradient {
+    background: linear-gradient(45deg, rgba(0,0,0,0.05), rgba(0,0,0,0));
+}
+
+.bg-success.bg-gradient {
+    background: linear-gradient(45deg, #38a169, #48bb78);
+}
+
+.bg-primary.bg-gradient {
+    background: linear-gradient(45deg, #3182ce, #4299e1);
+}
+
+.bg-info.bg-gradient {
+    background: linear-gradient(45deg, #00acc1, #00bcd4);
+}
+
+.bg-warning.bg-gradient {
+    background: linear-gradient(45deg, #d69e2e, #ecc94b);
+}
+
+.bg-danger.bg-gradient {
+    background: linear-gradient(45deg, #e53e3e, #f56565);
+}
+
+.bg-secondary.bg-gradient {
+    background: linear-gradient(45deg, #718096, #a0aec0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        margin: -0.5rem;
+    }
+    
+    .btn {
+        padding: 0.4rem 1rem;
+    }
+}

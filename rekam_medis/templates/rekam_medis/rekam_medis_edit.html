@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Rekam Medis</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="bg-white p-6 rounded shadow-md w-full max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-center mb-6">EDIT REKAM MEDIS</h1>
+    
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div>
+        <label class="block mb-2 font-semibold">Catatan Tindak Lanjut:</label>
+        {{ form.catatan_tindak_lanjut }}
+      </div>
+
+      <div>
+        <label class="block mb-2 font-semibold">Diagnosa Baru:</label>
+        {{ form.diagnosis }}
+      </div>
+
+      <div>
+        <label class="block mb-2 font-semibold">Pengobatan Baru:</label>
+        {{ form.pengobatan }}
+      </div>
+
+      <div class="flex justify-center gap-6 mt-8">
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded">SIMPAN</button>
+        <a href="{% url 'rekam_medis:list_rekam_medis' %}" class="text-blue-600 font-bold">BATAL</a>
+      </div>
+    </form>
+
+  </div>
+</body>
+</html>
