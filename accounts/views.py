@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
 from .models import Pengguna, Pengunjung, DokterHewan, PenjagaHewan, PelatihHewan, StafAdmin
+from adopsi.models import Adopter
 import uuid
 
 def choose_role_view(request):
@@ -286,31 +287,45 @@ def update_profile(request):
         
     return redirect('profile')
 
+
 def navbar_view(request):
     user_role = "guest"
+    role = "guest"
     username = request.session.get('username')
     
     if username:
-        # Check role by querying directly with username
-        if DokterHewan.objects.filter(username_dh=username).exists():
-            role = "Dokter Hewan"
-            print("Dokter Hewan")
-        elif PenjagaHewan.objects.filter(username_jh=username).exists():
-            role = "Penjaga Hewan"
-            print("Penjaga Hewan")
-        elif StafAdmin.objects.filter(username_sa=username).exists():
-            role = "Staf Administrasi"
-            print("Staf Administrasi")
-        elif PelatihHewan.objects.filter(username_lh=username).exists():
-            role = "Staf Pelatih Pertunjukan"
-            print("Staf Pelatih Pertunjukan")
-        elif Adopter.objects.filter(username_adopter=username).exists():
-            if Pengunjung.objects.filter(username_p=username).exists():
-                role = "pengunjung_adopter"
+        try:
+            pengguna = Pengguna.objects.get(username=username)
+
+            # Cek role staff
+            if DokterHewan.objects.filter(username_dh__username=username).exists():
+                role = "Dokter Hewan"
+            elif PenjagaHewan.objects.filter(username_jh__username=username).exists():
+                role = "Penjaga Hewan"
+            elif StafAdmin.objects.filter(username_sa__username=username).exists():
+                role = "Staf Administrasi"
+            elif PelatihHewan.objects.filter(username_lh__username=username).exists():
+                role = "Staf Pelatih Pertunjukan"
             else:
-                role = "adopter"
-        elif Pengunjung.objects.filter(username_p=username).exists():
-            role = "Pengunjung"
-            print("Pengunjung")
-            
-    return render(request, 'accounts/navbar.html', {'user_role': role})
+                # Kalau bukan staff, cek apakah dia pengunjung
+                try:
+                    pengunjung = Pengunjung.objects.get(username_p__username=username)
+
+                    # Cek apakah pengunjung ini juga adopter
+                    if Adopter.objects.filter(username_adopter_id=pengunjung.id).exists():
+                        role = "pengunjung_adopter"
+                    else:
+                        role = "Pengunjung"
+                except Pengunjung.DoesNotExist:
+                    role = "guest"
+
+            user_role = role
+
+        except Pengguna.DoesNotExist:
+            role = "guest"
+            user_role = "guest"
+    
+    # Bisa print buat cek debug
+    print(f"[NAVBAR_VIEW] Username: {username} | Final Role: {role}")
+
+    return render(request, 'accounts/navbar.html', {'user_role': user_role, 'role': role})

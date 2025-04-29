@@ -32,6 +32,8 @@
                         <p class="text-gray-800"><span class="font-medium">Spesies:</span> {{ adopsi.id_hewan.spesies }}</p>
                         <p class="text-gray-800"><span class="font-medium">ID Hewan:</span> {{ adopsi.id_hewan.id|truncatechars:10 }}</p>
                         <p class="text-gray-800"><span class="font-medium">Status Kesehatan:</span> {{ adopsi.id_hewan.status_kesehatan }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Asal:</span> {{ adopsi.id_hewan.asal_hewan|default:"-" }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Habitat:</span> {{ adopsi.id_hewan.nama_habitat|default:"-" }}</p>
                     </div>
                 </div>
 
@@ -141,9 +143,65 @@
     </div>
 </div>
 
-<!-- Modal JS tetap sama -->
+<!-- Update Payment Status Modal -->
+<div id="updatePaymentModal" class="hidden fixed inset-0 z-50">
+    <div class="fixed inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900">Update Status Pembayaran</h3>
+        </div>
+        <div class="p-6">
+            <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
+                    <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
+                        <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded font-medium">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Terminate Adoption Modal -->
+<div id="terminateModal" class="hidden fixed inset-0 z-50">
+    <div class="fixed inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi ini? Tindakan ini akan mengubah tanggal berakhir adopsi menjadi hari ini.</p>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                    Batal
+                </button>
+                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id adopsi.tgl_mulai_adopsi|date:'Y-m-d' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
+                        Ya, Hentikan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Tombol untuk membuka modal
         const modalButtons = document.querySelectorAll('.show-modal');
         modalButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -152,6 +210,8 @@
                 if (modal) modal.classList.remove('hidden');
             });
         });
+        
+        // Tombol untuk menutup modal
         const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -159,6 +219,8 @@
                 if (modal) modal.classList.add('hidden');
             });
         });
+        
+        // Menutup modal saat mengklik backdrop (latar belakang)
         document.addEventListener('click', function(event) {
             if (event.target.classList.contains('fixed') && event.target.classList.contains('inset-0') && !event.target.classList.contains('bg-black')) {
                 const modals = document.querySelectorAll('.fixed.inset-0.z-50');
