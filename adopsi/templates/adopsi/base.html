@@ -4,173 +4,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SIZOPI - Sistem Zoo Pintar{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'adopsi/css/styles.css' %}">
+    <title>{% block title %}Program Adopsi Satwa - Taman Safari{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js"></script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .text-shadow-md {
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+            }
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <header>
-        <!-- Top Navigation -->
-        <div class="top-nav bg-light py-2">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6">
-                        <ul class="list-inline mb-0">
-                            <li class="list-inline-item"><a href="#" class="text-muted small">Care for Planet</a></li>
-                            <li class="list-inline-item"><a href="#" class="text-muted small">Venues for Hire</a></li>
-                            <li class="list-inline-item"><a href="#" class="text-muted small">For Schools</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-lg-6 text-end">
-                        <div class="d-inline-flex align-items-center">
-                            {% if user.is_authenticated %}
-                                <a href="#" class="text-muted small me-3">
-                                    <i class="bi bi-person-circle me-1"></i> {{ user.username }}
-                                </a>
-                                <a href="#" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-search me-1"></i> Search
-                                </a>
-                            {% else %}
-                                <a href="{% url 'login' %}" class="text-muted small me-3">
-                                    <i class="bi bi-person-circle me-1"></i> Sign in
-                                </a>
-                                <a href="#" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-search me-1"></i> Search
-                                </a>
-                            {% endif %}
+<body class="flex flex-col min-h-screen bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-green-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'adopsi:home' %}" class="text-xl font-bold flex items-center">
+                        <i class="fas fa-paw mr-2"></i>
+                        <span>Program Adopsi Satwa</span>
+                    </a>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="{% url 'adopsi:home' %}" class="py-2 px-3 rounded-md hover:bg-green-600 transition">Beranda</a>
+                    <a href="{% url 'adopsi:list_hewan' %}" class="py-2 px-3 rounded-md hover:bg-green-600 transition">Daftar Satwa</a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'adopsi:dashboard_adopter' %}" class="py-2 px-3 rounded-md hover:bg-green-600 transition">Dashboard Saya</a>
+                        
+                        {% if user.is_staff %}
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open" class="py-2 px-3 rounded-md hover:bg-green-600 transition flex items-center">
+                                    Admin
+                                    <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                                </button>
+                                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg py-1 z-10">
+                                    <a href="{% url 'adopsi:admin_dashboard' %}" class="block px-4 py-2 hover:bg-gray-100">Dashboard Admin</a>
+                                    <a href="{% url 'adopsi:admin_daftar_hewan' %}" class="block px-4 py-2 hover:bg-gray-100">Kelola Satwa</a>
+                                    <a href="{% url 'adopsi:admin_daftar_adopsi' %}" class="block px-4 py-2 hover:bg-gray-100">Kelola Adopsi</a>
+                                    <a href="{% url 'adopsi:admin_daftar_adopter' %}" class="block px-4 py-2 hover:bg-gray-100">Kelola Adopter</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" class="py-2 px-3 rounded-md hover:bg-green-600 transition flex items-center">
+                                <i class="fas fa-user-circle mr-1"></i>
+                                <span>{{ user.get_full_name|default:user.username }}</span>
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg py-1 z-10">
+                                <a href="#" class="block px-4 py-2 hover:bg-gray-100">Profil Saya</a>
+                                <div class="border-t border-gray-200"></div>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+                            </div>
                         </div>
-                    </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="py-2 px-3 rounded-md hover:bg-green-600 transition">Login</a>
+                       
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button" class="text-white hover:text-gray-200 focus:outline-none" x-data="{open: false}" @click="open = !open" :class="{'text-gray-200': open}">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div class="md:hidden mt-3" x-data="{open: false}" x-show="open" @click.away="open = false">
+                <div class="bg-green-600 rounded-md p-2">
+                    <a href="{% url 'adopsi:home' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Beranda</a>
+                    <a href="{% url 'adopsi:list_hewan' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Daftar Satwa</a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'adopsi:dashboard_adopter' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Dashboard Saya</a>
+                        
+                        {% if user.is_staff %}
+                            <a href="{% url 'adopsi:admin_dashboard' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Dashboard Admin</a>
+                            <a href="{% url 'adopsi:admin_daftar_hewan' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Kelola Satwa</a>
+                            <a href="{% url 'adopsi:admin_daftar_adopsi' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Kelola Adopsi</a>
+                            <a href="{% url 'adopsi:admin_daftar_adopter' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Kelola Adopter</a>
+                        {% endif %}
+                        
+                        <div class="border-t border-green-500 my-2"></div>
+                        <a href="#" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Profil Saya</a>
+                        <a href="{% url 'logout' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="block py-2 px-3 rounded-md hover:bg-green-500 transition">Login</a>
+                     
+                    {% endif %}
                 </div>
             </div>
         </div>
-        
-        <!-- Main Navigation -->
-        <nav class="navbar navbar-expand-lg bg-white">
-            <div class="container">
-                <a class="navbar-brand py-2" href="{% url 'home' %}">
-                    <img src="{% static 'adopsi/img/sizopi-logo.png' %}" alt="SIZOPI" height="36">
-                </a>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav mx-auto">
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="#">Discover SIZOPI</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="{% url 'daftar_hewan' %}">Tickets & Passes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="#">Plan Your Visit</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="#">See & Do</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="#">Dine & Shop</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="#">Stay</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" href="{% url 'pengunjung_dashboard' %}">Memberships</a>
-                        </li>
-                    </ul>
-                    
-                    <div>
-                        <a href="{% url 'daftar_hewan' %}" class="btn btn-warning rounded-pill">Buy Now</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+    </nav>
 
-    <main>
-        {% if messages %}
-            <div class="container mt-3">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mx-auto px-4 py-3">
+            {% for message in messages %}
+                <div class="bg-{{ message.tags|default:'blue' }}-100 border-l-4 border-{{ message.tags|default:'blue' }}-500 text-{{ message.tags|default:'blue' }}-700 p-4 mb-3 rounded-md" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Content -->
+    <main class="flex-grow">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer bg-dark text-white">
-        <div class="container py-5">
-            <div class="row">
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-uppercase mb-4 fw-bold">About SIZOPI</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">About Us</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Conservation</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Sustainability</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Careers</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-uppercase mb-4 fw-bold">Visit Us</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Location</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Opening Hours</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Getting Here</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Attractions</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-uppercase mb-4 fw-bold">Get Involved</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Adopt an Animal</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Donations</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Volunteer</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50">Corporate Partnership</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h5 class="text-uppercase mb-4 fw-bold">Connect With Us</h5>
-                    <div class="social-links mb-4">
-                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#" class="text-white me-2 fs-5"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
-                    </div>
-                    <h5 class="text-uppercase mb-3 fw-bold">Contact Us</h5>
-                    <p class="text-white-50">
-                        <i class="bi bi-envelope-fill me-2"></i> info@sizopi.com<br>
-                        <i class="bi bi-telephone-fill me-2"></i> +62 123 4567 890
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom py-3 bg-black">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <p class="mb-md-0 small text-white-50">&copy; {% now "Y" %} SIZOPI. All Rights Reserved.</p>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <ul class="list-inline mb-0">
-                            <li class="list-inline-item"><a href="#" class="text-decoration-none text-white-50 small">Privacy Policy</a></li>
-                            <li class="list-inline-item"><a href="#" class="text-decoration-none text-white-50 small">Terms of Use</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'adopsi/js/scripts.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+   
 </body>
 </html>
