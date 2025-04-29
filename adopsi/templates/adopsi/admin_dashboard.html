@@ -141,10 +141,15 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ adopter.adopsi_count }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="text-blue-600 hover:text-blue-900">
-                                Lihat Detail
-                            </a>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex items-center justify-center space-x-3">
+                                <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="text-blue-600 hover:text-blue-900">
+                                    Lihat Detail
+                                </a>
+                                <a href="/adopsi/admin/adopter/{{ adopter.id_adopter }}/hapus/" class="text-red-600 hover:text-red-900" onclick="return confirm('Apakah Anda yakin ingin menghapus adopter ini?');">
+                                    Hapus
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -158,8 +163,5 @@
             </table>
         </div>
     </div>
-    
-   
-
 </div>
 {% endblock %}

@@ -13,11 +13,15 @@ urlpatterns = [
     # Halaman pengunjung/adopter
     # path('hewan/<uuid:hewan_id>/adopt/', views.adopt_hewan, name='adopt_hewan'),
     path('dashboard/', views.dashboard_adopter, name='dashboard_adopter'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/', views.detail_adopsi, name='detail_adopsi'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/perpanjang/', views.perpanjang_adopsi, name='perpanjang_adopsi'),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/laporan/', views.laporan_kondisi, name='laporan_kondisi'),
+
     # path('adopsi/<int:adopsi_id>/', views.detail_adopsi, name='detail_adopsi'),
     # path('adopsi/<int:adopsi_id>/perpanjang/', views.perpanjang_adopsi, name='perpanjang_adopsi'),
     # path('adopsi/<int:adopsi_id>/berhenti/', views.berhenti_adopsi, name='berhenti_adopsi'),
 
-    path("adopsi/<uuid:adopsi_id>/sertifikat/", views.sertifikat_adopsi, name="sertifikat_adopsi"),
+    path('adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/sertifikat/', views.sertifikat_adopsi, name='sertifikat_adopsi'),
     
     # Halaman admin
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
@@ -32,6 +36,8 @@ urlpatterns = [
     # path('admin/adopsi/<int:adopsi_id>/payment/', views.admin_update_payment, name='admin_update_payment'),
 
     path('admin/hewan/<uuid:hewan_id>/proses-adopsi/', views.admin_proses_adopsi, name='admin_proses_adopsi'),
+    
+    path('admin/adopter/<int:adopter_id>/hapus/', views.admin_hapus_adopter, name='admin_hapus_adopter'),
 
 
     path('admin/detail_adopsi/<uuid:id_adopter>/<uuid:id_hewan>/<str:tgl_mulai_adopsi>/', views.admin_detail_adopsi, name='admin_detail_adopsi'),

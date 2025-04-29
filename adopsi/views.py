@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Sum, Count
 from django.core.paginator import Paginator
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 import uuid
 
 from .models import (
@@ -58,26 +58,76 @@ def list_hewan(request):
     }
     return render(request, 'adopsi/list_hewan.html', context)
 
+# @login_required
 def detail_hewan(request, hewan_id):
-    """Menampilkan detail hewan dan status adopsinya"""
+    """Menampilkan detail hewan untuk admin"""
+    try:
+        staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
+    except StafAdmin.DoesNotExist:
+        pass  # Untuk development biarkan akses semua
+
     hewan = get_object_or_404(Hewan, id=hewan_id)
     
-    # Cek status adopsi
+    # Ambil status adopsi hewan
     current_adoption = Adopsi.objects.filter(
-        id_hewan=hewan,
-        tgl_berhenti_adopsi__gt=timezone.now().date()
-    ).first()
+    id_hewan=hewan,
+    tgl_berhenti_adopsi__gt=timezone.now().date()
+        ).values(
+            'id_adopter', 
+            'id_hewan',
+            'status_pembayaran',
+            'tgl_mulai_adopsi',
+            'tgl_berhenti_adopsi',
+            'kontribusi_finansial'
+        ).order_by('-tgl_mulai_adopsi')
     
-    # Ambil catatan medis hewan
-    medical_records = CatatanMedis.objects.filter(id_hewan=hewan).order_by('-tanggal_pemeriksaan')
-    
-    context = {
-        'hewan': hewan,
-        'current_adoption': current_adoption,
-        'medical_records': medical_records,
-    }
-    return render(request, 'adopsi/detail_hewan.html', context)
+    current_adoption = current_adoption.first()
 
+    if not current_adoption:
+        messages.error(request, "Hewan ini belum diadopsi.")
+        return redirect('adopsi:admin_dashboard')
+
+    # # Ambil catatan medis hewan
+    # medical_records = CatatanMedis.objects.filter(id_hewan=hewan).order_by('-tanggal_pemeriksaan')
+
+    # Create dummy adoption object for template
+    class AdoptionObject:
+        pass
+
+    adoption = AdoptionObject()
+    adoption.id_hewan = hewan
+    adoption.status_adopsi = current_adoption['status_pembayaran']  # Ubah dari .status_adopsi ke ['status_pembayaran']
+    adoption.tgl_mulai_adopsi = current_adoption['tgl_mulai_adopsi']  # Ubah dari .tgl_mulai_adopsi ke ['tgl_mulai_adopsi']
+    adoption.tgl_berhenti_adopsi = current_adoption['tgl_berhenti_adopsi']  # Ubah dari .tgl_berhenti_adopsi ke ['tgl_berhenti_adopsi']
+
+    # Cek tipe adopter
+    adopter = get_object_or_404(Adopter, id_adopter=current_adoption['id_adopter'])
+
+    try:
+        individu = Individu.objects.get(id_adopter=adopter)
+        adopter_type = 'individu'
+        adopter_detail = individu
+    except Individu.DoesNotExist:
+        try:
+            organisasi = Organisasi.objects.get(id_adopter=adopter)
+            adopter_type = 'organisasi'
+            adopter_detail = organisasi
+        except Organisasi.DoesNotExist:
+            adopter_type = 'unknown'
+            adopter_detail = None
+
+    context = {
+        'adoption': adoption,
+        'hewan': hewan,
+        'adopter': adopter,
+        'adopter_type': adopter_type,
+        'adopter_detail': adopter_detail,
+        'now': timezone.now(),
+        'tgl_mulai_adopsi_str': adoption.tgl_mulai_adopsi.strftime('%Y-%m-%d'),
+    }
+
+    return render(request, 'adopsi/detail_hewan.html', context)
+    
 # @login_required
 def adopt_hewan(request, hewan_id):
     """Form pendaftaran adopsi hewan"""
@@ -172,9 +222,8 @@ def adopt_hewan(request, hewan_id):
     }
     return render(request, 'adopsi/adopt_form.html', context)
 
-def dashboard_adopter(request):
-    """Dashboard untuk pengunjung yang menjadi adopter"""
 
+def dashboard_adopter(request):
     try:
         pengunjung = Pengunjung.objects.get(username_p__username=request.session['username'])
         adopter = Adopter.objects.get(username_adopter=pengunjung)
@@ -216,97 +265,207 @@ def dashboard_adopter(request):
     }
     return render(request, 'adopsi/dashboard_adopter.html', context)
 
-
-
 # @login_required
-def detail_adopsi(request, adopsi_id):
-    """Menampilkan detail adopsi tertentu"""
-    # For testing only, we'll use a simple get first to debug
-    adopsi = get_object_or_404(Adopsi, pk=adopsi_id)
-    
-    # Ambil catatan medis hewan setelah tanggal adopsi
-    medical_records = CatatanMedis.objects.filter(
-        id_hewan=adopsi.id_hewan,
-        tanggal_pemeriksaan__gte=adopsi.tgl_mulai_adopsi
-    ).order_by('-tanggal_pemeriksaan')
-    
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from datetime import datetime
+from .models import Adopsi, Adopter, Individu, Organisasi
+from satwa.models import Hewan
+from rekam_medis.models import CatatanMedis
+
+def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    """Menampilkan detail adopsi untuk adopter (user)"""
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:dashboard_adopter')
+
+    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
+    queryset = Adopsi.objects.filter(
+        id_adopter=adopter,
+        id_hewan=hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'id_adopter__id_adopter',
+        'id_hewan__id',
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    )
+
+    adopsi_list = list(queryset)
+
+    if not adopsi_list:
+        messages.error(request, "Adopsi tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+
+    adopsi_data = adopsi_list[0]
+
+    # Create dummy AdopsiObject
+    class AdopsiObject:
+        pass
+
+    adopsi = AdopsiObject()
+    adopsi.id_adopter = adopter
+    adopsi.id_hewan = hewan
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+    # Cek tipe adopter
+    try:
+        individu = Individu.objects.get(id_adopter=adopter)
+        adopter_type = 'individu'
+        adopter_detail = individu
+    except Individu.DoesNotExist:
+        try:
+            organisasi = Organisasi.objects.get(id_adopter=adopter)
+            adopter_type = 'organisasi'
+            adopter_detail = organisasi
+        except Organisasi.DoesNotExist:
+            adopter_type = 'unknown'
+            adopter_detail = None
+
     context = {
         'adopsi': adopsi,
-        'hewan': adopsi.id_hewan,
-        'medical_records': medical_records,
+        'hewan': hewan,
+        'adopter': adopter,
+        'adopter_type': adopter_type,
+        'adopter_detail': adopter_detail,
+        'pengunjung': adopter.username_adopter,
+        'now': timezone.now(),
+        'tgl_mulai_adopsi_str': adopsi.tgl_mulai_adopsi.strftime('%Y-%m-%d'),
     }
+
     return render(request, 'adopsi/detail_adopsi.html', context)
 
-# @login_required
-def perpanjang_adopsi(request, adopsi_id):
-    """Form perpanjangan adopsi hewan"""
-    # For testing only, we'll use a simple get
-    adopsi = get_object_or_404(Adopsi, pk=adopsi_id)
-    
+def perpanjang_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
+    hewan = get_object_or_404(Hewan, id=id_hewan)  # 🛠 ini fix-nya
+    tgl_mulai = timezone.datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+
+    adopsi_query = Adopsi.objects.filter(
+    id_adopter=adopter,
+    id_hewan=hewan,
+    tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    ).order_by('tgl_mulai_adopsi')
+
+    adopsi_data = adopsi_query.first()
+
+
+    if not adopsi_data:
+            messages.error(request, "Data adopsi tidak ditemukan.")
+            return redirect('adopsi:dashboard_adopter')
+
+        # Dummy adopsi
+    class AdopsiObject:
+        pass
+
+    adopsi = AdopsiObject()
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+
     if request.method == 'POST':
-        form = PerpanjangAdopsiForm(request.POST)
-        if form.is_valid():
-            # Hitung tanggal akhir adopsi baru
-            periode_bulan = form.cleaned_data['periode']
-            tgl_akhir_baru = adopsi.tgl_berhenti_adopsi + timedelta(days=30 * periode_bulan)
-            
-            # Update data adopsi
-            adopsi.tgl_berhenti_adopsi = tgl_akhir_baru
-            adopsi.kontribusi_finansial += form.cleaned_data['kontribusi']
-            adopsi.status_pembayaran = 'tertunda'
-            adopsi.save()
-            
-            # Update total kontribusi adopter
-            adopter = adopsi.id_adopter  # Get adopter from the adoption
-            adopter.total_kontribusi += form.cleaned_data['kontribusi']
-            adopter.save()
-            
-            messages.success(request, f"Adopsi {adopsi.id_hewan.nama} berhasil diperpanjang hingga {tgl_akhir_baru.strftime('%d %B %Y')}.")
-            return redirect('adopsi:detail_adopsi', adopsi_id=adopsi.id)
-    else:
-        form = PerpanjangAdopsiForm(initial={'kontribusi': 500000, 'periode': 3})
-    
+        periode_bulan = int(request.POST.get('periode'))
+        kontribusi = int(request.POST.get('kontribusi'))
+
+        # Update adopsi
+        adopsi.tgl_berhenti_adopsi += timezone.timedelta(days=30 * periode_bulan)
+        adopsi.kontribusi_finansial += kontribusi
+        adopsi.status_pembayaran = 'tertunda'
+        adopsi.save()
+
+        # Update total kontribusi adopter
+        adopter.total_kontribusi += kontribusi
+        adopter.save()
+
+        messages.success(request, f"Adopsi {hewan.nama} berhasil diperpanjang.")
+        return redirect('adopsi:dashboard_adopter')
+
     context = {
         'adopsi': adopsi,
-        'hewan': adopsi.id_hewan,
-        'form': form,
+        'hewan': hewan,
     }
     return render(request, 'adopsi/perpanjang_form.html', context)
 
 # @login_required
 # views.py
 
+# @login_required
 def berhenti_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
-    """Konfirmasi penghentian adopsi hewan"""
-    adopsi = Adopsi.objects.filter(
+    """Berhenti adopsi"""
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:dashboard_adopter')
+
+    adopsi_query = Adopsi.objects.filter(
         id_adopter__id_adopter=id_adopter,
         id_hewan__id=id_hewan,
-        tgl_mulai_adopsi=tgl_mulai_adopsi
-    ).first()
-    
-    is_admin = False
-    try:
-        staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
-        is_admin = True
-    except:
+        tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    )
+
+    adopsi_data = adopsi_query.first()
+
+    if not adopsi_data:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+
+    # Dummy adopsi buat template
+    class AdopsiObject:
         pass
 
+    adopsi = AdopsiObject()
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+    adopsi_real = Adopsi.objects.get(
+        id_adopter__id_adopter=id_adopter,
+        id_hewan__id=id_hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    )
+
     if request.method == 'POST':
-        adopsi.tgl_berhenti_adopsi = timezone.now().date()
-        adopsi.save()
+        adopsi_real.tgl_berhenti_adopsi = timezone.now().date()
+        adopsi_real.save()
         
-        messages.success(request, f"Adopsi {adopsi.id_hewan.nama} telah dihentikan.")
-        
+        is_admin = StafAdmin.objects.filter(username_sa=request.user.username).exists()
+        messages.success(request, "Adopsi berhasil dihentikan.")
+
         if is_admin:
-            return redirect('adopsi:admin_daftar_adopsi')  # kalo kamu udah ada admin daftar adopsi
+            return redirect('adopsi:admin_daftar_adopsi')
         else:
             return redirect('adopsi:dashboard_adopter')
-    
+
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
     context = {
         'adopsi': adopsi,
-        'hewan': adopsi.id_hewan,
+        'hewan': hewan,
     }
     return render(request, 'adopsi/berhenti_adopsi.html', context)
+
 
 # Admin views
 # @login_required
@@ -512,86 +671,125 @@ def admin_detail_adopter(request, adopter_id):
 
 
 # @login_required
+# @login_required
 def admin_update_payment(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     """Update status pembayaran adopsi oleh admin"""
-    # Check if user is admin
     try:
         staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
-    except:
-        pass  # For development, allow all access
-    
-    # Get the adoption by ID
+    except StafAdmin.DoesNotExist:
+        pass  # allow development
 
-    adopsi = get_object_or_404(Adopsi, 
-        id_adopter__id_adopter=id_adopter, 
-        id_hewan__id=id_hewan, 
-        tgl_mulai_adopsi=tgl_mulai_adopsi
-    )
-
-    
-    if request.method == 'POST':
-        new_status = request.POST.get('status_pembayaran')
-        if new_status in ['tertunda', 'lunas']:
-            adopsi.status_pembayaran = new_status
-            adopsi.save()
-            messages.success(request, f"Status pembayaran adopsi telah diperbarui menjadi '{new_status}'.")
-        else:
-            messages.error(request, "Status pembayaran tidak valid.")
-        
-        return redirect('adopsi:admin_detail_adopsi', id_adopter=adopsi.id_adopter.id_adopter, id_hewan=adopsi.id_hewan.id, tgl_mulai_adopsi=adopsi.tgl_mulai_adopsi.strftime('%Y-%m-%d'))
-    
-    context = {
-        'adopsi': adopsi,
-        'hewan': adopsi.id_hewan,
-    }
-    return render(request, 'adopsi/admin/update_payment.html', context)
-    
-def admin_detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
-    """Menampilkan detail adopsi untuk admin"""
-    # Check if user is admin
-    try:
-        staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
-    except:
-        pass  # For development, allow all access
-    
-    from datetime import datetime
-    from django.db import connection
-    
     try:
         tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
     except ValueError:
-        messages.error(request, "Format tanggal tidak valid")
+        messages.error(request, "Format tanggal tidak valid.")
         return redirect('adopsi:admin_dashboard')
-    
-    # Gunakan raw SQL untuk mendapatkan data adopsi
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT a.id_adopter, a.id_hewan, a.status_pembayaran, 
-                   a.tgl_mulai_adopsi, a.tgl_berhenti_adopsi, a.kontribusi_finansial
-            FROM adopsi a
-            WHERE a.id_adopter = %s AND a.id_hewan = %s AND a.tgl_mulai_adopsi = %s
-            LIMIT 1
-        """, [id_adopter, id_hewan, tgl_mulai])
-        row = cursor.fetchone()
-    
-    
-    # Ambil objek terkait
-    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
-    hewan = get_object_or_404(Hewan, id=id_hewan)
-    
-    # Buat objek adopsi manual
+
+    adopsi_query = Adopsi.objects.filter(
+        id_adopter__id_adopter=id_adopter,
+        id_hewan__id=id_hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    )
+
+    adopsi_data = adopsi_query.first()
+
+    if not adopsi_data:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:admin_dashboard')
+
+    # Bikin dummy object
     class AdopsiObject:
         pass
+
+    adopsi = AdopsiObject()
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+    # Dapetin objek asli untuk save
+    adopsi_real = Adopsi.objects.get(
+        id_adopter__id_adopter=id_adopter,
+        id_hewan__id=id_hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    )
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status_pembayaran')
+        if new_status in ['tertunda', 'lunas']:
+            adopsi_real.status_pembayaran = new_status
+            adopsi_real.save()
+            messages.success(request, f"Status pembayaran adopsi diperbarui menjadi '{new_status}'.")
+        else:
+            messages.error(request, "Status pembayaran tidak valid.")
+        
+        return redirect('adopsi:admin_detail_adopsi', id_adopter=id_adopter, id_hewan=id_hewan, tgl_mulai_adopsi=tgl_mulai_adopsi)
+
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
+    context = {
+        'adopsi': adopsi,
+        'hewan': hewan,
+    }
+    return render(request, 'adopsi/admin/update_payment.html', context)
+
     
+# @login_required
+def admin_detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    """Menampilkan detail adopsi untuk admin"""
+    try:
+        staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
+    except StafAdmin.DoesNotExist:
+        pass  # Untuk development biarkan akses semua
+
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:admin_dashboard')
+
+    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
+    queryset = Adopsi.objects.filter(
+        id_adopter=adopter,
+        id_hewan=hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'id_adopter__id_adopter',
+        'id_hewan__id',
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    )
+
+    adopsi_list = list(queryset)
+
+    if not adopsi_list:
+        messages.error(request, "Adopsi tidak ditemukan.")
+        return redirect('adopsi:admin_dashboard')
+
+    adopsi_data = adopsi_list[0]
+
+    # Create dummy adopsi object for template
+    class AdopsiObject:
+        pass
+
     adopsi = AdopsiObject()
     adopsi.id_adopter = adopter
     adopsi.id_hewan = hewan
-    adopsi.status_pembayaran = row[2]
-    adopsi.tgl_mulai_adopsi = row[3]
-    adopsi.tgl_berhenti_adopsi = row[4]
-    adopsi.kontribusi_finansial = row[5]
-    
-    # Check adopter type
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+    # Cek tipe adopter
     try:
         individu = Individu.objects.get(id_adopter=adopter)
         adopter_type = 'individu'
@@ -604,55 +802,7 @@ def admin_detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         except Organisasi.DoesNotExist:
             adopter_type = 'unknown'
             adopter_detail = None
-    
-    # Gunakan raw SQL untuk ambil catatan medis
-    # Gunakan raw SQL untuk ambil catatan medis
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT id_hewan, username_dh, tanggal_pemeriksaan, 
-                diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut
-            FROM catatan_medis
-            WHERE id_hewan = %s AND tanggal_pemeriksaan >= %s
-            ORDER BY tanggal_pemeriksaan DESC
-        """, [hewan.id, adopsi.tgl_mulai_adopsi])
-        
-        medical_records_data = cursor.fetchall()
 
-# Buat list objek untuk template
-    medical_records = []
-
-    # Check if there's any data first
-    if medical_records_data:
-        for row in medical_records_data:
-            try:
-                record = type('CatatanMedisObj', (), {})()
-                record.id_hewan = row[0]
-                record.username_dh = row[1]
-                record.tanggal_pemeriksaan = row[2]
-                record.diagnosis = row[3] if len(row) > 3 else None
-                record.pengobatan = row[4] if len(row) > 4 else None
-                record.status_kesehatan = row[5] if len(row) > 5 else None
-                record.catatan_tindak_lanjut = row[6] if len(row) > 6 else None
-                
-                # Tambahkan relasi dokter jika perlu
-                try:
-                    # Adjust this based on your model structure
-                    from accounts.models import DokterHewan
-                    dokter = DokterHewan.objects.get(username_dh=row[1])
-                    record.id_dokter = dokter
-                except Exception as e:
-                    # Handle error without breaking
-                    print(f"Error getting dokter: {e}")
-                    record.id_dokter = None
-                    
-                # Only append if record was successfully created
-                medical_records.append(record)
-            except Exception as e:
-                # Log the error but continue
-                print(f"Error processing medical record: {e}")
-                continue
-        medical_records.append(record)
-    
     context = {
         'adopsi': adopsi,
         'hewan': hewan,
@@ -660,12 +810,12 @@ def admin_detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         'adopter_type': adopter_type,
         'adopter_detail': adopter_detail,
         'pengunjung': adopter.username_adopter,
-        'medical_records': medical_records,
         'now': timezone.now(),
         'tgl_mulai_adopsi_str': adopsi.tgl_mulai_adopsi.strftime('%Y-%m-%d'),
     }
-    
+
     return render(request, 'adopsi/admin/detail_adopsi.html', context)
+
 
 def admin_proses_adopsi(request, hewan_id):
     """Form pendaftaran adopsi hewan oleh admin"""
@@ -875,29 +1025,264 @@ def verify_username(request):
         return JsonResponse({
             'exists': False
         })
-    
 
-# views.py
-def sertifikat_adopsi(request, adopsi_id):
-    adopsi = get_object_or_404(Adopsi, pk=adopsi_id)
-    hewan = adopsi.id_hewan
-    adopter = adopsi.id_adopter
+from rekam_medis.models import CatatanMedis
+
+def laporan_kondisi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    """Menampilkan laporan kondisi hewan untuk adopter"""
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:dashboard_adopter')
+
+    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
+    adopsi_query = Adopsi.objects.filter(
+    id_adopter=adopter,
+    id_hewan=hewan,
+    tgl_mulai_adopsi=tgl_mulai
+        ).values(
+            'status_pembayaran',
+            'tgl_mulai_adopsi',
+            'tgl_berhenti_adopsi',
+            'kontribusi_finansial'
+        ).order_by('tgl_mulai_adopsi')
+
+    adopsi_data = adopsi_query.first()
+
+    if not adopsi_data:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+
+    # Bikin dummy object
+    class AdopsiObject:
+        pass
+
+    adopsi = AdopsiObject()
+    adopsi.status_pembayaran = adopsi_data['status_pembayaran']
+    adopsi.tgl_mulai_adopsi = adopsi_data['tgl_mulai_adopsi']
+    adopsi.tgl_berhenti_adopsi = adopsi_data['tgl_berhenti_adopsi']
+    adopsi.kontribusi_finansial = adopsi_data['kontribusi_finansial']
+
+    # Medical records
+    medical_records_query = CatatanMedis.objects.filter(
+    id_hewan=hewan,
+    tanggal_pemeriksaan__gte=tgl_mulai
+        ).values(
+            'id_hewan',
+            'tanggal_pemeriksaan',
+            'diagnosis',
+            'pengobatan',
+            'status_kesehatan',
+            'catatan_tindak_lanjut'
+        ).order_by('-tanggal_pemeriksaan')
+
+    medical_records = list(medical_records_query)
+
+
+    context = {
+        'adopsi': adopsi,
+        'hewan': hewan,
+        'adopter': adopter,
+        'medical_records': medical_records,
+        'now': timezone.now(),
+        'tgl_mulai_adopsi_str': tgl_mulai.strftime('%Y-%m-%d'),
+    }
+    return render(request, 'adopsi/laporan_kondisi.html', context)
+
+def sertifikat_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    """Menampilkan sertifikat adopsi"""
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:dashboard_adopter')
+
+    adopter = get_object_or_404(Adopter, id_adopter=id_adopter)
+    hewan = get_object_or_404(Hewan, id=id_hewan)
+
+    adopsi_query = Adopsi.objects.filter(
+        id_adopter=adopter,
+        id_hewan=hewan,
+        tgl_mulai_adopsi=tgl_mulai
+    ).values(
+        'id_adopter__id_adopter',
+        'id_hewan__id',
+        'status_pembayaran',
+        'tgl_mulai_adopsi',
+        'tgl_berhenti_adopsi',
+        'kontribusi_finansial'
+    ).order_by('tgl_mulai_adopsi')
+
+    adopsi_query = adopsi_query.first()
+
+    if not adopsi_query:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+
+    # Buat manual dict (kayak yang admin_detail_adopter)
+    adopsi = {
+        'id_adopter__id_adopter': adopsi_query['id_adopter__id_adopter'],
+        'id_hewan__id': adopsi_query['id_hewan__id'],
+        'status_pembayaran': adopsi_query['status_pembayaran'],
+        'tgl_mulai_adopsi': adopsi_query['tgl_mulai_adopsi'],
+        'tgl_mulai_adopsi_str': adopsi_query['tgl_mulai_adopsi'].strftime('%Y-%m-%d'),
+        'tgl_berhenti_adopsi': adopsi_query['tgl_berhenti_adopsi'],
+        'tgl_berhenti_adopsi_str': adopsi_query['tgl_berhenti_adopsi'].strftime('%Y-%m-%d'),
+        'kontribusi_finansial': adopsi_query['kontribusi_finansial'],
+    }
+
+    # Cek tipe adopter
     try:
         individu = Individu.objects.get(id_adopter=adopter)
-        adopter_type, adopter_detail = "individu", individu
+        adopter_type = 'individu'
+        adopter_detail = individu
     except Individu.DoesNotExist:
         try:
             organisasi = Organisasi.objects.get(id_adopter=adopter)
-            adopter_type, adopter_detail = "organisasi", organisasi
+            adopter_type = 'organisasi'
+            adopter_detail = organisasi
         except Organisasi.DoesNotExist:
-            adopter_type, adopter_detail = "unknown", None
+            adopter_type = 'unknown'
+            adopter_detail = None
 
-    ctx = {
-        "adopsi": adopsi,
-        "hewan": hewan,
-        "adopter_type": adopter_type,
-        "adopter_detail": adopter_detail,
-        "pengunjung": adopter.username_adopter,
-        "now": timezone.now(),
+    context = {
+        'adopsi': adopsi,
+        'hewan': hewan,
+        'adopter': adopter,
+        'adopter_type': adopter_type,
+        'adopter_detail': adopter_detail,
+        'pengunjung_username': adopter.username_adopter.username_p.username,
+        'now': timezone.now(),
+        'tgl_mulai_adopsi_str': adopsi['tgl_mulai_adopsi_str'],
+        'tgl_berhenti_adopsi_str': adopsi['tgl_berhenti_adopsi_str'],
     }
-    return render(request, "adopsi/sertifikat_adopsi.html", ctx)
+
+    return render(request, 'adopsi/sertifikat_adopsi.html', context)
+
+def admin_hapus_adopter(request, adopter_id):
+    adopter = get_object_or_404(Adopter, id_adopter=adopter_id)
+    adopter.delete()
+    messages.success(request, "Data adopter berhasil dihapus.")
+    return redirect('adopsi:admin_dashboard')
+
+
+
+# from django.template.defaulttags import register
+
+# #@register.filter
+# def get_item(dictionary, key):
+#     return dictionary.get(key)
+
+
+# # @login_required
+# def admin_daftar_hewan(request):
+#     """Menampilkan daftar hewan untuk admin"""
+#     # Check if user is admin
+#     try:
+#         staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
+#     except:
+#         pass  # For development, allow all access
+    
+#     animals = Hewan.objects.all().order_by('nama')
+    
+#     # Dapatkan data adopsi yang masih aktif
+#     active_adoptions = Adopsi.objects.filter(
+#         tgl_berhenti_adopsi__gt=timezone.now().date()
+#     ).values(
+#         'id_adopter__id_adopter',
+#         'id_hewan__id',
+#         'status_pembayaran',  # Menggunakan status_pembayaran, bukan status_adopsi
+#         'tgl_mulai_adopsi',
+#         'tgl_berhenti_adopsi',
+#         'kontribusi_finansial'
+#     )
+    
+#     # Buat set dari ID hewan yang diadopsi
+#     adopted_animal_ids = set()
+#     for adoption in active_adoptions:
+#         adopted_animal_ids.add(adoption['id_hewan__id'])
+    
+#     # Dictionary untuk menyimpan data adopsi
+#     adoption_data = {}
+    
+#     # Loop untuk setiap adopsi aktif
+#     for adoption in active_adoptions:
+#         animal_id = adoption['id_hewan__id']
+#         adopter_id = adoption['id_adopter__id_adopter']
+        
+#         # Dapatkan data adopter
+#         try:
+#             adopter = Adopter.objects.get(id_adopter=adopter_id)
+            
+#             # Cek tipe adopter
+#             try:
+#                 adopter_detail = Individu.objects.get(id_adopter=adopter_id)
+#                 adopter_type = 'individu'
+#                 adopter_name = adopter_detail.nama
+#                 adopter_nik = adopter_detail.nik
+#                 adopter_npp = None
+#             except Individu.DoesNotExist:
+#                 try:
+#                     adopter_detail = Organisasi.objects.get(id_adopter=adopter_id)
+#                     adopter_type = 'organisasi'
+#                     adopter_name = adopter_detail.nama_organisasi
+#                     adopter_nik = None
+#                     adopter_npp = adopter_detail.npp
+#                 except Organisasi.DoesNotExist:
+#                     adopter_type = 'pengunjung'
+#                     adopter_name = adopter.username_adopter.username_p
+#                     adopter_nik = None
+#                     adopter_npp = None
+            
+#             # Format tanggal untuk URL
+#             tgl_mulai_str = adoption['tgl_mulai_adopsi'].strftime('%Y-%m-%d')
+            
+#             # Simpan data adopsi
+#             adoption_data[animal_id] = {
+#                 'adopter_id': adopter_id,
+#                 'adopter_type': adopter_type,
+#                 'adopter_name': adopter_name,
+#                 'adopter_nik': adopter_nik,
+#                 'adopter_npp': adopter_npp,
+#                 'username': adopter.username_adopter.username_p,
+#                 'email': adopter.username_adopter.username_p.email,
+#                 'status_adopsi': adoption['status_pembayaran'],  # Menggunakan status_pembayaran
+#                 'tgl_mulai': adoption['tgl_mulai_adopsi'],
+#                 'tgl_berhenti': adoption['tgl_berhenti_adopsi'],
+#                 'tgl_mulai_str': tgl_mulai_str,
+#                 'kontribusi': adoption['kontribusi_finansial']
+#             }
+#         except Adopter.DoesNotExist:
+#             # Skip jika adopter tidak ditemukan
+#             continue
+    
+#     # Filter berdasarkan status adopsi
+#     status_filter = request.GET.get('status', None)
+#     if status_filter == 'diadopsi':
+#         animals = animals.filter(id__in=adopted_animal_ids)
+#     elif status_filter == 'available':
+#         animals = animals.exclude(id__in=adopted_animal_ids)
+    
+#     # Filter berdasarkan spesies
+#     species_filter = request.GET.get('species', None)
+#     if species_filter:
+#         animals = animals.filter(spesies__icontains=species_filter)
+    
+#     # Pagination
+#     paginator = Paginator(animals, 12)  # 12 hewan per halaman
+#     page_number = request.GET.get('page', 1)
+#     page_obj = paginator.get_page(page_number)
+    
+#     context = {
+#         'animals': page_obj,
+#         'status_filter': status_filter,
+#         'species_filter': species_filter,
+#         'distinct_species': Hewan.objects.values_list('spesies', flat=True).distinct(),
+#         'adopted_animal_ids': adopted_animal_ids,
+#         'adoption_data': adoption_data,
+#         'now': timezone.now(),
+#     }
+#     return render(request, 'adopsi/admin/daftar_hewan.html', context)

@@ -177,9 +177,9 @@
 </a>
 
                 
-                            {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                            {% if adoption.tgl_berhenti_adopsi <= now.date %}
                                 <button type="button" class="text-red-600 hover:text-red-900 show-modal" data-modal-target="endAdoptionModal-{{ adoption.id_hewan__id }}">
-                                    Hentikan
+                                    Hapus
                                 </button>
                 
                                 <!-- Modal Konfirmasi Hentikan Adopsi -->
@@ -187,7 +187,7 @@
                                     <div class="fixed inset-0 bg-black opacity-50"></div>
                                     <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
                                         <div class="px-6 py-4 border-b border-gray-200">
-                                            <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
+                                            <h3 class="text-xl font-bold text-gray-900">Konfirmasi Hapus Adopsi</h3>
                                         </div>
                                         <div class="p-6">
                                             <p class="text-gray-700 mb-4">
@@ -206,7 +206,7 @@
 
 
                                                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
-                                                        Ya, Hentikan
+                                                        Ya, Hapus
                                                     </button>
                                                 </form>
                                             </div>
@@ -228,13 +228,7 @@
             </table>
         </div>
     </div>
-    
-    <!-- Aksi Adopter -->
-    <div class="flex justify-end space-x-4">
-        <button type="button" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition show-modal" data-modal-target="deleteAdopterModal">
-            Hapus Adopter
-        </button>
-    </div>
+
 </div>
 
 <script>

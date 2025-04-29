@@ -17,7 +17,7 @@
                 {% elif adopter_type == "organisasi" %}
                     {{ adopter_detail.nama_organisasi }}
                 {% else %}
-                    {{ pengunjung.username_p }}
+                    {{ pengunjung_username|default:"Pengunjung" }}
                 {% endif %}
             </span><br>
             yang telah mengadopsi secara simbolis<br>
@@ -25,7 +25,7 @@
             bernama <span class="font-semibold">{{ hewan.nama|default:"(tanpa nama)" }}</span><br>
             di taman safari kami pada periode<br>
             <span class="font-semibold">
-                {{ adopsi.tgl_mulai_adopsi|date:"d F Y" }} – {{ adopsi.tgl_berhenti_adopsi|date:"d F Y" }}
+                {{ tgl_mulai_adopsi_str }} – {{ tgl_berhenti_adopsi_str }}
             </span>.
         </p>
 
@@ -39,8 +39,7 @@
                 <p class="font-medium">Taman Safari Indonesia</p>
                 <p class="text-sm">{{ now|date:"d F Y" }}</p>
             </div>
-            <img src="{% static 'logo.png' %}" alt="Logo"
-                 class="h-16 opacity-80">
+            <img src="{% static 'logo.png' %}" alt="Logo" class="h-16 opacity-80">
         </div>
     </div>
 

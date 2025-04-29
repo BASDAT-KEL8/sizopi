@@ -6,258 +6,142 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Program Adopsi Satwa: Bantu Mereka dengan Cinta</h1>
+    <h1 class="text-3xl font-bold mb-6">Dashboard Adopter</h1>
     
-    <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded mb-8">
-        <div class="flex">
+    <!-- User Profile Summary Card -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div class="flex-shrink-0">
-                <i class="fas fa-heart text-green-600 text-xl"></i>
+                <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-user text-gray-500 text-3xl"></i>
+                </div>
             </div>
-            <div class="ml-3">
-                <h3 class="text-lg font-medium text-green-800">Terima kasih telah mewujudkan kepedulian Anda terhadap satwa!</h3>
-                <p class="mt-2 text-green-700">Anda akan mendapatkan sertifikat digital dan laporan berkala tentang kondisi hewan yang Anda dukung.</p>
+            <div class="flex-grow text-center md:text-left">
+                <h2 class="text-2xl font-semibold text-gray-900">{{ adopter.username_adopter.username_p.username }}</h2>
+                <p class="text-gray-600">{{ adopter.username_adopter.username_p.email }}</p>
+                <div class="mt-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {% if adopter.jenis_adopter == 'individu' %}
+                            Individu
+                        {% elif adopter.jenis_adopter == 'organisasi' %}
+                            Organisasi
+                        {% else %}
+                            Pengunjung
+                        {% endif %}
+                    </span>
+                </div>
             </div>
+
         </div>
     </div>
     
-    <!-- Daftar Hewan yang Diadopsi -->
-    <h2 class="text-2xl font-bold mb-6">Hewan yang Sedang Anda Adopsi</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {% for adoption in adoptions %}
-            {% if adoption.is_active %}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="grid grid-cols-3 gap-0">
-                        <div class="col-span-1">
-                            <img src="{{ adoption.hewan.url_foto }}" class="w-full h-full object-cover" alt="{{ adoption.hewan.nama|default:adoption.hewan.spesies }}">
-                        </div>
-                        <div class="col-span-2 p-6">
-                            <h3 class="text-xl font-semibold mb-2">{{ adoption.hewan.nama|default:adoption.hewan.spesies }}</h3>
-                            <p class="text-gray-700 mb-1"><span class="font-medium">Spesies:</span> {{ adoption.hewan.spesies }}</p>
-                            <p class="text-gray-700 mb-1"><span class="font-medium">Status Kesehatan:</span> {{ adoption.hewan.status_kesehatan }}</p>
-                            <p class="text-gray-700 mb-1"><span class="font-medium">Adopsi Mulai:</span> {{ adoption.adopsi.tgl_mulai_adopsi }}</p>
-                            <p class="text-gray-700 mb-1"><span class="font-medium">Adopsi Berakhir:</span> {{ adoption.adopsi.tgl_berhenti_adopsi }}</p>
-                            <p class="text-gray-700 mb-3">
-                                <span class="font-medium">Status Pembayaran:</span>
-                                {% if adoption.adopsi.status_pembayaran == 'lunas' %}
-                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Lunas</span>
-                                {% else %}
-                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Tertunda</span>
-                                {% endif %}
-                            </p>
-                            
-                            <div class="flex space-x-2 mt-3">
-                                <a href="{% url 'adopsi:detail_adopsi' adoption.adopsi.id_adopter.id_adopter adoption.adopsi.id_hewan.id adoption.adopsi.tgl_mulai_adopsi %}" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition">
-                                    Lihat Detail
-                                </a>
-                                
-                                {% if adoption.adopsi.tgl_berhenti_adopsi|date:'Y-m-d' > now|date:'Y-m-d' %}
-                                    <a href="{% url 'adopsi:perpanjang_adopsi' adoption.adopsi.id_adopter.id_adopter adoption.adopsi.id_hewan.id adoption.adopsi.tgl_mulai_adopsi %}" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded transition">
-                                        Perpanjang
-                                    </a>
-                                {% endif %}
-                                
-                                <button type="button" class="show-modal px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition" 
-                                        data-modal-target="berhentiAdopsiModal-{{ adoption.hewan.id }}">
-                                    Berhenti Adopsi
-                                </button>
-                            </div>
-                            
-                            <!-- Modal Konfirmasi Berhenti Adopsi -->
-                            <div id="berhentiAdopsiModal-{{ adoption.hewan.id }}" class="hidden fixed inset-0 z-50">
-                                <div class="fixed inset-0 bg-black opacity-50"></div>
-                                <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
-                                    <div class="px-6 py-4 border-b border-gray-200">
-                                        <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
-                                    </div>
-                                    <div class="p-6">
-                                        <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi {{ adoption.hewan.nama|default:adoption.hewan.spesies }}?</p>
-                                        
-                                        <div class="flex justify-end space-x-3">
-                                            <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
-                                                Batal
-                                            </button>
-                                            <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.adopsi.id_adopter.id_adopter adoption.adopsi.id_hewan.id adoption.adopsi.tgl_mulai_adopsi %}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
-                                                    Ya, Hentikan
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        {% empty %}
-            <div class="col-span-full bg-white rounded-lg shadow-md p-6 text-center">
-                <div class="py-8">
-                    <div class="bg-gray-100 rounded-full h-24 w-24 flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-paw text-gray-400 text-4xl"></i>
-                    </div>
-                    <h3 class="text-xl font-medium text-gray-700 mb-2">Belum Ada Adopsi Aktif</h3>
-                    <p class="text-gray-500 mb-4">Anda belum mengadopsi satwa atau semua adopsi Anda telah berakhir.</p>
-                    <a href="{% url 'adopsi:list_hewan' %}" class="inline-block px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition">
-                        Adopsi Sekarang
-                    </a>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    
-    <!-- Riwayat Adopsi -->
-    <h2 class="text-2xl font-bold mb-6">Riwayat Adopsi</h2>
-    
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-12">
+    <!-- Active Adoptions Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-green-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Satwa yang Anda Adopsi</h2>
+        </div>
+        
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Hewan</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Hewan</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hewan</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Mulai</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Akhir</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berakhir Pada</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for adoption in adoptions %}
-                        {% if not adoption.is_active %}
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ adoption.hewan.nama }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ adoption.hewan.spesies }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ adoption.adopsi.tgl_mulai_adopsi }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ adoption.adopsi.tgl_berhenti_adopsi }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    Rp{{ adoption.adopsi.kontribusi_finansial|floatformat:0|intcomma }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    {% if adoption.adopsi.tgl_berhenti_adopsi|date:'Y-m-d' < now|date:'Y-m-d' %}
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Berakhir</span>
-                                    {% else %}
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Dihentikan</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endif %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ adoption.id_hewan__url_foto.url }}" alt="{{ adoption.id_hewan__nama }}">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ adoption.id_hewan__nama }}</div>
+                                    <div class="text-sm text-gray-500">{{ adoption.id_hewan__spesies }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ adoption.tgl_mulai_adopsi|date:"j F Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ adoption.tgl_berhenti_adopsi|date:"j F Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i> Aktif
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="fas fa-clock mr-1"></i> Berakhir
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <a href="{% url 'adopsi:detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}" 
+                               class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye mr-1"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
-                                Tidak ada riwayat adopsi yang ditemukan.
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-paw text-4xl text-gray-300 mb-3"></i>
+                                <p class="text-lg font-medium">Anda belum mengadopsi satwa</p>
+                                <p class="text-sm mt-1 mb-4">Adopsi satwa saat ini tidak tersedia</p>
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
     
-    <!-- Sertifikat Adopsi -->
-    <h2 class="text-2xl font-bold mb-6">Sertifikat Adopsi</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for adoption in adoptions %}
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-center mb-4">
-                    <i class="fas fa-certificate text-green-600 text-4xl"></i>
+    <!-- Statistics Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-paw text-2xl"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-center mb-2">
-                    {{ adoption.hewan.nama }}
-                </h3>
-                <p class="text-gray-600 text-center mb-4">
-                    Periode: {{ adoption.adopsi.tgl_mulai_adopsi }} - {{ adoption.adopsi.tgl_berhenti_adopsi }}
-                </p>
-                <button type="button" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition show-modal" data-modal-target="sertifikatModal-{{ adoption.adopsi.id_hewan.id }}">
-                    Lihat Sertifikat
-                </button>
-                
-                <!-- Modal Sertifikat -->
-                <div id="sertifikatModal-{{ adoption.adopsi.id_hewan.id }}" class="hidden fixed inset-0 z-50">
-                    <div class="fixed inset-0 bg-black opacity-50"></div>
-                    <div class="relative bg-white rounded-lg max-w-3xl mx-auto mt-20 z-10 shadow-xl overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                            <h3 class="text-xl font-bold text-gray-900">Sertifikat Adopsi Satwa</h3>
-                            <button type="button" class="close-modal text-gray-400 hover:text-gray-500">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="p-6">
-                            <div class="border-4 border-green-200 p-8 rounded-lg text-center">
-                                <h2 class="text-3xl font-bold text-green-700 mb-4">Sertifikat Adopsi Satwa</h2>
-                                <p class="mb-6">Sertifikat ini diberikan kepada</p>
-                                <p class="text-2xl font-bold mb-4">{{ adopter.username_adopter.username_p }}</p>
-                                <p class="mb-6">yang telah mengadopsi satwa</p>
-                                <p class="text-xl font-semibold mb-1">{{ adoption.hewan.spesies }}</p>
-                                <p class="text-2xl font-bold mb-6">{{ adoption.hewan.nama|default:'' }}</p>
-                                <p class="mb-2">di taman safari secara simbolis dari</p>
-                                <p class="font-semibold mb-8">{{ adoption.adopsi.tgl_mulai_adopsi }} hingga {{ adoption.adopsi.tgl_berhenti_adopsi }}</p>
-                                <p class="text-sm text-gray-600">Kami sangat berterima kasih atas kepedulian dan kontribusi Anda terhadap kelestarian satwa di taman safari.</p>
-                            </div>
-                            <div class="mt-6 text-center">
-                                <button type="button" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition">
-                                    <i class="fas fa-download mr-2"></i> Unduh Sertifikat
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="ml-5">
+                    <p class="text-gray-500 text-sm">Total Adopsi</p>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ adoptions|length }}</h3>
                 </div>
             </div>
-        {% empty %}
-            <div class="col-span-full bg-white rounded-lg shadow-md p-6 text-center">
-                <p class="text-gray-500 py-8">Tidak ada sertifikat adopsi yang tersedia.</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-calendar-check text-2xl"></i>
+                </div>
+                <div class="ml-5">
+                    <p class="text-gray-500 text-sm">Aktif</p>
+                    <h3 class="text-2xl font-bold text-gray-900">
+                        {% with active_count=0 %}
+                            {% for adoption in adoptions %}
+                                {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                                    {% with active_count=active_count|add:1 %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ active_count }}
+                        {% endwith %}
+                    </h3>
+                </div>
             </div>
-        {% endfor %}
+        </div>
+
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-    // Modal control
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show modals
-        const showModalButtons = document.querySelectorAll('.show-modal');
-        showModalButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-modal-target');
-                const modal = document.getElementById(targetId);
-                if (modal) {
-                    modal.classList.remove('hidden');
-                }
-            });
-        });
-        
-        // Close modals
-        const closeModalButtons = document.querySelectorAll('.close-modal');
-        closeModalButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.fixed.inset-0');
-                if (modal) {
-                    modal.classList.add('hidden');
-                }
-            });
-        });
-        
-        // Close modal when clicking outside
-        const modals = document.querySelectorAll('.fixed.inset-0');
-        modals.forEach(modal => {
-            modal.addEventListener('click', function(event) {
-                if (event.target === this.firstElementChild) {
-                    this.classList.add('hidden');
-                }
-            });
-        });
-    });
-</script>
-{% endblock %}
 {% endblock %}
