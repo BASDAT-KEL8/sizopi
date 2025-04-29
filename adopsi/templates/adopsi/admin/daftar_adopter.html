@@ -6,13 +6,12 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <a href="{% url 'adopsi:admin_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
-            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
+    <div class="flex items-center space-x-3 mb-8">
+        <a href="{{ back_url|default:'javascript:history.back()' }}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
         </a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Adopter</h1>
     </div>
-    
-    <h1 class="text-3xl font-bold mb-6">Daftar Adopter</h1>
     
     <!-- Search and Filter -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -99,7 +98,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-eye mr-1"></i> Detail
+                                <i ></i> Detail
                             </a>
                         </td>
                     </tr>

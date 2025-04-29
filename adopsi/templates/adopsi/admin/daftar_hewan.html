@@ -4,31 +4,30 @@
 {% block title %}Daftar Satwa - Admin SIZOPI{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
-        <div>
-            <a href="{% url 'adopsi:admin_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
-                <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'adopsi:admin_dashboard' %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                <i class="fas fa-arrow-left mr-1"></i> Kembali
             </a>
+            <h1 class="text-2xl font-bold text-gray-800">Manajemen Data Satwa</h1>
         </div>
     </div>
     
-    <h1 class="text-3xl font-bold mb-6">Manajemen Data Satwa</h1>
-    
     <!-- Filter Section -->
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label for="status" class="block mb-2 font-medium text-gray-700">Status Adopsi</label>
-                <select name="status" id="status" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <label for="status" class="block text-xs font-semibold text-gray-600 mb-1">Status Adopsi</label>
+                <select id="status" name="status" class="w-full border border-gray-300 rounded-md text-sm focus:ring-green-500">
                     <option value="" {% if not status_filter %}selected{% endif %}>Semua Status</option>
                     <option value="diadopsi" {% if status_filter == 'diadopsi' %}selected{% endif %}>Sudah Diadopsi</option>
                     <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Belum Diadopsi</option>
                 </select>
             </div>
             <div>
-                <label for="species" class="block mb-2 font-medium text-gray-700">Spesies</label>
-                <select name="species" id="species" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <label for="species" class="block text-xs font-semibold text-gray-600 mb-1">Spesies</label>
+                <select id="species" name="species" class="w-full border border-gray-300 rounded-md text-sm focus:ring-green-500">
                     <option value="" {% if not species_filter %}selected{% endif %}>Semua Spesies</option>
                     {% for spesies in distinct_species %}
                     <option value="{{ spesies }}" {% if species_filter == spesies %}selected{% endif %}>{{ spesies }}</option>
@@ -36,149 +35,92 @@
                 </select>
             </div>
             <div class="flex items-end">
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">Filter</button>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-md">
+                    Filter
+                </button>
             </div>
         </form>
     </div>
-    
-    <!-- Animals Card Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for animal in animals %}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="relative">
-                <img src="{{ animal.url_foto }}" alt="{{ animal.nama|default:animal.spesies }}" class="w-full h-64 object-cover">
-                <div class="absolute bottom-3 left-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold
-                        {% if animal.status_kesehatan == 'Sehat' %}
-                            bg-green-100 text-green-800
-                        {% elif animal.status_kesehatan == 'Sakit' %}
-                            bg-red-100 text-red-800
-                        {% else %}
-                            bg-yellow-100 text-yellow-800
-                        {% endif %}
-                    ">
-                        {{ animal.status_kesehatan }}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <h3 class="text-xl font-semibold mb-3">{{ animal.nama|default:"(Tanpa Nama)" }}</h3>
-                
-                <div class="space-y-1 mb-4">
-                    <p class="text-gray-700"><strong>ID:</strong> {{ animal.id|truncatechars:12 }}</p>
-                    <p class="text-gray-700"><strong>Spesies:</strong> {{ animal.spesies }}</p>
-                    <p class="text-gray-700"><strong>Asal:</strong> {{ animal.asal_hewan|default:"-" }}</p>
-                    <p class="text-gray-700"><strong>Status Kesehatan:</strong> {{ animal.status_kesehatan }}</p>
-                    <p class="text-gray-700"><strong>Habitat:</strong> {{ animal.nama_habitat|default:"-" }}</p>
-                </div>
 
+    <!-- Animal Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% for animal in animals %}
+        <div class="bg-white rounded-md shadow-sm hover:shadow-md transition p-3 flex flex-col text-sm">
+            <div class="relative h-40 overflow-hidden rounded mb-3">
+                <img src="{{ animal.url_foto }}" alt="{{ animal.nama|default:animal.spesies }}" class="w-full h-full object-cover">
                 
-                <div class="border-t border-gray-200 py-4">
-                    <div class="flex justify-between items-center">
-                        <p class="font-medium text-gray-700">Status Adopsi:</p>
-                        {% if animal.id in adopted_animal_ids %}
-                            <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">Diadopsi</span>
-                        {% else %}
-                            <span class="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Belum Diadopsi</span>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="pt-2">
-                    {% if animal.id in adopted_animal_ids %}
-                        <a href="{% url 'adopsi:detail_hewan' animal.id %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition">
-                            <i class="fas fa-eye mr-2"></i> Lihat Detail
-                        </a>
-                    {% else %}
-                        <a href="{% url 'adopsi:admin_proses_adopsi' animal.id %}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center font-medium py-2 rounded-md transition">
-                            <i class="fas fa-heart mr-2"></i> Daftarkan Adopsi
-                        </a>
-                    {% endif %}
-                </div>
             </div>
+
+            <h3 class="text-base font-semibold text-gray-800 mb-2">{{ animal.nama|default:"(Tanpa Nama)" }}</h3>
+
+            <div class="text-gray-600 space-y-1 mb-3">
+                <p><strong>ID:</strong> {{ animal.id|truncatechars:10 }}</p>
+                <p><strong>Spesies:</strong> {{ animal.spesies }}</p>
+                <p><strong>Status Kesehatan:</strong> {{ animal.status_kesehatan }}</p>
+                <p><strong>Asal:</strong> {{ animal.asal_hewan|default:"-" }}</p>
+                <p><strong>Habitat:</strong> {{ animal.nama_habitat|default:"-" }}</p>
+
+            </div>
+
+            <div class="flex justify-between items-center mb-3">
+                <p class="text-gray-700 font-medium text-xs">Status:</p>
+                {% if animal.id in adopted_animal_ids %}
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">Diadopsi</span>
+                {% else %}
+                    <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">Belum Diadopsi</span>
+                {% endif %}
+            </div>
+
+            {% if animal.id in adopted_animal_ids %}
+                <a href="{% url 'adopsi:detail_hewan' animal.id %}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-md transition">
+                    <i class="fas fa-eye mr-1"></i> Detail
+                </a>
+            {% else %}
+                <a href="{% url 'adopsi:admin_proses_adopsi' animal.id %}" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-2 rounded-md transition">
+                    <i class="fas fa-heart mr-1"></i> Daftar
+                </a>
+            {% endif %}
         </div>
         {% empty %}
-        <div class="col-span-full py-12 text-center">
-            <div class="mx-auto w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                <i class="fas fa-paw text-gray-400 text-4xl"></i>
-            </div>
-            <h3 class="text-xl font-medium text-gray-700 mb-2">Tidak ada satwa ditemukan</h3>
-            <p class="text-gray-500">Silahkan ubah filter pencarian atau tambahkan satwa baru.</p>
+        <div class="col-span-full text-center py-10">
+            <i class="fas fa-paw text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Tidak ada satwa ditemukan</h3>
+            <p class="text-gray-500 text-sm">Coba ubah filter atau tambahkan satwa baru.</p>
         </div>
         {% endfor %}
     </div>
-    
+
     <!-- Pagination -->
     {% if animals.has_other_pages %}
-    <div class="mt-10 flex justify-center">
-        <nav class="flex items-center space-x-2">
-            {% if animals.has_previous %}
-                <a href="?page={{ animals.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            {% else %}
-                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
-                    <i class="fas fa-chevron-left"></i>
-                </span>
+    <div class="mt-8 flex justify-center space-x-1 text-sm">
+        {% if animals.has_previous %}
+            <a href="?page={{ animals.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        {% else %}
+            <span class="px-2 py-1 rounded bg-gray-100 text-gray-400">
+                <i class="fas fa-chevron-left"></i>
+            </span>
+        {% endif %}
+
+        {% for num in animals.paginator.page_range %}
+            {% if animals.number == num %}
+                <span class="px-2 py-1 rounded bg-blue-600 text-white">{{ num }}</span>
+            {% elif num > animals.number|add:'-2' and num < animals.number|add:'2' %}
+                <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700">{{ num }}</a>
             {% endif %}
-            
-            {% for num in animals.paginator.page_range %}
-                {% if animals.number == num %}
-                    <span class="px-3 py-2 rounded-md bg-blue-600 text-white">{{ num }}</span>
-                {% elif num > animals.number|add:'-3' and num < animals.number|add:'3' %}
-                    <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-            
-            {% if animals.has_next %}
-                <a href="?page={{ animals.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            {% else %}
-                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
-                    <i class="fas fa-chevron-right"></i>
-                </span>
-            {% endif %}
-        </nav>
+        {% endfor %}
+
+        {% if animals.has_next %}
+            <a href="?page={{ animals.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if species_filter %}&species={{ species_filter }}{% endif %}" class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        {% else %}
+            <span class="px-2 py-1 rounded bg-gray-100 text-gray-400">
+                <i class="fas fa-chevron-right"></i>
+            </span>
+        {% endif %}
     </div>
     {% endif %}
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Show modals
-        const showModalButtons = document.querySelectorAll('.show-modal');
-        showModalButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-modal-target');
-                const modal = document.getElementById(targetId);
-                if (modal) {
-                    modal.classList.remove('hidden');
-                }
-            });
-        });
-        
-        // Close modals
-        const closeModalButtons = document.querySelectorAll('.close-modal');
-        closeModalButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.fixed.inset-0');
-                if (modal) {
-                    modal.classList.add('hidden');
-                }
-            });
-        });
-        
-        // Close modal when clicking outside
-        const modals = document.querySelectorAll('.fixed.inset-0');
-        modals.forEach(modal => {
-            modal.addEventListener('click', function(event) {
-                if (event.target === this.firstElementChild) {
-                    this.classList.add('hidden');
-                }
-            });
-        });
-    });
-</script>
 {% endblock %}

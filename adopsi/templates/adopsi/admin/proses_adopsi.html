@@ -5,13 +5,14 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <a href="{% url 'adopsi:admin_daftar_hewan' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
-            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Daftar Satwa
-        </a>
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'adopsi:admin_daftar_hewan' %}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Kembali
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">Daftarkan Adopsi Satwa</h1>
+        </div>
     </div>
-
-    <h1 class="text-3xl font-bold mb-8">Daftarkan Adopsi Satwa</h1>
     
     <!-- Detail Hewan Card -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">

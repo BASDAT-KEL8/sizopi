@@ -6,13 +6,16 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <a href="{% url 'adopsi:dashboard_adopter' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800 transition">
-            <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
-        </a>
-    </div>
 
-    <h1 class="text-3xl font-bold mb-8">Detail Adopsi Satwa</h1>
+
+    <div class="flex items-center space-x-3 mb-8">
+        <a href="{% url 'adopsi:dashboard_adopter' %}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
+        </a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Detail Adopsi</h1>
+    </div>
+    
+
     
     <!-- Status Section -->
     <div class="flex flex-wrap gap-4 mb-6">
@@ -180,12 +183,12 @@
 
                 <p class="mb-12">
                     Kami sangat berterima kasih atas kepedulian dan kontribusi Anda<br>
-                    terhadap pelestarian satwa di taman safari.
+                    terhadap pelestarian satwa di SIZOPI.
                 </p>
 
                 <div class="flex justify-between items-center">
                     <div class="text-left">
-                        <p class="font-medium">Sizopi</p>
+                        <p class="font-medium">SIZOPI</p>
                         <p class="text-sm">{{ now|date:"d F Y" }}</p>
                     </div>
                     <img src="{% static 'logo.png' %}" alt="Logo" class="h-16 opacity-80">

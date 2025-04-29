@@ -6,17 +6,17 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <a href="{{ back_url|default:'javascript:history.back()' }}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
-            <i class="fas fa-arrow-left mr-2"></i> Kembali
+    <!-- Kembali + Judul -->
+    <div class="flex items-center space-x-3 mb-8">
+        <a href="{{ back_url|default:'javascript:history.back()' }}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
         </a>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Detail Adopsi Satwa</h1>
     </div>
-    
-    <h1 class="text-3xl font-bold mb-8">Detail Adopsi Satwa</h1>
-    
+
     <!-- Card Info Adopsi -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div class="bg-blue-600 px-6 py-4">
+        <div class="bg-green-600 px-6 py-4">
             <h2 class="text-xl font-semibold text-white">Informasi Adopsi</h2>
         </div>
         <div class="p-6">
@@ -34,7 +34,7 @@
                         <p class="text-gray-800"><span class="font-medium">Status Kesehatan:</span> {{ adopsi.id_hewan.status_kesehatan }}</p>
                     </div>
                 </div>
-                
+
                 <!-- Info Adopter -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Adopter</h3>
@@ -79,7 +79,7 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Info Adopsi -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Periode &amp; Pembayaran</h3>
@@ -123,14 +123,12 @@
                         <hr class="border-gray-300 my-2">
                         <p class="text-gray-800"><span class="font-medium">Kontribusi:</span> Rp{{ adopsi.kontribusi_finansial|floatformat:0|intcomma }}</p>
                     </div>
-                    
-                    <!-- Action Buttons -->
+
+                    <!-- Tombol Aksi -->
                     <div class="space-y-3 mt-6">
-                        <!-- Update Payment Status Button with Dropdown -->
                         <button type="button" class="show-modal block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal-target="updatePaymentModal">
                             <i class="fas fa-money-check-alt mr-1"></i> Update Status Pembayaran
                         </button>
-                        
                         {% if adopsi.tgl_berhenti_adopsi >= now.date %}
                         <button type="button" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition show-modal" data-modal-target="terminateModal">
                             <i class="fas fa-times-circle mr-1"></i> Hentikan Adopsi
@@ -143,62 +141,30 @@
     </div>
 </div>
 
-<!-- Update Payment Status Modal -->
-<div id="updatePaymentModal" class="hidden fixed inset-0 z-50">
-    <div class="fixed inset-0 bg-black opacity-50"></div>
-    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-xl font-bold text-gray-900">Update Status Pembayaran</h3>
-        </div>
-        <div class="p-6">
-            <form method="post" action="{% url 'adopsi:admin_update_payment' adopsi.id_adopter.id_adopter adopsi.id_hewan.id tgl_mulai_adopsi_str %}">
-                {% csrf_token %}
-                <div class="mb-4">
-                    <label for="status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
-                    <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
-                        <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
-                    </select>
-                </div>
-                
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded font-medium">
-                        Simpan Perubahan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Terminate Adoption Modal -->
-<div id="terminateModal" class="hidden fixed inset-0 z-50">
-    <div class="fixed inset-0 bg-black opacity-50"></div>
-    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
-        </div>
-        <div class="p-6">
-            <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi ini? Tindakan ini akan mengubah tanggal berakhir adopsi menjadi hari ini.</p>
-            
-            <div class="flex justify-end space-x-3">
-                <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
-                    Batal
-                </button>
-                <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id tgl_mulai_adopsi_str %}">
-                    {% csrf_token %}
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded font-medium">
-                        Ya, Hentikan
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
+<!-- Modal JS tetap sama -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalButtons = document.querySelectorAll('.show-modal');
+        modalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modalId = this.getAttribute('data-modal-target');
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.remove('hidden');
+            });
+        });
+        const closeButtons = document.querySelectorAll('.close-modal');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('[id]');
+                if (modal) modal.classList.add('hidden');
+            });
+        });
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('fixed') && event.target.classList.contains('inset-0') && !event.target.classList.contains('bg-black')) {
+                const modals = document.querySelectorAll('.fixed.inset-0.z-50');
+                modals.forEach(modal => modal.classList.add('hidden'));
+            }
+        });
+    });
+</script>
 {% endblock %}

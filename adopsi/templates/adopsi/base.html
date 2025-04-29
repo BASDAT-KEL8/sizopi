@@ -135,39 +135,6 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white pt-10 pb-5 mt-10">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">Program Adopsi Satwa</h3>
-                    <p class="text-gray-300">Program simbolis untuk mengajak pengunjung dan organisasi menumbuhkan kepedulian terhadap satwa.</p>
-                </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">Link Penting</h3>
-                    <ul class="space-y-2">
-                        <li><a href="{% url 'adopsi:home' %}" class="text-gray-300 hover:text-white transition">Beranda</a></li>
-                        <li><a href="{% url 'adopsi:list_hewan' %}" class="text-gray-300 hover:text-white transition">Daftar Satwa</a></li>
-                        {% if user.is_authenticated %}
-                            <li><a href="{% url 'adopsi:dashboard_adopter' %}" class="text-gray-300 hover:text-white transition">Dashboard Saya</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">Kontak Kami</h3>
-                    <address class="text-gray-300 not-italic">
-                        <p class="flex items-center mb-2"><i class="fas fa-map-marker-alt w-5 mr-2"></i> Jl. Raya Puncak No.601, Cisarua, Bogor</p>
-                        <p class="flex items-center mb-2"><i class="fas fa-phone w-5 mr-2"></i> (021) 123-4567</p>
-                        <p class="flex items-center"><i class="fas fa-envelope w-5 mr-2"></i> adopsi@tamansafari.com</p>
-                    </address>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 Program Adopsi Satwa - Taman Safari. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    {% block extra_js %}{% endblock %}
+   
 </body>
 </html>

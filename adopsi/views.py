@@ -16,48 +16,6 @@ from accounts.models import (Pengunjung, Pengguna, StafAdmin)
 from satwa.models import Hewan
 from .forms import AdopsiForm, PerpanjangAdopsiForm
 
-def home(request):
-    """Halaman utama program adopsi"""
-    return render(request, 'adopsi/home.html')
-
-def list_hewan(request):
-    """Menampilkan daftar hewan yang tersedia untuk diadopsi"""
-    animals = Hewan.objects.all().order_by('nama')
-    
-    # Ambil ID hewan yang sedang diadopsi (tanggal akhir adopsi > hari ini)
-    adopted_animal_ids = Adopsi.objects.filter(
-        tgl_berhenti_adopsi__gt=timezone.now().date()
-    ).values_list('id_hewan', flat=True)
-    
-    # Filter berdasarkan status adopsi
-    status_filter = request.GET.get('status', None)
-    if status_filter == 'diadopsi':
-        animals = animals.filter(id__in=adopted_animal_ids)
-    elif status_filter == 'available':
-        animals = animals.exclude(id__in=adopted_animal_ids)
-    
-    # Filter berdasarkan spesies
-    species_filter = request.GET.get('species', None)
-    if species_filter:
-        animals = animals.filter(spesies__icontains=species_filter)
-    
-    # Pagination
-    paginator = Paginator(animals, 12)  # 12 hewan per halaman
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-    
-    # Tambahkan status adopsi ke setiap objek hewan
-    for animal in page_obj:
-        animal.is_adopted = animal.id in adopted_animal_ids
-    
-    context = {
-        'animals': page_obj,
-        'status_filter': status_filter,
-        'species_filter': species_filter,
-        'distinct_species': Hewan.objects.values_list('spesies', flat=True).distinct(),
-    }
-    return render(request, 'adopsi/list_hewan.html', context)
-
 # @login_required
 def detail_hewan(request, hewan_id):
     """Menampilkan detail hewan untuk admin"""
@@ -87,18 +45,14 @@ def detail_hewan(request, hewan_id):
         messages.error(request, "Hewan ini belum diadopsi.")
         return redirect('adopsi:admin_dashboard')
 
-    # # Ambil catatan medis hewan
-    # medical_records = CatatanMedis.objects.filter(id_hewan=hewan).order_by('-tanggal_pemeriksaan')
-
-    # Create dummy adoption object for template
     class AdoptionObject:
         pass
 
     adoption = AdoptionObject()
     adoption.id_hewan = hewan
-    adoption.status_adopsi = current_adoption['status_pembayaran']  # Ubah dari .status_adopsi ke ['status_pembayaran']
-    adoption.tgl_mulai_adopsi = current_adoption['tgl_mulai_adopsi']  # Ubah dari .tgl_mulai_adopsi ke ['tgl_mulai_adopsi']
-    adoption.tgl_berhenti_adopsi = current_adoption['tgl_berhenti_adopsi']  # Ubah dari .tgl_berhenti_adopsi ke ['tgl_berhenti_adopsi']
+    adoption.status_adopsi = current_adoption['status_pembayaran']  
+    adoption.tgl_mulai_adopsi = current_adoption['tgl_mulai_adopsi'] 
+    adoption.tgl_berhenti_adopsi = current_adoption['tgl_berhenti_adopsi'] 
 
     # Cek tipe adopter
     adopter = get_object_or_404(Adopter, id_adopter=current_adoption['id_adopter'])
@@ -266,13 +220,6 @@ def dashboard_adopter(request):
     return render(request, 'adopsi/dashboard_adopter.html', context)
 
 # @login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
-from datetime import datetime
-from .models import Adopsi, Adopter, Individu, Organisasi
-from satwa.models import Hewan
-from rekam_medis.models import CatatanMedis
-
 def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     """Menampilkan detail adopsi untuk adopter (user)"""
     try:
@@ -522,8 +469,6 @@ def admin_dashboard(request):
 
 # @login_required
 def admin_daftar_hewan(request):
-    """Menampilkan daftar hewan untuk admin"""
-    # Check if user is admin
     try:
         staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
     except:
@@ -1168,121 +1113,3 @@ def admin_hapus_adopter(request, adopter_id):
     messages.success(request, "Data adopter berhasil dihapus.")
     return redirect('adopsi:admin_dashboard')
 
-
-
-# from django.template.defaulttags import register
-
-# #@register.filter
-# def get_item(dictionary, key):
-#     return dictionary.get(key)
-
-
-# # @login_required
-# def admin_daftar_hewan(request):
-#     """Menampilkan daftar hewan untuk admin"""
-#     # Check if user is admin
-#     try:
-#         staf_admin = StafAdmin.objects.get(username_sa=request.user.username)
-#     except:
-#         pass  # For development, allow all access
-    
-#     animals = Hewan.objects.all().order_by('nama')
-    
-#     # Dapatkan data adopsi yang masih aktif
-#     active_adoptions = Adopsi.objects.filter(
-#         tgl_berhenti_adopsi__gt=timezone.now().date()
-#     ).values(
-#         'id_adopter__id_adopter',
-#         'id_hewan__id',
-#         'status_pembayaran',  # Menggunakan status_pembayaran, bukan status_adopsi
-#         'tgl_mulai_adopsi',
-#         'tgl_berhenti_adopsi',
-#         'kontribusi_finansial'
-#     )
-    
-#     # Buat set dari ID hewan yang diadopsi
-#     adopted_animal_ids = set()
-#     for adoption in active_adoptions:
-#         adopted_animal_ids.add(adoption['id_hewan__id'])
-    
-#     # Dictionary untuk menyimpan data adopsi
-#     adoption_data = {}
-    
-#     # Loop untuk setiap adopsi aktif
-#     for adoption in active_adoptions:
-#         animal_id = adoption['id_hewan__id']
-#         adopter_id = adoption['id_adopter__id_adopter']
-        
-#         # Dapatkan data adopter
-#         try:
-#             adopter = Adopter.objects.get(id_adopter=adopter_id)
-            
-#             # Cek tipe adopter
-#             try:
-#                 adopter_detail = Individu.objects.get(id_adopter=adopter_id)
-#                 adopter_type = 'individu'
-#                 adopter_name = adopter_detail.nama
-#                 adopter_nik = adopter_detail.nik
-#                 adopter_npp = None
-#             except Individu.DoesNotExist:
-#                 try:
-#                     adopter_detail = Organisasi.objects.get(id_adopter=adopter_id)
-#                     adopter_type = 'organisasi'
-#                     adopter_name = adopter_detail.nama_organisasi
-#                     adopter_nik = None
-#                     adopter_npp = adopter_detail.npp
-#                 except Organisasi.DoesNotExist:
-#                     adopter_type = 'pengunjung'
-#                     adopter_name = adopter.username_adopter.username_p
-#                     adopter_nik = None
-#                     adopter_npp = None
-            
-#             # Format tanggal untuk URL
-#             tgl_mulai_str = adoption['tgl_mulai_adopsi'].strftime('%Y-%m-%d')
-            
-#             # Simpan data adopsi
-#             adoption_data[animal_id] = {
-#                 'adopter_id': adopter_id,
-#                 'adopter_type': adopter_type,
-#                 'adopter_name': adopter_name,
-#                 'adopter_nik': adopter_nik,
-#                 'adopter_npp': adopter_npp,
-#                 'username': adopter.username_adopter.username_p,
-#                 'email': adopter.username_adopter.username_p.email,
-#                 'status_adopsi': adoption['status_pembayaran'],  # Menggunakan status_pembayaran
-#                 'tgl_mulai': adoption['tgl_mulai_adopsi'],
-#                 'tgl_berhenti': adoption['tgl_berhenti_adopsi'],
-#                 'tgl_mulai_str': tgl_mulai_str,
-#                 'kontribusi': adoption['kontribusi_finansial']
-#             }
-#         except Adopter.DoesNotExist:
-#             # Skip jika adopter tidak ditemukan
-#             continue
-    
-#     # Filter berdasarkan status adopsi
-#     status_filter = request.GET.get('status', None)
-#     if status_filter == 'diadopsi':
-#         animals = animals.filter(id__in=adopted_animal_ids)
-#     elif status_filter == 'available':
-#         animals = animals.exclude(id__in=adopted_animal_ids)
-    
-#     # Filter berdasarkan spesies
-#     species_filter = request.GET.get('species', None)
-#     if species_filter:
-#         animals = animals.filter(spesies__icontains=species_filter)
-    
-#     # Pagination
-#     paginator = Paginator(animals, 12)  # 12 hewan per halaman
-#     page_number = request.GET.get('page', 1)
-#     page_obj = paginator.get_page(page_number)
-    
-#     context = {
-#         'animals': page_obj,
-#         'status_filter': status_filter,
-#         'species_filter': species_filter,
-#         'distinct_species': Hewan.objects.values_list('spesies', flat=True).distinct(),
-#         'adopted_animal_ids': adopted_animal_ids,
-#         'adoption_data': adoption_data,
-#         'now': timezone.now(),
-#     }
-#     return render(request, 'adopsi/admin/daftar_hewan.html', context)

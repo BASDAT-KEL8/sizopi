@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from .forms import RegisterForm, LoginForm
 from .models import Pengguna, Pengunjung, DokterHewan, PenjagaHewan, PelatihHewan, StafAdmin
 import uuid
-from django.contrib import messages
+
+def choose_role_view(request):
+    return render(request, 'accounts/choose_role.html')
 
 def register_pengunjung_view(request):
     if request.method == 'POST':
@@ -141,7 +144,17 @@ def logout_view(request):
 def choose_role_view(request):
     return render(request, 'accounts/choose_role.html')
 
-
+def dashboard_view(request):
+    if 'username' not in request.session:
+        messages.error(request, "Silakan login terlebih dahulu.")
+        return redirect('login')
+    
+    context = {
+        'nama_lengkap': request.session.get('nama_lengkap', ''),
+        'username': request.session.get('username', '')
+    }
+    
+    return render(request, 'accounts/dashboard.html', context)
 def profile_view(request):
     if 'username' not in request.session:
         messages.error(request, "Silakan login terlebih dahulu.")
@@ -209,80 +222,65 @@ def update_profile(request):
     username = request.session['username']
     
     if request.method == 'POST':
+        action = request.POST.get('action', '')
+        
         try:
             user = Pengguna.objects.get(username=username)
             
-            # Update Pengguna data
-            user.email = request.POST.get('email', user.email)
-            user.nama_depan = request.POST.get('nama_depan', user.nama_depan)
-            user.nama_tengah = request.POST.get('nama_tengah', user.nama_tengah)
-            user.nama_belakang = request.POST.get('nama_belakang', user.nama_belakang)
-            user.no_telepon = request.POST.get('no_telepon', user.no_telepon)
-            user.save()
+            # Handle profile update
+            if action == 'update_profile':
+                # Update Pengguna data
+                user.email = request.POST.get('email', user.email)
+                user.nama_depan = request.POST.get('nama_depan', user.nama_depan)
+                user.nama_tengah = request.POST.get('nama_tengah', user.nama_tengah)
+                user.nama_belakang = request.POST.get('nama_belakang', user.nama_belakang)
+                user.no_telepon = request.POST.get('no_telepon', user.no_telepon)
+                user.save()
+                
+                # Update role-specific data
+                # For Pengunjung
+                try:
+                    pengunjung = Pengunjung.objects.get(username_p=user)
+                    pengunjung.alamat = request.POST.get('alamat', pengunjung.alamat)
+                    if 'tgl_lahir' in request.POST and request.POST['tgl_lahir']:
+                        pengunjung.tgl_lahir = request.POST['tgl_lahir']
+                    pengunjung.save()
+                except Pengunjung.DoesNotExist:
+                    pass
+                
+                # For DokterHewan - we don't update no_str as it's professional ID
+                try:
+                    dokter = DokterHewan.objects.get(username_dh=user)
+                    # Update spesialisasi if that field is added to the model
+                    dokter.save()
+                except DokterHewan.DoesNotExist:
+                    pass
+                
+                messages.success(request, "Profil berhasil diperbarui.")
             
-            # Update role-specific data
-            # For Pengunjung
-            try:
-                pengunjung = Pengunjung.objects.get(username_p=user)
-                pengunjung.alamat = request.POST.get('alamat', pengunjung.alamat)
-                if 'tgl_lahir' in request.POST and request.POST['tgl_lahir']:
-                    pengunjung.tgl_lahir = request.POST['tgl_lahir']
-                pengunjung.save()
-            except Pengunjung.DoesNotExist:
-                pass
-            
-            # For DokterHewan - we don't update no_str as it's professional ID
-            try:
-                dokter = DokterHewan.objects.get(username_dh=user)
-                # Update spesialisasi if that field is added to the model
-                dokter.save()
-            except DokterHewan.DoesNotExist:
-                pass
-            
-            messages.success(request, "Profil berhasil diperbarui.")
-            
+            # Handle password change
+            elif action == 'change_password':
+                password_lama = request.POST.get('password_lama')
+                password_baru = request.POST.get('password_baru')
+                konfirmasi_password = request.POST.get('konfirmasi_password')
+                
+                # Check if old password is correct
+                if user.password != password_lama:
+                    messages.error(request, "Password lama tidak sesuai.")
+                    return redirect('profile')
+                
+                # Check if new password and confirmation match
+                if password_baru != konfirmasi_password:
+                    messages.error(request, "Password baru dan konfirmasi tidak cocok.")
+                    return redirect('profile')
+                
+                # Update password
+                user.password = password_baru
+                user.save()
+                
+                messages.success(request, "Password berhasil diubah.")
+                
         except Pengguna.DoesNotExist:
             messages.error(request, "User tidak ditemukan.")
         
     return redirect('profile')
-
-def change_password(request):
-    if 'username' not in request.session:
-        messages.error(request, "Silakan login terlebih dahulu.")
-        return redirect('login')
-    
-    username = request.session['username']
-    
-    if request.method == 'POST':
-        try:
-            user = Pengguna.objects.get(username=username)
-            
-            password_lama = request.POST.get('password_lama')
-            password_baru = request.POST.get('password_baru')
-            konfirmasi_password = request.POST.get('konfirmasi_password')
-            
-            # Check if old password is correct
-            if user.password != password_lama:
-                messages.error(request, "Password lama tidak sesuai.")
-                return redirect('change_password')
-            
-            # Check if new password and confirmation match
-            if password_baru != konfirmasi_password:
-                messages.error(request, "Password baru dan konfirmasi tidak cocok.")
-                return redirect('change_password')
-            
-            # Update password
-            user.password = password_baru
-            user.save()
-            
-            messages.success(request, "Password berhasil diubah.")
-            return redirect('profile')
-            
-        except Pengguna.DoesNotExist:
-            messages.error(request, "User tidak ditemukan.")
-            return redirect('login')
-    
-    return render(request, 'accounts/change_password.html')
-
-
-

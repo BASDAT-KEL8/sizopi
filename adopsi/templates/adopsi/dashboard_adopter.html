@@ -6,11 +6,19 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Dashboard Adopter</h1>
-    
-    <!-- User Profile Summary Card -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+
+    <!-- Kembali + Judul -->
+    <div class="flex items-center space-x-3 mb-8">
+        
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard Adopter</h1>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-green-600 px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">Profil Anda</h2>
+        </div>
+        <div class="p-6 flex flex-col md:flex-row items-center md:items-start gap-6">
             <div class="flex-shrink-0">
                 <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
                     <i class="fas fa-user text-gray-500 text-3xl"></i>
@@ -31,25 +39,60 @@
                     </span>
                 </div>
             </div>
-
         </div>
     </div>
-    
-    <!-- Active Adoptions Section -->
+
+    <!-- Statistik -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-paw text-2xl"></i>
+                </div>
+                <div class="ml-5">
+                    <p class="text-gray-500 text-sm">Total Adopsi</p>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ adoptions|length }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-calendar-check text-2xl"></i>
+                </div>
+                <div class="ml-5">
+                    <p class="text-gray-500 text-sm">Adopsi Aktif</p>
+                    <h3 class="text-2xl font-bold text-gray-900">
+                        {% with active_count=0 %}
+                            {% for adoption in adoptions %}
+                                {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                                    {% with active_count=active_count|add:1 %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ active_count }}
+                        {% endwith %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satwa Diadopsi -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div class="bg-green-600 px-6 py-4">
             <h2 class="text-xl font-semibold text-white">Satwa yang Anda Adopsi</h2>
         </div>
-        
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hewan</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Mulai</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berakhir Pada</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hewan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Mulai</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berakhir Pada</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -75,18 +118,17 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if adoption.tgl_berhenti_adopsi >= now.date %}
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <i class="fas fa-check-circle mr-1"></i> Aktif
+                                    <i class></i> Aktif
                                 </span>
                             {% else %}
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-clock mr-1"></i> Berakhir
+                                    <i class></i> Berakhir
                                 </span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <a href="{% url 'adopsi:detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}" 
-                               class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-eye mr-1"></i> Detail
+                            <a href="{% url 'adopsi:detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}" class="text-blue-600 hover:text-blue-900">
+                                <i class=></i> Detail
                             </a>
                         </td>
                     </tr>
@@ -96,7 +138,7 @@
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-paw text-4xl text-gray-300 mb-3"></i>
                                 <p class="text-lg font-medium">Anda belum mengadopsi satwa</p>
-                                <p class="text-sm mt-1 mb-4">Adopsi satwa saat ini tidak tersedia</p>
+                                <p class="text-sm mt-1 mb-4">Ayo adopsi satwa sekarang!</p>
                             </div>
                         </td>
                     </tr>
@@ -105,43 +147,6 @@
             </table>
         </div>
     </div>
-    
-    <!-- Statistics Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                    <i class="fas fa-paw text-2xl"></i>
-                </div>
-                <div class="ml-5">
-                    <p class="text-gray-500 text-sm">Total Adopsi</p>
-                    <h3 class="text-2xl font-bold text-gray-900">{{ adoptions|length }}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100 text-green-600">
-                    <i class="fas fa-calendar-check text-2xl"></i>
-                </div>
-                <div class="ml-5">
-                    <p class="text-gray-500 text-sm">Aktif</p>
-                    <h3 class="text-2xl font-bold text-gray-900">
-                        {% with active_count=0 %}
-                            {% for adoption in adoptions %}
-                                {% if adoption.tgl_berhenti_adopsi >= now.date %}
-                                    {% with active_count=active_count|add:1 %}
-                                    {% endwith %}
-                                {% endif %}
-                            {% endfor %}
-                            {{ active_count }}
-                        {% endwith %}
-                    </h3>
-                </div>
-            </div>
-        </div>
 
-    </div>
 </div>
 {% endblock %}
