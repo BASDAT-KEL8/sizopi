@@ -143,25 +143,31 @@ def logout_view(request):
 def choose_role_view(request):
     return render(request, 'accounts/choose_role.html')
 
-# def navbar_view(request):
-#     user_role = "guest"
-#     if request.user.is_authenticated:
-#         username = request.user.username
-#         if DokterHewan.objects.filter(username_dh=username).exists():
-#             user_role = "dokter"
-#         elif PenjagaHewan.objects.filter(username_ph=username).exists():
-#             user_role = "penjaga"
-#         elif StafAdmin.objects.filter(username_sa=username).exists():
-#             user_role = "admin"
-#         elif PelatihHewan.objects.filter(username_lh=username).exists():
-#             user_role = "pelatih"
-#         elif Adopter.objects.filter(username_adopter=username).exists():
-#             user_role = "pengunjung_adopter"
-#         else:
-#             user_role = "pengunjung"
-#     return render(request, 'accounts/navbar.html', {'user_role': user_role})
-
-#testing
-def navbar_view(request): 
-    user_role = request.GET.get('role', 'guest')
-    return render(request, 'accounts/navbar.html', {'user_role': user_role})
+def navbar_view(request):
+    user_role = "guest"
+    username = request.session.get('username')
+    
+    if username:
+        # Check role by querying directly with username
+        if DokterHewan.objects.filter(username_dh=username).exists():
+            role = "Dokter Hewan"
+            print("Dokter Hewan")
+        elif PenjagaHewan.objects.filter(username_jh=username).exists():
+            role = "Penjaga Hewan"
+            print("Penjaga Hewan")
+        elif StafAdmin.objects.filter(username_sa=username).exists():
+            role = "Staf Administrasi"
+            print("Staf Administrasi")
+        elif PelatihHewan.objects.filter(username_lh=username).exists():
+            role = "Staf Pelatih Pertunjukan"
+            print("Staf Pelatih Pertunjukan")
+        elif Adopter.objects.filter(username_adopter=username).exists():
+            if Pengunjung.objects.filter(username_p=username).exists():
+                role = "pengunjung_adopter"
+            else:
+                role = "adopter"
+        elif Pengunjung.objects.filter(username_p=username).exists():
+            role = "Pengunjung"
+            print("Pengunjung")
+            
+    return render(request, 'accounts/navbar.html', {'user_role': role})
