@@ -30,23 +30,36 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label class="form-label">Nama Atraksi</label>
-                                <input type="text" class="form-control" value="{{ reservation.nama_atraksi }}" readonly>
+                                <select name="nama_atraksi" class="form-select" required>
+                                    {% for attraction in attractions %}
+                                    <option value="{{ attraction.nama }}" 
+                                        {% if attraction.nama == nama_atraksi %}selected{% endif %}
+                                        data-lokasi="{{ attraction.lokasi }}"
+                                        data-jam="{{ attraction.jam }}">
+                                        {{ attraction.nama }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Lokasi</label>
-                                <input type="text" class="form-control" value="{{ attraction.lokasi }}" readonly>
+                                <input type="text" id="lokasi" class="form-control" readonly 
+                                    value="{{ attraction.lokasi }}">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jam</label>
-                                <input type="text" class="form-control" value="{{ attraction.jam }}" readonly>
+                                <input type="text" id="jam" class="form-control" readonly 
+                                    value="{{ attraction.jam }}">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Tanggal</label>
-                                <input type="date" name="tanggal" class="form-control" value="{{ reservation.tanggal_reservasi }}" required>
+                                <input type="date" name="tanggal" class="form-control" 
+                                    value="{{ reservation.tanggal_reservasi }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jumlah tiket</label>
-                                <input type="number" name="jumlah_tiket" class="form-control" value="{{ reservation.jumlah_tiket }}" required min="1">
+                                <input type="number" name="jumlah_tiket" class="form-control" 
+                                    value="{{ reservation.jumlah_tiket }}" required min="1">
                             </div>
 
                             <div class="text-end">
@@ -63,3 +76,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<script>
+document.querySelector('select[name="nama_atraksi"]').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    document.getElementById('lokasi').value = selected.dataset.lokasi || '';
+    document.getElementById('jam').value = selected.dataset.jam || '';
+});
+</script>
