@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Pemeriksaan Kesehatan Hewan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Jadwal Pemeriksaan Kesehatan Hewan</h1>
+        </div>
+
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            {% for hewan in hewan_list %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ hewan.nama }} ({{ hewan.spesies }})</h5>
+                        <a href="{% url 'penjadwalan:tambah_jadwal_pemeriksaan' id_hewan=hewan.id %}" class="btn btn-primary btn-sm">
+                            + Tambah Jadwal
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p><strong>Asal:</strong> {{ hewan.asal_hewan }}</p>
+                            <p><strong>Tanggal Lahir:</strong> {{ hewan.tanggal_lahir }}</p>
+                            <p><strong>Status Kesehatan:</strong> 
+                                <span class="badge {% if hewan.status_kesehatan == 'Sehat' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ hewan.status_kesehatan }}
+                                </span>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="mb-0"><strong>Frekuensi Pemeriksaan:</strong> {{ hewan.freq_pemeriksaan_rutin }} bulan sekali</p>
+                                <a href="{% url 'penjadwalan:edit_frekuensi_pemeriksaan' id_hewan=hewan.id %}" 
+                                   class="btn btn-outline-info btn-sm">
+                                    Edit Frekuensi
+                                </a>
+                            </div>
+                        </div>
+
+                        <h6>Jadwal Pemeriksaan:</h6>
+                        {% for jadwal in jadwal_list %}
+                            {% if jadwal.id_hewan == hewan.id %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <p class="mb-0"><strong>Pemeriksaan Selanjutnya:</strong> {{ jadwal.tgl_pemeriksaan_selanjutnya|date:"d F Y" }}</p>
+                                        <div class="btn-group">
+                                            <a href="{% url 'penjadwalan:edit_jadwal_pemeriksaan' id_hewan=hewan.id jadwal_id=jadwal.id %}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                Edit
+                                            </a>
+                                            <a href="{% url 'penjadwalan:hapus_jadwal_pemeriksaan' id_hewan=hewan.id jadwal_id=jadwal.id %}" 
+                                               class="btn btn-outline-danger btn-sm">
+                                                Hapus
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <p class="text-muted">Belum ada jadwal pemeriksaan</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
