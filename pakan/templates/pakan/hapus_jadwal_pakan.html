@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-danger">HAPUS PEMBERIAN PAKAN</h2>
+    
+    <p>
+        Dokter hewan dapat menghapus data pemberian pakan suatu hewan dengan menekan tombol "Hapus"
+        pada halaman Pemberian Pakan yang akan memunculkan modal berisi form berikut:
+    </p>
+    
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">HAPUS PEMBERIAN PAKAN</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="alert alert-warning">
+                    <p class="mb-0">Apakah anda yakin ingin menghapus data pemberian pakan ini?</p>
+                    <ul class="mt-2">
+                        <li>Jenis Pakan: {{ pakan.jenis }}</li>
+                        <li>Jumlah: {{ pakan.jumlah }} gram</li>
+                        <li>Jadwal: {{ pakan.jadwal|date:"Y-m-d H:i:s" }}</li>
+                    </ul>
+                </div>
+                
+                <div class="form-group text-center mt-4">
+                    <button type="submit" name="confirm" value="yes" class="btn btn-danger">YA</button>
+                    <a href="{% url 'pemberian_pakan_list' pakan.id_hewan.id %}" class="btn btn-secondary">TIDAK</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
