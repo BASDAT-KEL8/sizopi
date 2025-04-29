@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detail Habitat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  {% include 'accounts/navbar.html' %}
+<main class="max-w-5xl mx-auto px-6 py-10">
+  <div class="bg-white shadow-xl rounded-2xl p-8">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold text-green-800">Detail Habitat: {{ habitat.nama }}</h1>
+      <div class="flex gap-2">
+        <a href="{% url 'habitat:edit_habitat' habitat.nama %}" class="bg-green-500 hover:bg-green-600 text-white text-xs font-medium px-3 py-1 rounded-lg">Edit Habitat</a>
+        <a href="#" class="bg-green-700 hover:bg-green-800 text-white text-xs font-medium px-3 py-1 rounded-lg">Hapus Habitat</a>
+      </div>
+    </div>
+
+    <table class="w-full text-sm mb-6 border border-gray-200">
+      <tbody>
+        <tr class="border-b">
+          <th class="text-left px-4 py-2 w-1/3 bg-gray-100">Luas Area</th>
+          <td class="px-4 py-2">{{ habitat.luas }} m²</td>
+        </tr>
+        <tr class="border-b">
+          <th class="text-left px-4 py-2 bg-gray-100">Kapasitas Maksimal</th>
+          <td class="px-4 py-2">{{ habitat.kapasitas }} hewan</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-2 bg-gray-100">Status Lingkungan</th>
+          <td class="px-4 py-2">{{ habitat.status }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="text-lg font-semibold text-green-700 mb-2">Daftar Hewan dalam Habitat</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border border-gray-200">
+        <thead class="bg-green-100 text-green-800">
+          <tr>
+            <th class="px-4 py-2 text-left">Nama Individu</th>
+            <th class="px-4 py-2 text-left">Spesies</th>
+            <th class="px-4 py-2 text-left">Asal Hewan</th>
+            <th class="px-4 py-2 text-left">Tanggal Lahir</th>
+            <th class="px-4 py-2 text-left">Status Kesehatan</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for hewan in hewan_list %}
+          <tr>
+            <td class="px-4 py-2">{{ hewan.nama }}</td>
+            <td class="px-4 py-2">{{ hewan.spesies }}</td>
+            <td class="px-4 py-2">{{ hewan.asal }}</td>
+            <td class="px-4 py-2">{{ hewan.tanggal_lahir }}</td>
+            <td class="px-4 py-2">{{ hewan.status }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-4 py-4 text-center text-gray-500">Tidak ada hewan di habitat ini.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>
