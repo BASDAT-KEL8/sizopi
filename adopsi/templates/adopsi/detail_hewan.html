@@ -129,12 +129,12 @@
                     <!-- Action Buttons -->
                     <div class="space-y-3 mt-6">
                         <!-- Update Payment Status Button with Dropdown -->
-                        <button type="button" class="show-modal block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal-target="updatePaymentModal">
+                        <button type="button" class="modal-trigger block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal="updatePaymentModal">
                             <i class="fas fa-money-check-alt mr-1"></i> Update Status Pembayaran
                         </button>
                         
                         {% if adoption.tgl_berhenti_adopsi >= now.date %}
-                        <button type="button" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition show-modal" data-modal-target="terminateModal">
+                        <button type="button" class="modal-trigger block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition" data-modal="terminateModal">
                             <i class="fas fa-times-circle mr-1"></i> Hentikan Adopsi
                         </button>
                         {% endif %}
@@ -146,9 +146,9 @@
     
 
 <!-- Update Payment Status Modal -->
-<div id="updatePaymentModal" class="hidden fixed inset-0 z-50">
-    <div class="fixed inset-0 bg-black opacity-50"></div>
-    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+<div id="updatePaymentModal" class="modal-container hidden fixed inset-0 z-50">
+    <div class="modal-overlay fixed inset-0 bg-black opacity-50"></div>
+    <div class="modal-content relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-xl font-bold text-gray-900">Update Status Pembayaran</h3>
         </div>
@@ -164,7 +164,7 @@
                 </div>
                 
                 <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                    <button type="button" class="modal-close px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                         Batal
                     </button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded font-medium">
@@ -177,9 +177,9 @@
 </div>
 
 <!-- Terminate Adoption Modal -->
-<div id="terminateModal" class="hidden fixed inset-0 z-50">
-    <div class="fixed inset-0 bg-black opacity-50"></div>
-    <div class="relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
+<div id="terminateModal" class="modal-container hidden fixed inset-0 z-50">
+    <div class="modal-overlay fixed inset-0 bg-black opacity-50"></div>
+    <div class="modal-content relative bg-white rounded-lg max-w-md mx-auto mt-20 z-10 shadow-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-xl font-bold text-gray-900">Konfirmasi Penghentian Adopsi</h3>
         </div>
@@ -187,7 +187,7 @@
             <p class="text-gray-700 mb-4">Apakah Anda yakin ingin menghentikan adopsi ini? Tindakan ini akan mengubah tanggal berakhir adopsi menjadi hari ini.</p>
             
             <div class="flex justify-end space-x-3">
-                <button type="button" class="close-modal px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
+                <button type="button" class="modal-close px-4 py-2 bg-gray-200 text-gray-800 rounded font-medium">
                     Batal
                 </button>
                 <form method="post" action="{% url 'adopsi:berhenti_adopsi' adopter.id_adopter hewan.id tgl_mulai_adopsi_str %}">
@@ -200,4 +200,40 @@
         </div>
     </div>
 </div>
+
+<!-- Add JavaScript for Modal Functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all modal trigger buttons
+        const modalTriggers = document.querySelectorAll('.modal-trigger');
+        
+        // Add click event to each trigger
+        modalTriggers.forEach(function(trigger) {
+            trigger.addEventListener('click', function() {
+                // Get the target modal ID
+                const modalId = this.getAttribute('data-modal');
+                
+                // Show the modal
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Get all modal close buttons
+        const closeButtons = document.querySelectorAll('.modal-close, .modal-overlay');
+        
+        // Add click event to each close button
+        closeButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                // Find the closest modal container and hide it
+                const modal = this.closest('.modal-container');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
