@@ -34,18 +34,27 @@
                     {% for item in rekam_medis %}
                     <tr class="border-b">
                         <td class="px-6 py-4">{{ item.tanggal_pemeriksaan }}</td>
-                        <td class="px-6 py-4">
-                            {{ item.username_dh.username_dh.nama_depan }}
-                            {% if item.username_dh.username_dh.nama_tengah %} {{ item.username_dh.username_dh.nama_tengah }}{% endif %}
-                            {{ item.username_dh.username_dh.nama_belakang }}
-                        </td>                        
+                        <!-- <td class="px-6 py-4">
+                            {{ item.username_dh.nama_depan }}
+                            {% if item.username_dh.nama_tengah %} {{ item.username_dh.nama_tengah }}{% endif %}
+                            {{ item.username_dh.nama_belakang }}
+                        </td>                         -->
+                        <td>{{item.nama_dokter}}</td>
                         <td class="px-6 py-4 capitalize">{{ item.status_kesehatan }}</td>
                         <td class="px-6 py-4">{{ item.diagnosis|default:"-" }}</td>
                         <td class="px-6 py-4">{{ item.pengobatan|default:"-" }}</td>
                         <td class="px-6 py-4">{{ item.catatan_tindak_lanjut|default:"-" }}</td>
                         <td class="px-6 py-4 flex space-x-2 justify-center">
-                            <a href="{% url 'rekam_medis:edit_rekam_medis' item.id_hewan.id item.tanggal_pemeriksaan %}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">Edit</a>
-                            <a href="{% url 'rekam_medis:hapus_rekam_medis' item.id_hewan.id item.tanggal_pemeriksaan %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded">Hapus</a>
+                            <a href="{% url 'rekam_medis:edit_rekam_medis' item.id_hewan item.tanggal_pemeriksaan %}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">Edit</a>
+                            <!-- <a href="{% url 'rekam_medis:hapus_rekam_medis' item.id_hewan item.tanggal_pemeriksaan %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded">Hapus</a> -->
+                            <!-- <form method="post" action="{% url 'rekam_medis:hapus_rekam_medis' item.id_hewan item.tanggal_pemeriksaan %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded">Hapus</button>
+                            </form>                             -->
+                            <a href="{% url 'rekam_medis:hapus_rekam_medis' item.id_hewan item.tanggal_pemeriksaan %}" 
+                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                Hapus
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
@@ -53,7 +62,7 @@
                         <td colspan="7" class="text-center py-4 text-gray-500">Belum ada data rekam medis.</td>
                     </tr>
                     {% endfor %}
-                </tbody>
+                </tbody>                
             </table>
         </div>
     </div>
