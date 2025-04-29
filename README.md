@@ -1,7 +1,7 @@
 # 📘 Tugas Kelompok Basis Data — SIZOPI - Case 02
 
 Semester Genap Tahun Ajaran 2024/2025  
-Kelas: Bsis Data E
+Kelas: Basis Data E
 
 Version: TK03
 
@@ -14,6 +14,3 @@ Version: TK03
 | 3  | Shintia Dharma Shanty               | 2306245655 | Navbar, CRUD Rekam Medis, CRUD Penjadwalan Pemeriksaan Kesehatan, & CRUD Pemberian Pakan                                                                 |
 | 4  | Joshua Hans Vito Soehendra          | 2306165540 | Dashboard, CRUD Manajemen Atraksi dan Wahana, & CRUD Reservasi Booking Tiket                                                   |
 
-> 🔹 Warna pada fitur mengikuti warna pada lampiran tugas besar  
-> 🔹 Setiap fitur CRUD terdiri dari halaman Create, Read, Update, dan Delete kecuali jika ditentukan lain  
-> 🔹 Semua fitur yang tidak diberi warna diasumsikan wajib dan dikerjakan sesuai pembagian yang relevan
