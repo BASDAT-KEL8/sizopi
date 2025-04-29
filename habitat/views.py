@@ -3,6 +3,8 @@ from django.shortcuts import redirect, render
 from django.db import connection
 import uuid
 
+from accounts.models import DokterHewan, PenjagaHewan, StafAdmin
+
 def view_habitat(request):
     # Jika POST dan mengandung nama untuk dihapus
     if request.method == "POST" and "delete_nama" in request.POST:
@@ -31,7 +33,8 @@ def view_habitat(request):
     ]
 
     context = {
-        "habitat_list": habitat_list
+        "habitat_list": habitat_list,
+        'role': get_user_role(request)
     }
     return render(request, 'view_habitat.html', context)
 
@@ -49,8 +52,12 @@ def create_habitat(request):
             """, [nama, luas, kapasitas, status])
         
         return redirect('habitat:view_habitat')
+    
+    context = {
+        'role': get_user_role(request)
+    }
 
-    return render(request, 'create_habitat.html')
+    return render(request, 'create_habitat.html', context)
 
 def delete_habitat(request, nama):
     with connection.cursor() as cursor:
@@ -86,7 +93,8 @@ def edit_habitat(request, nama):
             "luas": row[1],
             "kapasitas": row[2],
             "status": row[3],
-        }
+        },
+        'role': get_user_role(request)
     }
 
     return render(request, 'edit_habitat.html', context)
@@ -117,6 +125,17 @@ def detail_habitat(request, nama):
                 "tanggal_lahir": row[3],
                 "status": row[4]
             } for row in hewan_list
-        ]
+        ],
+        'role': get_user_role(request)
     }
     return render(request, 'detail_habitat.html', context)
+
+def get_user_role(request):
+    username = request.session.get('username')
+    
+    if PenjagaHewan.objects.filter(username_jh=username).exists():
+        return 'Penjaga Hewan'
+    elif StafAdmin.objects.filter(username_sa=username).exists():
+        return 'Staf Administrasi'
+    
+    return ""
