@@ -1,7 +1,9 @@
-# 📘 Tugas Besar Basis Data — SIZOPI - Case 02
+# 📘 Tugas Kelompok Basis Data — SIZOPI - Case 02
 
 Semester Genap Tahun Ajaran 2024/2025  
-Kelas: CSGE602070 — Basis Data  
+Kelas: Bsis Data E
+
+Version: TK03
 
 ## 👥 Anggota dan Pembagian Fitur
 
