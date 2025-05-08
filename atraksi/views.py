@@ -38,33 +38,29 @@ def manage_atraksi(request):
         SELECT a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, 
                array_agg(DISTINCT h.nama) as hewan_names,
                array_agg(DISTINCT h.spesies) as hewan_species,
-               p.nama_depan, p.nama_belakang, jp.tgl_penugasan
+               p.nama_depan, p.nama_belakang, jp.tgl_penugasan, jp.username_lh
         FROM atraksi a
         JOIN fasilitas f ON a.nama_atraksi = f.nama
         LEFT JOIN berpartisipasi b ON f.nama = b.nama_fasilitas
         LEFT JOIN hewan h ON b.id_hewan = h.id
-        LEFT JOIN jadwal_penugasan jp ON a.nama_atraksi = jp.nama_atraksi 
-            AND jp.tgl_penugasan >= NOW()
+        LEFT JOIN LATERAL (
+            SELECT jp1.*
+            FROM jadwal_penugasan jp1
+            WHERE jp1.nama_atraksi = a.nama_atraksi
+            ORDER BY jp1.tgl_penugasan DESC
+            LIMIT 1
+        ) jp ON TRUE
         LEFT JOIN pelatih_hewan ph ON jp.username_lh = ph.username_lh
         LEFT JOIN pengguna p ON ph.username_lh = p.username
-        GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, p.nama_depan, p.nama_belakang, jp.tgl_penugasan
+        GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, p.nama_depan, p.nama_belakang, jp.tgl_penugasan, jp.username_lh
         ORDER BY a.nama_atraksi
     """)
     atraksi_rows = cur.fetchall()
     
-    # Get wahana list with details from fasilitas
-    cur.execute("""
-        SELECT f.nama, f.kapasitas_max, f.jadwal, w.peraturan
-        FROM wahana w
-        JOIN fasilitas f ON w.nama_wahana = f.nama
-        ORDER BY f.nama
-    """)
-    wahana_rows = cur.fetchall()
-    
     # Format atraksi data
     atraksi_list = []
     for row in atraksi_rows:
-        nama, lokasi, kapasitas, jadwal, hewan_names, hewan_species, pelatih_nama_depan, pelatih_nama_belakang, tgl_penugasan = row
+        nama, lokasi, kapasitas, jadwal, hewan_names, hewan_species, pelatih_nama_depan, pelatih_nama_belakang, tgl_penugasan, username_lh = row
         
         # Format hewan list
         hewan_list = []
@@ -76,10 +72,11 @@ def manage_atraksi(request):
         
         # Format pelatih info
         pelatih = None
-        if pelatih_nama_depan and pelatih_nama_belakang:
+        if username_lh and pelatih_nama_depan and pelatih_nama_belakang:
             pelatih = {
                 'nama': f"{pelatih_nama_depan} {pelatih_nama_belakang}",
-                'jadwal': tgl_penugasan
+                'jadwal': tgl_penugasan,
+                'username': username_lh
             }
         
         atraksi_list.append({
@@ -93,6 +90,15 @@ def manage_atraksi(request):
             'pelatih': pelatih
         })
 
+    # Get wahana list with details from fasilitas
+    cur.execute("""
+        SELECT f.nama, f.kapasitas_max, f.jadwal, w.peraturan
+        FROM wahana w
+        JOIN fasilitas f ON w.nama_wahana = f.nama
+        ORDER BY f.nama
+    """)
+    wahana_rows = cur.fetchall()
+    
     # Format wahana data
     wahana_list = [{
         'nama': nama,
