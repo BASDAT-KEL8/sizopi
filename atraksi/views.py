@@ -287,7 +287,7 @@ def edit_atraksi(request, nama_atraksi):
     """, (nama_atraksi,))
     current_schedule = cur.fetchone()
 
-    # Get all trainers and animals for form options
+    # Get all trainers for form options
     cur.execute("""
         SELECT ph.username_lh, p.nama_depan, p.nama_belakang
         FROM pelatih_hewan ph
@@ -298,6 +298,7 @@ def edit_atraksi(request, nama_atraksi):
         for row in cur.fetchall()
     ]
 
+    # Get all animals for form options
     cur.execute("SELECT id, nama, spesies FROM hewan")
     hewan_list = [
         {'id': row[0], 'nama': row[1], 'spesies': row[2]}
@@ -311,8 +312,8 @@ def edit_atraksi(request, nama_atraksi):
         'atraksi': {
             'nama_atraksi': {'nama': atraksi_data[0]},
             'lokasi': atraksi_data[1],
-            'nama_atraksi.kapasitas_max': atraksi_data[2],
-            'nama_atraksi.jadwal': atraksi_data[3]
+            'kapasitas_max': atraksi_data[2],
+            'jadwal': atraksi_data[3]
         },
         'pelatih_list': pelatih_list,
         'hewan_list': hewan_list,
@@ -402,7 +403,7 @@ def edit_wahana(request, nama_wahana):
 
     # Get wahana data
     cur.execute("""
-        SELECT f.nama, f.kapasitas_max, f.jadwal, w.peraturan
+        SELECT f.nama, f.kapasitas_max, f.jadwal::time, w.peraturan
         FROM fasilitas f
         JOIN wahana w ON f.nama = w.nama_wahana
         WHERE f.nama = %s
@@ -451,8 +452,8 @@ def edit_wahana(request, nama_wahana):
     context = {
         'wahana': {
             'nama_wahana': {'nama': wahana_data[0]},
-            'nama_wahana.kapasitas_max': wahana_data[1],
-            'nama_wahana.jadwal': wahana_data[2],
+            'kapasitas_max': wahana_data[1],
+            'jadwal': wahana_data[2],
             'peraturan': wahana_data[3]
         }
     }

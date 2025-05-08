@@ -52,11 +52,11 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Kapasitas Maksimum</label>
-                                <input type="number" name="kapasitas" class="form-control" value="{{ atraksi.nama_atraksi.kapasitas_max }}" required>
+                                <input type="number" name="kapasitas" class="form-control" value="{{ atraksi.kapasitas_max }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jadwal</label>
-                                <input type="time" name="jadwal" class="form-control" value="{{ atraksi.nama_atraksi.jadwal|date:'H:i' }}" required>
+                                <input type="datetime-local" name="jadwal" class="form-control" value="{{ atraksi.jadwal|date:'Y-m-d\TH:i' }}" required>
                             </div>
 
                             <div class="mb-3">
