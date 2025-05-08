@@ -73,10 +73,10 @@
                         <tbody>
                             {% for item in atraksi_list %}
                             <tr>
-                                <td>{{ item.atraksi.nama_atraksi.nama }}</td>
+                                <td>{{ item.atraksi.nama }}</td>
                                 <td>{{ item.atraksi.lokasi }}</td>
-                                <td>{{ item.atraksi.nama_atraksi.kapasitas_max }} orang</td>
-                                <td>{{ item.atraksi.nama_atraksi.jadwal|date:"H:i" }}</td>
+                                <td>{{ item.kapasitas_max }} orang</td>
+                                <td>{{ item.jadwal|date:"H:i" }}</td>
                                 <td>
                                     {% if item.pelatih %}
                                         <div>{{ item.pelatih.nama }}</div>
@@ -93,10 +93,10 @@
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'edit_atraksi' item.atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-warning">
+                                    <a href="{% url 'edit_atraksi' item.atraksi.nama %}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'hapus_atraksi' item.atraksi.nama_atraksi.nama %}" class="btn btn-sm btn-danger">
+                                    <a href="{% url 'hapus_atraksi' item.atraksi.nama %}" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>
@@ -135,15 +135,15 @@
                         <tbody>
                             {% for wahana in wahana_list %}
                             <tr>
-                                <td>{{ wahana.nama_wahana.nama }}</td>
-                                <td>{{ wahana.nama_wahana.kapasitas_max }} orang</td>
-                                <td>{{ wahana.nama_wahana.jadwal|date:"H:i" }}</td>
+                                <td>{{ wahana.nama }}</td>
+                                <td>{{ wahana.kapasitas_max }} orang</td>
+                                <td>{{ wahana.jadwal|date:"H:i" }}</td>
                                 <td>{{ wahana.peraturan|truncatechars:50 }}</td>
                                 <td>
-                                    <a href="{% url 'edit_wahana' wahana.nama_wahana.nama %}" class="btn btn-sm btn-warning">
+                                    <a href="{% url 'edit_wahana' wahana.nama %}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'hapus_wahana' wahana.nama_wahana.nama %}" class="btn btn-sm btn-danger">
+                                    <a href="{% url 'hapus_wahana' wahana.nama %}" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>

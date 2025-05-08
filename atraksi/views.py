@@ -35,28 +35,28 @@ def manage_atraksi(request):
 
     # Get atraksi list with details
     cur.execute("""
-        SELECT f.nama, a.lokasi, f.kapasitas_max, f.jadwal, 
+        SELECT a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, 
                array_agg(DISTINCT h.nama) as hewan_names,
                array_agg(DISTINCT h.spesies) as hewan_species,
                p.nama_depan, p.nama_belakang, jp.tgl_penugasan
-        FROM fasilitas f
-        JOIN atraksi a ON f.nama = a.nama_atraksi
+        FROM atraksi a
+        JOIN fasilitas f ON a.nama_atraksi = f.nama
         LEFT JOIN berpartisipasi b ON f.nama = b.nama_fasilitas
         LEFT JOIN hewan h ON b.id_hewan = h.id
         LEFT JOIN jadwal_penugasan jp ON a.nama_atraksi = jp.nama_atraksi 
             AND jp.tgl_penugasan >= NOW()
         LEFT JOIN pelatih_hewan ph ON jp.username_lh = ph.username_lh
         LEFT JOIN pengguna p ON ph.username_lh = p.username
-        GROUP BY f.nama, a.lokasi, f.kapasitas_max, f.jadwal, p.nama_depan, p.nama_belakang, jp.tgl_penugasan
-        ORDER BY f.nama
+        GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, p.nama_depan, p.nama_belakang, jp.tgl_penugasan
+        ORDER BY a.nama_atraksi
     """)
     atraksi_rows = cur.fetchall()
     
-    # Get wahana list
+    # Get wahana list with details from fasilitas
     cur.execute("""
         SELECT f.nama, f.kapasitas_max, f.jadwal, w.peraturan
-        FROM fasilitas f
-        JOIN wahana w ON f.nama = w.nama_wahana
+        FROM wahana w
+        JOIN fasilitas f ON w.nama_wahana = f.nama
         ORDER BY f.nama
     """)
     wahana_rows = cur.fetchall()
@@ -84,20 +84,20 @@ def manage_atraksi(request):
         
         atraksi_list.append({
             'atraksi': {
-                'nama_atraksi': {'nama': nama},
-                'lokasi': lokasi,
-                'nama_atraksi.kapasitas_max': kapasitas,
-                'nama_atraksi.jadwal': jadwal
+                'nama': nama,
+                'lokasi': lokasi
             },
+            'kapasitas_max': kapasitas,
+            'jadwal': jadwal,
             'hewan_list': hewan_list,
             'pelatih': pelatih
         })
 
     # Format wahana data
     wahana_list = [{
-        'nama_wahana': {'nama': nama},
-        'nama_wahana.kapasitas_max': kapasitas,
-        'nama_wahana.jadwal': jadwal,
+        'nama': nama,
+        'kapasitas_max': kapasitas,
+        'jadwal': jadwal,
         'peraturan': peraturan
     } for nama, kapasitas, jadwal, peraturan in wahana_rows]
 
