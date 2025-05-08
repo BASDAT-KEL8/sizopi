@@ -79,10 +79,7 @@
                                 <select name="pelatih" class="form-select">
                                     <option value="">Pilih Pelatih</option>
                                     {% for pelatih in pelatih_list %}
-                                    <option value="{{ pelatih.username_lh }}" 
-                                        {% if current_schedule and current_schedule.username_lh == pelatih %}selected{% endif %}>
-                                        {{ pelatih.username_lh.nama_depan }} {{ pelatih.username_lh.nama_belakang }}
-                                    </option>
+                                    <option value="{{ pelatih.username_lh }}" {% if current_schedule and current_schedule.username_lh == pelatih.username_lh %}selected{% endif %}>{{ pelatih.nama_depan }} {{ pelatih.nama_belakang }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
