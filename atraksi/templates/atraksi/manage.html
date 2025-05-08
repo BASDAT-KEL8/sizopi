@@ -89,7 +89,7 @@
                                 </td>
                                 <td>
                                     {% for hewan in item.hewan_list %}
-                                        <span class="badge bg-info">{{ hewan.id_hewan.nama }}</span>
+                                        <span class="badge bg-info">{{ hewan.id_hewan.nama }} ({{ hewan.id_hewan.spesies }})</span>
                                     {% empty %}
                                         <span class="text-muted">-</span>
                                     {% endfor %}
