@@ -339,7 +339,6 @@ def dashboard_adopter(request):
         
         if not pengunjung_data:
             messages.error(request, "Anda belum terdaftar sebagai pengunjung.")
-            return redirect('adopsi:list_hewan')
         
         pengunjung = {
             'username_p': pengunjung_data[0],
@@ -357,12 +356,17 @@ def dashboard_adopter(request):
         
         if not adopter_data:
             messages.error(request, "Anda belum terdaftar sebagai adopter.")
-            return redirect('adopsi:list_hewan')
         
         adopter = {
             'id_adopter': adopter_data[0],
-            'username_adopter': adopter_data[1],
-            'total_kontribusi': adopter_data[2]
+            'username_adopter': {
+                'username_p': {
+                    'username': pengunjung['username_p'],
+                    'email': request.session.get('email', f"{pengunjung['username_p']}@example.com")
+                }
+            },
+            'total_kontribusi': adopter_data[2],
+            'jenis_adopter': 'individu',  # default
         }
         
         # Ambil data adopsi
@@ -379,31 +383,41 @@ def dashboard_adopter(request):
             adoption_rows = cursor.fetchall()
         
         adoptions = []
+        active_adoptions_count = 0  # Counter untuk adopsi aktif
+        current_date = timezone.now().date()  # Tanggal sekarang
+        
         for row in adoption_rows:
-            adoptions.append({
+            adoption_data = {
                 'id_adopter__id_adopter': row[0],
                 'id_hewan__id': row[1],
                 'id_hewan__nama': row[2],
                 'id_hewan__spesies': row[3],
-                'id_hewan__url_foto': row[4],
+                'id_hewan__url_foto': {'url': row[4]} if row[4] else {'url': '/static/images/placeholder.jpg'},
                 'status_pembayaran': row[5],
                 'tgl_mulai_adopsi': row[6],
-                'tgl_mulai_adopsi_str': row[6].strftime('%Y-%m-%d'),
+                'tgl_mulai_adopsi_str': row[6].strftime('%Y-%m-%d') if row[6] else '',
                 'tgl_berhenti_adopsi': row[7],
                 'kontribusi_finansial': row[8],
-            })
+            }
+            
+            # Cek apakah adopsi masih aktif
+            if row[7] and row[7] >= current_date:  # tgl_berhenti_adopsi >= tanggal sekarang
+                active_adoptions_count += 1
+            
+            adoptions.append(adoption_data)
         
         context = {
             'adopter': adopter,
             'adoptions': adoptions,
+            'active_adoptions': active_adoptions_count,  # Tambahkan counter adopsi aktif
             'now': timezone.now(),
         }
         return render(request, 'adopsi/dashboard_adopter.html', context)
     
     except Exception as e:
         messages.error(request, f"Terjadi kesalahan: {str(e)}")
-        return redirect('adopsi:list_hewan')
-
+        return redirect('adopsi:dashboard_adopter')  # Tambahkan redirect untuk error handling
+    
 # @login_required
 def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     """Menampilkan detail adopsi untuk adopter (user)"""
@@ -432,10 +446,11 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         'total_kontribusi': adopter_data[2]
     }
     
-    # Ambil data hewan
+    # Ambil data hewan - dengan deskripsi dan kebutuhan khusus
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto
+            SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, 
+                   nama_habitat, url_foto
             FROM sizopi.hewan
             WHERE id = %s
         """, [id_hewan])
@@ -445,6 +460,11 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         messages.error(request, "Data hewan tidak ditemukan.")
         return redirect('adopsi:dashboard_adopter')
     
+    # Handle URL foto dengan benar
+    foto_url = hewan_data[7] if hewan_data[7] else '/static/images/placeholder.jpg'
+    if foto_url and not foto_url.startswith(('http', '/static', '/media')):
+        foto_url = f'/media/{foto_url}'
+    
     hewan = {
         'id': hewan_data[0],
         'nama': hewan_data[1],
@@ -453,13 +473,14 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         'tanggal_lahir': hewan_data[4],
         'status_kesehatan': hewan_data[5],
         'nama_habitat': hewan_data[6],
-        'url_foto': hewan_data[7]
+        'url_foto': foto_url,  # LANGSUNG URL STRING, BUKAN OBJECT
     }
     
     # Ambil data adopsi
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT id_adopter, id_hewan, status_pembayaran, tgl_mulai_adopsi, tgl_berhenti_adopsi, kontribusi_finansial
+            SELECT id_adopter, id_hewan, status_pembayaran, tgl_mulai_adopsi, 
+                   tgl_berhenti_adopsi, kontribusi_finansial
             FROM sizopi.adopsi
             WHERE id_adopter = %s AND id_hewan = %s AND tgl_mulai_adopsi = %s
         """, [id_adopter, id_hewan, tgl_mulai])
@@ -469,7 +490,7 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
         messages.error(request, "Adopsi tidak ditemukan.")
         return redirect('adopsi:dashboard_adopter')
     
-    # Create dummy AdopsiObject
+    # Buat object adopsi dengan nested objects untuk consistency
     class AdopsiObject:
         pass
 
@@ -517,7 +538,7 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
             adopter_type = 'unknown'
             adopter_detail = None
     
-    # Ambil data pengunjung - PERBAIKAN JOIN ANTARA PENGUNJUNG DAN ADOPTER
+    # Ambil data pengunjung
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT p.username_p, p.alamat, p.tgl_lahir
@@ -547,6 +568,7 @@ def detail_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     }
 
     return render(request, 'adopsi/detail_adopsi.html', context)
+
 
 def perpanjang_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
     # Ambil data adopter
@@ -1482,113 +1504,117 @@ def verify_username(request):
             'error': str(e),
             'message': 'Terjadi kesalahan saat menghubungi server'
         }, status=500)
-    
-def laporan_kondisi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
-   """Menampilkan laporan kondisi hewan untuk adopter"""
-   try:
-       tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
-   except ValueError:
-       messages.error(request, "Format tanggal tidak valid.")
-       return redirect('adopsi:dashboard_adopter')
 
-   # Ambil data adopter
-   with connection.cursor() as cursor:
-       cursor.execute("""
-           SELECT id_adopter, username_adopter, total_kontribusi
-           FROM sizopi.adopter
-           WHERE id_adopter = %s
-       """, [id_adopter])
-       adopter_data = cursor.fetchone()
-   
-   if not adopter_data:
-       messages.error(request, "Data adopter tidak ditemukan.")
-       return redirect('adopsi:dashboard_adopter')
-   
-   adopter = {
-       'id_adopter': adopter_data[0],
-       'username_adopter': adopter_data[1],
-       'total_kontribusi': adopter_data[2]
-   }
-   
-   # Ambil data hewan
-   with connection.cursor() as cursor:
-       cursor.execute("""
-           SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto
-           FROM sizopi.hewan
-           WHERE id = %s
-       """, [id_hewan])
-       hewan_data = cursor.fetchone()
-   
-   if not hewan_data:
-       messages.error(request, "Data hewan tidak ditemukan.")
-       return redirect('adopsi:dashboard_adopter')
-   
-   hewan = {
-       'id': hewan_data[0],
-       'nama': hewan_data[1],
-       'spesies': hewan_data[2],
-       'asal_hewan': hewan_data[3],
-       'tanggal_lahir': hewan_data[4],
-       'status_kesehatan': hewan_data[5],
-       'nama_habitat': hewan_data[6],
-       'url_foto': hewan_data[7]
-   }
-   
-   # Ambil data adopsi
-   with connection.cursor() as cursor:
-       cursor.execute("""
-           SELECT status_pembayaran, tgl_mulai_adopsi, tgl_berhenti_adopsi, kontribusi_finansial
-           FROM sizopi.adopsi
-           WHERE id_adopter = %s AND id_hewan = %s AND tgl_mulai_adopsi = %s
-           ORDER BY tgl_mulai_adopsi
-       """, [id_adopter, id_hewan, tgl_mulai])
-       adopsi_data = cursor.fetchone()
-   
-   if not adopsi_data:
-       messages.error(request, "Data adopsi tidak ditemukan.")
-       return redirect('adopsi:dashboard_adopter')
-   
-   # Bikin dummy object
-   class AdopsiObject:
-       pass
-   
-   adopsi = AdopsiObject()
-   adopsi.status_pembayaran = adopsi_data[0]
-   adopsi.tgl_mulai_adopsi = adopsi_data[1]
-   adopsi.tgl_berhenti_adopsi = adopsi_data[2]
-   adopsi.kontribusi_finansial = adopsi_data[3]
-   
-   # Medical records
-   with connection.cursor() as cursor:
-       cursor.execute("""
-           SELECT id_hewan, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut
-           FROM sizopi.catatan_medis
-           WHERE id_hewan = %s AND tanggal_pemeriksaan >= %s
-           ORDER BY tanggal_pemeriksaan DESC
-       """, [id_hewan, tgl_mulai])
-       medical_records_data = cursor.fetchall()
-   
-   # Convert to list of dictionaries
-   medical_records = []
-   for record in medical_records_data:
-       medical_records.append({
-           'id_hewan': record[0],
-           'tanggal_pemeriksaan': record[1],
-           'diagnosis': record[2],
-           'pengobatan': record[3],
-           'status_kesehatan': record[4],
-           'catatan_tindak_lanjut': record[5]
-       })
-   
-   context = {
-       'adopsi': adopsi,
-       'hewan': hewan,
-       'adopter': adopter,
-       'medical_records': medical_records,
-       'now': timezone.now(),
-       'tgl_mulai_adopsi_str': tgl_mulai.strftime('%Y-%m-%d'),
-   }
-   return render(request, 'adopsi/laporan_kondisi.html', context)
+def laporan_kondisi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
+    """Menampilkan laporan kondisi hewan untuk adopter"""
+    try:
+        tgl_mulai = datetime.strptime(tgl_mulai_adopsi, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "Format tanggal tidak valid.")
+        return redirect('adopsi:dashboard_adopter')
+
+    # Ambil data adopter
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT id_adopter, username_adopter, total_kontribusi
+            FROM sizopi.adopter
+            WHERE id_adopter = %s
+        """, [id_adopter])
+        adopter_data = cursor.fetchone()
+    
+    if not adopter_data:
+        messages.error(request, "Data adopter tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+    
+    adopter = {
+        'id_adopter': adopter_data[0],
+        'username_adopter': adopter_data[1],
+        'total_kontribusi': adopter_data[2]
+    }
+    
+    # Ambil data hewan
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto
+            FROM sizopi.hewan
+            WHERE id = %s
+        """, [id_hewan])
+        hewan_data = cursor.fetchone()
+    
+    if not hewan_data:
+        messages.error(request, "Data hewan tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+    
+    hewan = {
+        'id': hewan_data[0],
+        'nama': hewan_data[1],
+        'spesies': hewan_data[2],
+        'asal_hewan': hewan_data[3],
+        'tanggal_lahir': hewan_data[4],
+        'status_kesehatan': hewan_data[5],
+        'habitat': hewan_data[6],  # Ubah dari nama_habitat ke habitat
+        'url_foto': hewan_data[7]
+    }
+    
+    # Ambil data adopsi
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT status_pembayaran, tgl_mulai_adopsi, tgl_berhenti_adopsi, kontribusi_finansial
+            FROM sizopi.adopsi
+            WHERE id_adopter = %s AND id_hewan = %s AND tgl_mulai_adopsi = %s
+            ORDER BY tgl_mulai_adopsi
+        """, [id_adopter, id_hewan, tgl_mulai])
+        adopsi_data = cursor.fetchone()
+    
+    if not adopsi_data:
+        messages.error(request, "Data adopsi tidak ditemukan.")
+        return redirect('adopsi:dashboard_adopter')
+    
+    # Bikin dummy object
+    class AdopsiObject:
+        pass
+    
+    adopsi = AdopsiObject()
+    adopsi.status_pembayaran = adopsi_data[0]
+    adopsi.tgl_mulai_adopsi = adopsi_data[1]
+    adopsi.tgl_berhenti_adopsi = adopsi_data[2]
+    adopsi.kontribusi_finansial = adopsi_data[3]
+    
+    # Medical records - tambahkan join dengan tabel dokter untuk nama_dokter
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT cm.id_hewan, cm.tanggal_pemeriksaan, cm.diagnosis, cm.pengobatan, 
+                   cm.status_kesehatan, cm.catatan_tindak_lanjut, p.nama_depan AS nama_dokter
+            FROM sizopi.catatan_medis cm
+            LEFT JOIN sizopi.dokter_hewan d ON cm.username_dh = d.username_dh
+            JOIN sizopi.pengguna p ON d.username_dh = p.username
+            WHERE cm.id_hewan = %s AND cm.tanggal_pemeriksaan >= %s
+            ORDER BY cm.tanggal_pemeriksaan DESC
+        """, [id_hewan, tgl_mulai])
+        medical_records_data = cursor.fetchall()
+    
+    # Convert to list of dictionaries
+    medical_records = []
+    for record in medical_records_data:
+        medical_records.append({
+            'id_hewan': record[0],
+            'tanggal_pemeriksaan': record[1],
+            'diagnosis': record[2],  # Konsisten dengan template
+            'pengobatan': record[3],
+            'status_kesehatan': record[4],
+            'catatan_tindak_lanjut': record[5],
+            'nama_dokter': record[6] if record[6] else 'Tidak diketahui'
+        })
+    
+    context = {
+        'adopsi': adopsi,
+        'hewan': hewan,
+        'adopter': adopter,
+        'medical_records': medical_records,
+        'now': timezone.now(),
+        'tgl_mulai_adopsi_str': tgl_mulai.strftime('%Y-%m-%d'),
+    }
+    return render(request, 'adopsi/laporan_kondisi.html', context)
 
 def sertifikat_adopsi(request, id_adopter, id_hewan, tgl_mulai_adopsi):
    """Menampilkan sertifikat adopsi"""
@@ -1808,11 +1834,11 @@ def admin_dashboard(request):
         
         if not admin_data:
             messages.error(request, f"Username '{username}' tidak memiliki akses admin.")
-            return redirect('main:home')
+            # return redirect('dashboard:dashboard')
             
     except Exception as e:
         messages.error(request, f"Error verifying admin access: {str(e)}")
-        return redirect('main:home')
+        # return redirect('dashboard:dashboard')
     
     # Statistics for the dashboard
     try:
@@ -1982,11 +2008,11 @@ def admin_daftar_adopter(request):
             
         if not admin_data:
             messages.error(request, f"Username '{username}' tidak memiliki akses admin untuk melihat daftar adopter.")
-            return redirect('main:home')
+            # return redirect('main:home')
             
     except Exception as e:
         messages.error(request, f"Error verifying admin access: {str(e)}")
-        return redirect('main:home')
+        # return redirect('main:home')
     
     # Get search and filter parameters
     search_query = request.GET.get('search', '').strip()
