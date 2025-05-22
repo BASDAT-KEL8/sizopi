@@ -44,11 +44,10 @@
 
     <!-- Animal Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {% for animal in animals %}
+        {% for animal in animals.object_list %}
         <div class="bg-white rounded-md shadow-sm hover:shadow-md transition p-3 flex flex-col text-sm">
             <div class="relative h-40 overflow-hidden rounded mb-3">
                 <img src="{{ animal.url_foto }}" alt="{{ animal.nama|default:animal.spesies }}" class="w-full h-full object-cover">
-                
             </div>
 
             <h3 class="text-base font-semibold text-gray-800 mb-2">{{ animal.nama|default:"(Tanpa Nama)" }}</h3>
@@ -59,7 +58,6 @@
                 <p><strong>Status Kesehatan:</strong> {{ animal.status_kesehatan }}</p>
                 <p><strong>Asal:</strong> {{ animal.asal_hewan|default:"-" }}</p>
                 <p><strong>Habitat:</strong> {{ animal.nama_habitat|default:"-" }}</p>
-
             </div>
 
             <div class="flex justify-between items-center mb-3">

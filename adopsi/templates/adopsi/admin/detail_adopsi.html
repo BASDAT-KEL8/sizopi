@@ -75,7 +75,7 @@
                         {% endif %}
                         <p class="text-gray-800"><span class="font-medium">ID Adopter:</span> {{ adopsi.id_adopter.id_adopter|truncatechars:10 }}</p>
                         <p class="text-gray-800"><span class="font-medium">Username:</span> {{ pengunjung.username_p }}</p>
-                        <p class="text-gray-800"><span class="font-medium">Email:</span> {{ pengunjung.username_p.email }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Email:</span> {{ pengunjung.email|default:"-" }}</p>
                         <a href="{% url 'adopsi:admin_detail_adopter' adopsi.id_adopter.id_adopter %}" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
                             Lihat Detail Adopter
                         </a>
@@ -89,13 +89,13 @@
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">Status Adopsi:</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if adopsi.tgl_berhenti_adopsi < now.date %}
+                                {% if adopsi.tgl_berhenti_adopsi <= now.date %}
                                     bg-gray-100 text-gray-800
                                 {% else %}
                                     bg-green-100 text-green-800
                                 {% endif %}
                             ">
-                                {% if adopsi.tgl_berhenti_adopsi < now.date %}
+                                {% if adopsi.tgl_berhenti_adopsi <= now.date %}
                                     Berakhir
                                 {% else %}
                                     Aktif
@@ -105,7 +105,7 @@
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">Status Pembayaran:</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if adopsi.status_pembayaran == 'lunas' %}
+                                {% if adopsi.status_pembayaran == 'Lunas' %}
                                     bg-green-100 text-green-800
                                 {% else %}
                                     bg-yellow-100 text-yellow-800
@@ -131,7 +131,7 @@
                         <button type="button" class="show-modal block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal-target="updatePaymentModal">
                             <i class="fas fa-money-check-alt mr-1"></i> Update Status Pembayaran
                         </button>
-                        {% if adopsi.tgl_berhenti_adopsi >= now.date %}
+                        {% if adopsi.tgl_berhenti_adopsi > now.date %}
                         <button type="button" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition show-modal" data-modal-target="terminateModal">
                             <i class="fas fa-times-circle mr-1"></i> Hentikan Adopsi
                         </button>
@@ -156,8 +156,8 @@
                 <div class="mb-4">
                     <label for="status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
                     <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="tertunda" {% if adopsi.status_pembayaran == 'tertunda' %}selected{% endif %}>Tertunda</option>
-                        <option value="lunas" {% if adopsi.status_pembayaran == 'lunas' %}selected{% endif %}>Lunas</option>
+                        <option value="Tertunda" {% if adopsi.status_pembayaran == 'Tertunda' %}selected{% endif %}>Tertunda</option>
+                        <option value="Lunas" {% if adopsi.status_pembayaran == 'Lunas' %}selected{% endif %}>Lunas</option>
                     </select>
                 </div>
                 
