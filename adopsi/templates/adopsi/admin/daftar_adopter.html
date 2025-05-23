@@ -14,54 +14,56 @@
     </div>
     
     <!-- Search Box -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <form method="get" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
             <div class="flex-grow">
                 <label for="search" class="sr-only">Cari Adopter</label>
-                <div class="relative rounded-md shadow-sm">
+                <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="fas fa-search text-gray-400"></i>
                     </div>
-                    <input type="text" name="search" id="search" value="{{ search_query|default:'' }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Cari berdasarkan nama...">
+                    <input type="text" name="search" id="search" value="{{ search_query|default:'' }}" 
+                           class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Cari berdasarkan nama adopter...">
                 </div>
             </div>
             
-            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2 transition">
+            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2.5 transition">
                 <i class="fas fa-search mr-2"></i>Cari
             </button>
         </form>
     </div>
     
     <!-- TABS NAVIGATION -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+    <div class="bg-white rounded-lg shadow-sm border overflow-hidden mb-6">
         <!-- Tab Headers -->
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+        <div class="border-b border-gray-200 bg-gray-50">
+            <nav class="flex space-x-0" aria-label="Tabs">
+                <button onclick="switchTab('all')" id="tab-all" 
+                        class="tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200
+                               bg-blue-600 text-white border-b-2 border-blue-600">
+                    <i class="fas fa-users mr-2"></i>
+                    Semua Adopter
+                    <span id="count-all" class="ml-2 bg-blue-500 text-white py-1 px-2 rounded-full text-xs">
+                        {{ adopters.paginator.count }}
+                    </span>
+                </button>
                 <button onclick="switchTab('organisasi')" id="tab-organisasi" 
-                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                               border-purple-500 text-purple-600 bg-purple-50">
+                        class="tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200
+                               bg-white text-gray-600 hover:bg-gray-50 border-b-2 border-transparent">
                     <i class="fas fa-building mr-2"></i>
                     Organisasi
-                    <span id="count-organisasi" class="ml-2 bg-purple-100 text-purple-800 py-0.5 px-2 rounded-full text-xs font-medium">
+                    <span id="count-organisasi" class="ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">
                         0
                     </span>
                 </button>
                 <button onclick="switchTab('individu')" id="tab-individu"
-                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                               border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        class="tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200
+                               bg-white text-gray-600 hover:bg-gray-50 border-b-2 border-transparent">
                     <i class="fas fa-user mr-2"></i>
                     Individu
-                    <span id="count-individu" class="ml-2 bg-gray-100 text-gray-800 py-0.5 px-2 rounded-full text-xs font-medium">
+                    <span id="count-individu" class="ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs">
                         0
-                    </span>
-                </button>
-                <button onclick="switchTab('all')" id="tab-all"
-                        class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                               border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    <i class="fas fa-users mr-2"></i>
-                    Semua
-                    <span id="count-all" class="ml-2 bg-gray-100 text-gray-800 py-0.5 px-2 rounded-full text-xs font-medium">
-                        {{ adopters.paginator.count }}
                     </span>
                 </button>
             </nav>
@@ -69,92 +71,215 @@
         
         <!-- Tab Content -->
         <div class="tab-content">
-            <!-- ORGANISASI TAB -->
-            <div id="content-organisasi" class="tab-panel">
+            <!-- ALL TAB (DEFAULT) -->
+            <div id="content-all" class="tab-panel">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-purple-50">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
-                                    <i class="fas fa-building mr-1"></i> Organisasi
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    Adopter
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
-                                    NPP
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    Kontribusi
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
-                                    Total Kontribusi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-purple-700 uppercase tracking-wider">
-                                    Riwayat Adopsi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-purple-700 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                     Aksi
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="organisasi-tbody">
-                            <!-- ORGANISASI CONTENT FROM DJANGO -->
+                        <tbody class="bg-white divide-y divide-gray-100">
+                            {% for adopter in adopters.object_list %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <!-- ADOPTER INFO -->
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full flex items-center justify-center
+                                                {% if adopter.type == 'organisasi' %}
+                                                    bg-purple-100 text-purple-600
+                                                {% else %}
+                                                    bg-blue-100 text-blue-600
+                                                {% endif %}">
+                                                {% if adopter.type == 'organisasi' %}
+                                                    <i class="fas fa-building text-lg"></i>
+                                                {% else %}
+                                                    <i class="fas fa-user text-lg"></i>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2">
+                                                <p class="text-sm font-semibold text-gray-900 truncate">
+                                                    {{ adopter.nama|default:"Unknown" }}
+                                                </p>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                                    {% if adopter.type == 'organisasi' %}
+                                                        bg-purple-100 text-purple-700
+                                                    {% else %}
+                                                        bg-blue-100 text-blue-700
+                                                    {% endif %}">
+                                                    {% if adopter.type == 'organisasi' %}Organisasi{% else %}Individu{% endif %}
+                                                </span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                @{{ adopter.username_adopter }}
+                                            </p>
+                                            {% if adopter.identifier %}
+                                            <p class="text-xs text-gray-400">
+                                                {% if adopter.type == 'organisasi' %}NPP{% else %}NIK{% endif %}: {{ adopter.identifier }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <!-- KONTRIBUSI -->
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-semibold text-gray-900">
+                                        Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}
+                                    </div>
+                                    {% if adopter.total_kontribusi > 0 %}
+                                        <div class="text-xs text-green-600 mt-1">
+                                            <i class="fas fa-check-circle mr-1"></i>Lunas
+                                        </div>
+                                    {% else %}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <i class="fas fa-clock mr-1"></i>Belum ada kontribusi
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- STATUS -->
+                                <td class="px-6 py-4 text-center">
+                                    {% if adopter.is_active %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                            Aktif
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+                                            Tidak Aktif
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- AKSI -->
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
+                                           class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Detail
+                                        </a>
+                                        
+                                        <button type="button" 
+                                                class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors show-modal" 
+                                                data-modal-target="{% if adopter.is_active %}activeModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% else %}deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% endif %}">
+                                            <i class="fas fa-trash mr-1"></i>
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-16 text-center">
+                                    <div class="text-gray-400">
+                                        <i class="fas fa-users text-4xl mb-4 block"></i>
+                                        <p class="text-lg font-semibold text-gray-600">Belum ada data adopter</p>
+                                        <p class="text-sm text-gray-500 mt-1">Data akan muncul setelah ada adopsi baru</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ORGANISASI TAB -->
+            <div id="content-organisasi" class="tab-panel hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-purple-50 border-b border-purple-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">
+                                    <i class="fas fa-building mr-1"></i> Organisasi
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">
+                                    Kontribusi
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100" id="organisasi-tbody">
                             {% for adopter in adopters.object_list %}
                             {% if adopter.type == 'organisasi' %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                            <i class="fas fa-building text-purple-500"></i>
+                            <tr class="hover:bg-purple-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                                                <i class="fas fa-building text-lg"></i>
+                                            </div>
                                         </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-bold text-gray-900">{{ adopter.nama|default:"Unknown" }}</div>
-                                            <div class="text-xs text-gray-500">{{ adopter.username_adopter }}</div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900">{{ adopter.nama|default:"Unknown" }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">@{{ adopter.username_adopter }}</p>
+                                            {% if adopter.identifier %}
+                                            <p class="text-xs text-gray-400">NPP: {{ adopter.identifier }}</p>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ adopter.identifier|default:"-" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-bold text-gray-900">Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</div>
-                                    <div class="text-xs text-gray-500">
-                                        {% if adopter.total_kontribusi > 0 %}Adopsi lunas{% else %}Belum ada kontribusi{% endif %}
-                                    </div>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-semibold text-gray-900">Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</div>
+                                    {% if adopter.total_kontribusi > 0 %}
+                                        <div class="text-xs text-green-600 mt-1"><i class="fas fa-check-circle mr-1"></i>Lunas</div>
+                                    {% else %}
+                                        <div class="text-xs text-gray-500 mt-1"><i class="fas fa-clock mr-1"></i>Belum ada kontribusi</div>
+                                    {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 text-center">
                                     {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            <i class="fas fa-circle text-green-400 mr-1" style="font-size: 6px;"></i>Aktif
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>Aktif
                                         </span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            <i class="fas fa-circle text-gray-400 mr-1" style="font-size: 6px;"></i>Tidak Aktif
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>Tidak Aktif
                                         </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
-                                       class="inline-flex items-center px-3 py-1 border border-purple-300 rounded-md text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 transition">
-                                        <i class="fas fa-list mr-1"></i>Lihat Detail
-                                    </a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-400 rounded-md text-sm cursor-not-allowed">
-                                            <i class="fas fa-lock mr-1"></i>Terkunci
-                                        </span>
-                                    {% else %}
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
+                                           class="inline-flex items-center px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-medium rounded-lg transition-colors">
+                                            <i class="fas fa-eye mr-1"></i>Detail
+                                        </a>
                                         <button type="button" 
-                                                class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-600 bg-red-50 hover:bg-red-100 transition show-modal" 
-                                                data-modal-target="deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}">
+                                                class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors show-modal" 
+                                                data-modal-target="{% if adopter.is_active %}activeModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% else %}deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% endif %}">
                                             <i class="fas fa-trash mr-1"></i>Hapus
                                         </button>
-                                    {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endif %}
                             {% endfor %}
                             
-                            <!-- NO ORGANISASI MESSAGE -->
                             <tr id="no-organisasi" class="hidden">
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="4" class="px-6 py-16 text-center">
                                     <div class="text-gray-400">
                                         <i class="fas fa-building text-4xl mb-4 block"></i>
                                         <p class="text-lg font-semibold text-gray-600">Belum ada adopter organisasi</p>
@@ -170,89 +295,81 @@
             <!-- INDIVIDU TAB -->
             <div id="content-individu" class="tab-panel hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-blue-50">
+                    <table class="min-w-full">
+                        <thead class="bg-blue-50 border-b border-blue-200">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">
                                     <i class="fas fa-user mr-1"></i> Individu
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
-                                    NIK
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">
+                                    Kontribusi
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
-                                    Total Kontribusi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-blue-700 uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-blue-700 uppercase tracking-wider">
-                                    Riwayat Adopsi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-blue-700 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-blue-700 uppercase tracking-wider">
                                     Aksi
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="individu-tbody">
-                            <!-- INDIVIDU CONTENT FROM DJANGO -->
+                        <tbody class="bg-white divide-y divide-gray-100" id="individu-tbody">
                             {% for adopter in adopters.object_list %}
                             {% if adopter.type == 'individu' %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                            <i class="fas fa-user text-blue-500"></i>
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                <i class="fas fa-user text-lg"></i>
+                                            </div>
                                         </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-bold text-gray-900">{{ adopter.nama|default:"Unknown" }}</div>
-                                            <div class="text-xs text-gray-500">{{ adopter.username_adopter }}</div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900">{{ adopter.nama|default:"Unknown" }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">@{{ adopter.username_adopter }}</p>
+                                            {% if adopter.identifier %}
+                                            <p class="text-xs text-gray-400">NIK: {{ adopter.identifier }}</p>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ adopter.identifier|default:"-" }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-bold text-gray-900">Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</div>
-                                    <div class="text-xs text-gray-500">
-                                        {% if adopter.total_kontribusi > 0 %}Adopsi lunas{% else %}Belum ada kontribusi{% endif %}
-                                    </div>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-semibold text-gray-900">Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</div>
+                                    {% if adopter.total_kontribusi > 0 %}
+                                        <div class="text-xs text-green-600 mt-1"><i class="fas fa-check-circle mr-1"></i>Lunas</div>
+                                    {% else %}
+                                        <div class="text-xs text-gray-500 mt-1"><i class="fas fa-clock mr-1"></i>Belum ada kontribusi</div>
+                                    {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 text-center">
                                     {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            <i class="fas fa-circle text-green-400 mr-1" style="font-size: 6px;"></i>Aktif
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>Aktif
                                         </span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            <i class="fas fa-circle text-gray-400 mr-1" style="font-size: 6px;"></i>Tidak Aktif
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>Tidak Aktif
                                         </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
-                                       class="inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition">
-                                        <i class="fas fa-list mr-1"></i>Lihat Detail
-                                    </a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-400 rounded-md text-sm cursor-not-allowed">
-                                            <i class="fas fa-lock mr-1"></i>Terkunci
-                                        </span>
-                                    {% else %}
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
+                                           class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg transition-colors">
+                                            <i class="fas fa-eye mr-1"></i>Detail
+                                        </a>
                                         <button type="button" 
-                                                class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-600 bg-red-50 hover:bg-red-100 transition show-modal" 
-                                                data-modal-target="deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}">
+                                                class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors show-modal" 
+                                                data-modal-target="{% if adopter.is_active %}activeModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% else %}deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}{% endif %}">
                                             <i class="fas fa-trash mr-1"></i>Hapus
                                         </button>
-                                    {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endif %}
                             {% endfor %}
                             
-                            <!-- NO INDIVIDU MESSAGE -->
                             <tr id="no-individu" class="hidden">
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="4" class="px-6 py-16 text-center">
                                     <div class="text-gray-400">
                                         <i class="fas fa-user text-4xl mb-4 block"></i>
                                         <p class="text-lg font-semibold text-gray-600">Belum ada adopter individu</p>
@@ -264,183 +381,40 @@
                     </table>
                 </div>
             </div>
-
-            <!-- ALL TAB -->
-            <div id="content-all" class="tab-panel hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Adopter
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tipe
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total Kontribusi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Riwayat Adopsi
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Aksi
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="all-tbody">
-                            {% for adopter in adopters.object_list %}
-                            <tr class="hover:bg-gray-50">
-                                <!-- KOLOM ADOPTER -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full {% if adopter.type == 'organisasi' %}bg-purple-100{% else %}bg-blue-100{% endif %} flex items-center justify-center">
-                                            {% if adopter.type == 'organisasi' %}
-                                                <i class="fas fa-building text-purple-500"></i>
-                                            {% else %}
-                                                <i class="fas fa-user text-blue-500"></i>
-                                            {% endif %}
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-bold text-gray-900">
-                                                {{ adopter.nama|default:"Unknown" }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                {{ adopter.username_adopter }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                
-                                <!-- TIPE -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                        {% if adopter.type == 'organisasi' %}
-                                            bg-purple-100 text-purple-800
-                                        {% else %}
-                                            bg-blue-100 text-blue-800
-                                        {% endif %}
-                                    ">
-                                        {% if adopter.type == 'organisasi' %}
-                                            <i class="fas fa-building mr-1"></i>
-                                            Organisasi
-                                        {% else %}
-                                            <i class="fas fa-user mr-1"></i>
-                                            Individu
-                                        {% endif %}
-                                    </span>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        {% if adopter.type == 'organisasi' %}NPP{% else %}NIK{% endif %}: {{ adopter.identifier|default:"-" }}
-                                    </div>
-                                </td>
-                                
-                                <!-- TOTAL KONTRIBUSI -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-bold text-gray-900">
-                                        Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        {% if adopter.total_kontribusi > 0 %}
-                                            Adopsi lunas
-                                        {% else %}
-                                            Belum ada kontribusi
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                
-                                <!-- STATUS -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            <i class="fas fa-circle text-green-400 mr-1" style="font-size: 6px;"></i>
-                                            Aktif
-                                        </span>
-                                    {% else %}
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            <i class="fas fa-circle text-gray-400 mr-1" style="font-size: 6px;"></i>
-                                            Tidak Aktif
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                
-                                <!-- RIWAYAT ADOPSI -->
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <a href="{% url 'adopsi:admin_detail_adopter_typed' adopter.id_adopter adopter.type %}" 
-                                       class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 transition">
-                                        <i class="fas fa-list mr-1"></i>
-                                        Lihat Detail
-                                    </a>
-                                </td>
-                                
-                                <!-- AKSI -->
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    {% if adopter.is_active %}
-                                        <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-400 rounded-md text-sm cursor-not-allowed">
-                                            <i class="fas fa-lock mr-1"></i>
-                                            Terkunci
-                                        </span>
-                                    {% else %}
-                                        <button type="button" 
-                                                class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-600 bg-red-50 hover:bg-red-100 transition show-modal" 
-                                                data-modal-target="deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}">
-                                            <i class="fas fa-trash mr-1"></i>
-                                            Hapus
-                                        </button>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="px-6 py-12 text-center">
-                                    <div class="text-gray-400">
-                                        <i class="fas fa-users text-4xl mb-4 block"></i>
-                                        <p class="text-lg font-semibold text-gray-600">Belum ada data adopter</p>
-                                        <p class="text-sm text-gray-500 mt-1">Data akan muncul setelah ada adopsi baru</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
     
     <!-- Pagination -->
     {% if adopters.paginator.num_pages > 1 %}
     <div class="flex justify-center">
-        <nav class="flex items-center space-x-2">
+        <nav class="flex items-center space-x-1">
             {% if adopters.has_previous %}
                 <a href="?page={{ adopters.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                   class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                   class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             {% else %}
-                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">
                     <i class="fas fa-chevron-left"></i>
                 </span>
             {% endif %}
             
             {% for num in adopters.paginator.page_range %}
                 {% if adopters.number == num %}
-                    <span class="px-3 py-2 rounded-md bg-blue-600 text-white font-semibold">{{ num }}</span>
+                    <span class="px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold">{{ num }}</span>
                 {% else %}
                     <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                       class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ num }}</a>
+                       class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition">{{ num }}</a>
                 {% endif %}
             {% endfor %}
             
             {% if adopters.has_next %}
                 <a href="?page={{ adopters.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                   class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                   class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                     <i class="fas fa-chevron-right"></i>
                 </a>
             {% else %}
-                <span class="px-3 py-2 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed">
+                <span class="px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">
                     <i class="fas fa-chevron-right"></i>
                 </span>
             {% endif %}
@@ -449,38 +423,34 @@
     {% endif %}
 </div>
 
-<!-- Modal Konfirmasi Hapus -->
+<!-- Modal Konfirmasi Hapus (untuk adopter tidak aktif) -->
 {% for adopter in adopters.object_list %}
 {% if not adopter.is_active %}
 <div id="deleteModal-{{ adopter.id_adopter }}-{{ adopter.type }}" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md mx-4">
         <div class="text-center mb-6">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-900">Hapus Adopter {{ adopter.type|title }}?</h3>
-        </div>
-        
-        <div class="text-center mb-6">
-            <p class="text-gray-700 mb-4">
-                Yakin ingin menghapus adopter <strong>{{ adopter.type }}</strong> 
-                "<span class="font-semibold {% if adopter.type == 'organisasi' %}text-purple-600{% else %}text-blue-600{% endif %}">{{ adopter.nama }}</span>"?
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Adopter?</h3>
+            <p class="text-gray-600">
+                Yakin ingin menghapus adopter <strong class="{% if adopter.type == 'organisasi' %}text-purple-600{% else %}text-blue-600{% endif %}">{{ adopter.nama }}</strong>?
             </p>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p class="text-red-700 text-sm">
-                    <i class="fas fa-exclamation-circle mr-1"></i>
-                    <strong>Peringatan:</strong> Ini akan menghapus semua riwayat adopsi untuk tipe {{ adopter.type }} ini, 
-                    tetapi tidak akan menghapus akun pengunjung yang terkait.
-                </p>
-            </div>
         </div>
         
-        <div class="flex justify-center space-x-4">
-            <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium transition">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p class="text-red-700 text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <strong>Peringatan:</strong> Tindakan ini akan menghapus semua riwayat adopsi, tetapi tidak akan menghapus akun pengunjung.
+            </p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button type="button" class="close-modal flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-medium transition">
                 Batal
             </button>
             <a href="{% url 'adopsi:admin_hapus_adopter' adopter.id_adopter adopter.type %}" 
-               class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition">
+               class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-medium transition text-center">
                 Ya, Hapus
             </a>
         </div>
@@ -489,9 +459,53 @@
 {% endif %}
 {% endfor %}
 
+<!-- Modal Peringatan Adopter Masih Aktif -->
+{% for adopter in adopters.object_list %}
+{% if adopter.is_active %}
+<div id="activeModal-{{ adopter.id_adopter }}-{{ adopter.type }}" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md mx-4">
+        <div class="text-center mb-6">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                <i class="fas fa-shield-alt text-yellow-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Adopter Masih Aktif</h3>
+            <p class="text-gray-600">
+                Adopter <strong class="{% if adopter.type == 'organisasi' %}text-purple-600{% else %}text-blue-600{% endif %}">{{ adopter.nama }}</strong> masih aktif dan tidak dapat dihapus.
+            </p>
+        </div>
+        
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p class="text-yellow-700 text-sm">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>Info:</strong> Adopter yang masih aktif tidak dapat dihapus untuk menjaga integritas data sistem.
+            </p>
+        </div>
+        
+        <div class="flex justify-center">
+            <button type="button" class="close-modal bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
 <script>
+    // Save and restore active tab
+    function saveActiveTab(tabName) {
+        localStorage.setItem('adopter_active_tab', tabName);
+    }
+    
+    function getActiveTab() {
+        return localStorage.getItem('adopter_active_tab') || 'all';
+    }
+    
     // Tab switching functionality
     function switchTab(tabName) {
+        // Save current active tab
+        saveActiveTab(tabName);
+        
         // Hide all tab panels
         document.querySelectorAll('.tab-panel').forEach(panel => {
             panel.classList.add('hidden');
@@ -499,20 +513,20 @@
         
         // Reset all tab buttons
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.className = 'tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+            button.className = 'tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 bg-white text-gray-600 hover:bg-gray-50 border-b-2 border-transparent';
         });
         
         // Show selected tab panel
         document.getElementById(`content-${tabName}`).classList.remove('hidden');
         
-        // Activate selected tab button
+        // Activate selected tab button with appropriate colors
         const activeButton = document.getElementById(`tab-${tabName}`);
         if (tabName === 'organisasi') {
-            activeButton.className = 'tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors border-purple-500 text-purple-600 bg-purple-50';
+            activeButton.className = 'tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 bg-purple-600 text-white border-b-2 border-purple-600';
         } else if (tabName === 'individu') {
-            activeButton.className = 'tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors border-blue-500 text-blue-600 bg-blue-50';
+            activeButton.className = 'tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 bg-blue-600 text-white border-b-2 border-blue-600';
         } else {
-            activeButton.className = 'tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors border-green-500 text-green-600 bg-green-50';
+            activeButton.className = 'tab-button flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 bg-blue-600 text-white border-b-2 border-blue-600';
         }
         
         // Show/hide empty state messages
@@ -554,30 +568,37 @@
         const indCount = indRows.length;
         document.getElementById('count-individu').textContent = indCount;
         
-        // Update tab button colors based on counts
+        // Update count colors based on active tab and counts
         const orgCountSpan = document.getElementById('count-organisasi');
         const indCountSpan = document.getElementById('count-individu');
+        const allCountSpan = document.getElementById('count-all');
         
-        if (orgCount > 0) {
-            orgCountSpan.className = 'ml-2 bg-purple-100 text-purple-800 py-0.5 px-2 rounded-full text-xs font-medium';
-        } else {
-            orgCountSpan.className = 'ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs font-medium';
-        }
+        // Set count colors based on current state
+        const activeTab = getActiveTab();
         
-        if (indCount > 0) {
-            indCountSpan.className = 'ml-2 bg-blue-100 text-blue-800 py-0.5 px-2 rounded-full text-xs font-medium';
+        if (activeTab === 'organisasi') {
+            orgCountSpan.className = 'ml-2 bg-purple-500 text-white py-1 px-2 rounded-full text-xs';
+            indCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
+            allCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
+        } else if (activeTab === 'individu') {
+            orgCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
+            indCountSpan.className = 'ml-2 bg-blue-500 text-white py-1 px-2 rounded-full text-xs';
+            allCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
         } else {
-            indCountSpan.className = 'ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs font-medium';
+            orgCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
+            indCountSpan.className = 'ml-2 bg-gray-200 text-gray-700 py-1 px-2 rounded-full text-xs';
+            allCountSpan.className = 'ml-2 bg-blue-500 text-white py-1 px-2 rounded-full text-xs';
         }
     }
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function () {
+        // Restore active tab from localStorage
+        const activeTab = getActiveTab();
+        switchTab(activeTab);
+        
         // Update counts on page load
         updateCounts();
-        
-        // Check empty states for initial tab
-        checkEmptyStates('organisasi');
         
         // Modal functionality
         document.addEventListener('click', function(e) {
@@ -588,19 +609,32 @@
                 const modal = document.getElementById(modalTarget);
                 if (modal) {
                     modal.classList.remove('hidden');
-                } else {
-                    console.error('Modal not found:', modalTarget);
+                    // Prevent body scroll when modal is open
+                    document.body.style.overflow = 'hidden';
                 }
             }
             
             // Handle close modal
             if (e.target.classList.contains('close-modal')) {
                 e.target.closest('.modal-overlay').classList.add('hidden');
+                document.body.style.overflow = 'auto';
             }
             
             // Handle click outside modal
             if (e.target.classList.contains('modal-overlay')) {
                 e.target.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Handle escape key to close modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal-overlay:not(.hidden)');
+                if (openModal) {
+                    openModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
             }
         });
         
@@ -608,49 +642,141 @@
         const searchForm = document.querySelector('form');
         if (searchForm) {
             searchForm.addEventListener('submit', function() {
-                // You can add logic here to remember which tab was active
-                // For now, it will default back to organisasi tab after search
+                // Tab state will be restored automatically on page load
+                // because we're using localStorage
             });
         }
+        
+        // Handle page navigation to maintain tab state
+        const paginationLinks = document.querySelectorAll('nav a[href*="page="]');
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Tab state will be restored automatically on page load
+                // because we're using localStorage
+            });
+        });
     });
 </script>
 
 <style>
     .modal-overlay {
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
     }
     
     .tab-panel {
-        min-height: 400px;
+        min-height: 300px;
     }
     
     .tab-button {
-        transition: all 0.2s ease-in-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .tab-button:hover {
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     /* Smooth transitions for tab content */
     .tab-panel {
         opacity: 1;
-        transition: opacity 0.2s ease-in-out;
+        transition: opacity 0.3s ease-in-out;
     }
     
     .tab-panel.hidden {
         opacity: 0;
     }
     
-    /* Make sure tables are responsive */
+    /* Improved table hover effects */
+    tbody tr {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    tbody tr:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Better button styling */
+    .inline-flex {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .inline-flex:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Responsive improvements */
     @media (max-width: 768px) {
         .tab-button {
-            padding: 12px 8px;
+            padding: 12px 16px;
             font-size: 12px;
         }
         
         .tab-button i {
             display: none;
+        }
+        
+        .container {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        
+        table {
+            font-size: 14px;
+        }
+        
+        .px-6 {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        
+        .py-4 {
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+    }
+    
+    /* Loading animation for smoother transitions */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .tab-panel:not(.hidden) {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Better focus states for accessibility */
+    .tab-button:focus,
+    .inline-flex:focus {
+        outline: 2px solid #3B82F6;
+        outline-offset: 2px;
+    }
+    
+    /* Improved modal animations */
+    .modal-overlay:not(.hidden) {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .modal-overlay:not(.hidden) > div {
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
         }
     }
 </style>
