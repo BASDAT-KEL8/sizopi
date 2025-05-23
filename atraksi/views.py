@@ -38,45 +38,48 @@ def manage_atraksi(request):
         SELECT a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, 
                array_agg(DISTINCT h.nama) as hewan_names,
                array_agg(DISTINCT h.spesies) as hewan_species,
-               array_agg(DISTINCT p.nama_depan) as pelatih_nama_depan,
-               array_agg(DISTINCT p.nama_belakang) as pelatih_nama_belakang,
-               array_agg(DISTINCT jp.tgl_penugasan) as tgl_penugasan,
-               array_agg(DISTINCT jp.username_lh) as username_lh
+               array_agg(jp.username_lh) as pelatih_usernames
         FROM atraksi a
         JOIN fasilitas f ON a.nama_atraksi = f.nama
         LEFT JOIN berpartisipasi b ON f.nama = b.nama_fasilitas
         LEFT JOIN hewan h ON b.id_hewan = h.id
         LEFT JOIN jadwal_penugasan jp ON jp.nama_atraksi = a.nama_atraksi
-        LEFT JOIN pelatih_hewan ph ON jp.username_lh = ph.username_lh
-        LEFT JOIN pengguna p ON ph.username_lh = p.username
         GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal
         ORDER BY a.nama_atraksi
     """)
     atraksi_rows = cur.fetchall()
+
+    # Ambil mapping username ke nama lengkap pelatih
+    cur.execute("""
+        SELECT ph.username_lh, p.nama_depan, p.nama_belakang
+        FROM pelatih_hewan ph
+        JOIN pengguna p ON ph.username_lh = p.username
+    """)
+    pelatih_map = {row[0]: f"{row[1]} {row[2]}" for row in cur.fetchall()}
     
     # Format atraksi data
     atraksi_list = []
     for row in atraksi_rows:
-        nama, lokasi, kapasitas, jadwal, hewan_names, hewan_species, pelatih_nama_depan, pelatih_nama_belakang, tgl_penugasan, username_lh = row
+        nama, lokasi, kapasitas, jadwal, hewan_names, hewan_species, pelatih_usernames = row
         
         # Format hewan list
         hewan_list = []
-        if hewan_names[0] is not None:  # Check if there are any animals
+        if hewan_names[0] is not None:
             for nama_hewan, spesies in zip(hewan_names, hewan_species):
                 hewan_list.append({
                     'id_hewan': {'nama': nama_hewan, 'spesies': spesies}
                 })
-        
-        # Format pelatih info (list)
+        # Format pelatih info (list, unik)
         pelatih = []
-        for u, depan, belakang, tgl in zip(username_lh, pelatih_nama_depan, pelatih_nama_belakang, tgl_penugasan):
-            if u and depan and belakang and tgl:
-                pelatih.append({
-                    'nama': f"{depan} {belakang}",
-                    'jadwal': tgl,
-                    'username': u
-                })
-        
+        seen_usernames = set()
+        if pelatih_usernames[0] is not None:
+            for username in pelatih_usernames:
+                if username and username not in seen_usernames:
+                    pelatih.append({
+                        'nama': pelatih_map.get(username, username),
+                        'username': username
+                    })
+                    seen_usernames.add(username)
         atraksi_list.append({
             'atraksi': {
                 'nama': nama,

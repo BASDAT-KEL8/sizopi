@@ -71,18 +71,13 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Pelatih</label>
-                                <select name="pelatih" class="form-select">
+                                <select name="pelatih" class="form-select select2" multiple required>
                                     <option value="">Pilih Pelatih</option>
                                     {% for pelatih in pelatih_list %}
                                     <option value="{{ pelatih.username_lh }}">{{ pelatih.nama_depan }} {{ pelatih.nama_belakang }}</option>
                                     {% endfor %}
                                 </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Jadwal Pelatih</label>
-                                <input type="datetime-local" name="jadwal_pelatih" class="form-control">
-                                <div class="form-text">Pilih waktu penugasan untuk pelatih</div>
+                                <div class="form-text">Pilih satu atau lebih pelatih untuk atraksi ini</div>
                             </div>
 
                             <div class="text-end">
