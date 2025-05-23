@@ -40,7 +40,7 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label class="form-label">Nama Wahana</label>
-                                <input type="text" class="form-control" value="{{ wahana.nama_wahana.nama }}" disabled>
+                                <input type="text" name="nama" class="form-control" value="{{ wahana.nama_wahana.nama }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Kapasitas Maksimum</label>

@@ -367,21 +367,24 @@ def tambah_wahana(request):
     if request.method == 'POST':
         nama = request.POST.get('nama')
         kapasitas = request.POST.get('kapasitas')
-        jadwal = request.POST.get('jadwal')
+        jadwal_time = request.POST.get('jadwal')
         peraturan = request.POST.get('peraturan')
+
+        # Konversi waktu ke timestamp dengan tanggal hari ini
+        from datetime import datetime, date
+        today = date.today()
+        jadwal = f"{today} {jadwal_time}"  # Gabungkan tanggal hari ini dengan waktu
 
         conn = get_db_connection()
         cur = conn.cursor()
 
         try:
             cur.execute("BEGIN")
-            
             # Create Fasilitas
             cur.execute(
-                "INSERT INTO fasilitas (nama, jadwal, kapasitas_max) VALUES (%s, %s, %s)",
+                "INSERT INTO fasilitas (nama, jadwal, kapasitas_max) VALUES (%s, %s::timestamp, %s)",
                 (nama, jadwal, kapasitas)
             )
-            
             # Create Wahana
             cur.execute(
                 "INSERT INTO wahana (nama_wahana, peraturan) VALUES (%s, %s)",
@@ -400,7 +403,6 @@ def tambah_wahana(request):
             conn.close()
             
         return redirect('manage_atraksi')
-        
     return render(request, 'atraksi/tambah_wahana.html')
 
 def edit_wahana(request, nama_wahana):
@@ -409,7 +411,7 @@ def edit_wahana(request, nama_wahana):
 
     # Get wahana data
     cur.execute("""
-        SELECT f.nama, f.kapasitas_max, f.jadwal::time, w.peraturan
+        SELECT f.nama, f.kapasitas_max, f.jadwal, w.peraturan
         FROM fasilitas f
         JOIN wahana w ON f.nama = w.nama_wahana
         WHERE f.nama = %s
@@ -423,6 +425,7 @@ def edit_wahana(request, nama_wahana):
         return redirect('manage_atraksi')
 
     if request.method == 'POST':
+        nama_baru = request.POST.get('nama')
         kapasitas = request.POST.get('kapasitas')
         jadwal = request.POST.get('jadwal')
         peraturan = request.POST.get('peraturan')
@@ -430,17 +433,35 @@ def edit_wahana(request, nama_wahana):
         try:
             cur.execute("BEGIN")
             
-            # Update Fasilitas
-            cur.execute(
-                "UPDATE fasilitas SET jadwal = %s, kapasitas_max = %s WHERE nama = %s",
-                (jadwal, kapasitas, nama_wahana)
-            )
-            
-            # Update Wahana
-            cur.execute(
-                "UPDATE wahana SET peraturan = %s WHERE nama_wahana = %s",
-                (peraturan, nama_wahana)
-            )
+            # First update fasilitas because wahana references it
+            if nama_baru != nama_wahana:
+                # Create new fasilitas record with new name
+                cur.execute(
+                    "INSERT INTO fasilitas (nama, jadwal, kapasitas_max) VALUES (%s, %s::timestamp, %s)",
+                    (nama_baru, jadwal, kapasitas)
+                )
+                
+                # Update wahana to reference new fasilitas
+                cur.execute(
+                    "UPDATE wahana SET nama_wahana = %s, peraturan = %s WHERE nama_wahana = %s",
+                    (nama_baru, peraturan, nama_wahana)
+                )
+
+                # Delete old fasilitas record
+                cur.execute(
+                    "DELETE FROM fasilitas WHERE nama = %s",
+                    (nama_wahana,)
+                )
+            else:
+                # If name didn't change, just update other fields
+                cur.execute(
+                    "UPDATE fasilitas SET jadwal = %s::timestamp, kapasitas_max = %s WHERE nama = %s",
+                    (jadwal, kapasitas, nama_wahana)
+                )
+                cur.execute(
+                    "UPDATE wahana SET peraturan = %s WHERE nama_wahana = %s",
+                    (peraturan, nama_wahana)
+                )
             
             cur.execute("COMMIT")
             messages.success(request, 'Wahana berhasil diperbarui')
