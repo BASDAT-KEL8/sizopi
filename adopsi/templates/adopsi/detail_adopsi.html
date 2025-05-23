@@ -18,17 +18,17 @@
     <!-- Status Section -->
     <div class="flex flex-wrap gap-4 mb-8">
         <div class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium border
-            {% if adopsi.tgl_berhenti_adopsi < now.date %}
-                bg-gray-100 text-gray-700 border-gray-200
-            {% else %}
+            {% if adopsi.tgl_berhenti_adopsi > now.date %}
                 bg-green-50 text-green-700 border-green-200
+            {% else %}
+                bg-gray-100 text-gray-700 border-gray-200
             {% endif %}
         ">
             <i class="fas fa-calendar-check mr-2"></i>
-            {% if adopsi.tgl_berhenti_adopsi < now.date %}
-                Status: Berakhir
-            {% else %}
+            {% if adopsi.tgl_berhenti_adopsi > now.date %}
                 Status: Aktif
+            {% else %}
+                Status: Berakhir
             {% endif %}
         </div>
         
@@ -131,9 +131,13 @@
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <p class="text-gray-600 text-sm mb-1">Durasi Adopsi</p>
                         <p class="font-semibold text-blue-600">
-                            {% with duration=adopsi.tgl_berhenti_adopsi|timeuntil:adopsi.tgl_mulai_adopsi %}
-                                {{ duration }}
-                            {% endwith %}
+                            {% if adopsi.tgl_mulai_adopsi == adopsi.tgl_berhenti_adopsi %}
+                                1 days
+                            {% else %}
+                                {% with days=adopsi.tgl_berhenti_adopsi|timeuntil:adopsi.tgl_mulai_adopsi %}
+                                    {{ days }}
+                                {% endwith %}
+                            {% endif %}
                         </p>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg">
@@ -152,14 +156,22 @@
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <!-- Laporan Kondisi -->
-                    <a href="{% url 'adopsi:laporan_kondisi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id tgl_mulai_adopsi_str %}" 
-                       class="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors group">
-                        <i class="fas fa-notes-medical text-2xl text-blue-600 mb-2 group-hover:text-blue-700"></i>
-                        <span class="text-sm font-medium text-blue-700 text-center">Lihat Laporan</span>
-                        <span class="text-xs text-blue-600">Kondisi Hewan</span>
-                    </a>
+                    {% if adopsi.tgl_berhenti_adopsi > now.date %}
+                        <a href="{% url 'adopsi:laporan_kondisi' adopsi.id_adopter.id_adopter adopsi.id_hewan.id tgl_mulai_adopsi_str %}" 
+                           class="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors group">
+                            <i class="fas fa-notes-medical text-2xl text-blue-600 mb-2 group-hover:text-blue-700"></i>
+                            <span class="text-sm font-medium text-blue-700 text-center">Lihat Laporan</span>
+                            <span class="text-xs text-blue-600">Kondisi Hewan</span>
+                        </a>
+                    {% else %}
+                        <div class="flex flex-col items-center p-4 bg-gray-100 rounded-lg border border-gray-200 cursor-not-allowed opacity-60">
+                            <i class="fas fa-notes-medical text-2xl text-gray-400 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-500 text-center">Lihat Laporan</span>
+                            <span class="text-xs text-gray-400">Adopsi Berakhir</span>
+                        </div>
+                    {% endif %}
 
-                    <!-- Sertifikat -->
+                    <!-- Sertifikat - SELALU AKTIF -->
                     <button type="button"
                             class="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors group show-modal" 
                             data-modal-target="sertifikatModal">
@@ -169,30 +181,48 @@
                     </button>
 
                     <!-- Perpanjang -->
-                    {% if adopsi.status_pembayaran == 'Lunas' %}
-                        <button type="button"
-                                class="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition-colors group show-modal"
-                                data-modal-target="perpanjangModal">
-                            <i class="fas fa-clock text-2xl text-orange-600 mb-2 group-hover:text-orange-700"></i>
-                            <span class="text-sm font-medium text-orange-700 text-center">Perpanjang</span>
-                            <span class="text-xs text-orange-600">Periode Adopsi</span>
-                        </button>
+                    {% if adopsi.tgl_berhenti_adopsi > now.date %}
+                        {% if adopsi.status_pembayaran == 'Lunas' %}
+                            <button type="button"
+                                    class="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition-colors group show-modal"
+                                    data-modal-target="perpanjangModal">
+                                <i class="fas fa-clock text-2xl text-orange-600 mb-2 group-hover:text-orange-700"></i>
+                                <span class="text-sm font-medium text-orange-700 text-center">Perpanjang</span>
+                                <span class="text-xs text-orange-600">Periode Adopsi</span>
+                            </button>
+                        {% else %}
+                            <button type="button"
+                                    class="flex flex-col items-center p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg border border-yellow-200 transition-colors group show-modal"
+                                    data-modal-target="paymentReminderModal">
+                                <i class="fas fa-clock text-2xl text-yellow-600 mb-2 group-hover:text-yellow-700"></i>
+                                <span class="text-sm font-medium text-yellow-700 text-center">Perpanjang</span>
+                                <span class="text-xs text-yellow-600">Selesaikan Pembayaran</span>
+                            </button>
+                        {% endif %}
                     {% else %}
                         <div class="flex flex-col items-center p-4 bg-gray-100 rounded-lg border border-gray-200 cursor-not-allowed opacity-60">
                             <i class="fas fa-clock text-2xl text-gray-400 mb-2"></i>
                             <span class="text-sm font-medium text-gray-500 text-center">Perpanjang</span>
-                            <span class="text-xs text-gray-400">Selesaikan Pembayaran</span>
+                            <span class="text-xs text-gray-400">Adopsi Berakhir</span>
                         </div>
                     {% endif %}
 
                     <!-- Berhenti -->
-                    <button type="button"
-                            class="flex flex-col items-center p-4 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors group show-modal"
-                            data-modal-target="terminateModal">
-                        <i class="fas fa-times-circle text-2xl text-red-600 mb-2 group-hover:text-red-700"></i>
-                        <span class="text-sm font-medium text-red-700 text-center">Berhenti</span>
-                        <span class="text-xs text-red-600">Adopsi</span>
-                    </button>
+                    {% if adopsi.tgl_berhenti_adopsi > now.date %}
+                        <button type="button"
+                                class="flex flex-col items-center p-4 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors group show-modal"
+                                data-modal-target="terminateModal">
+                            <i class="fas fa-times-circle text-2xl text-red-600 mb-2 group-hover:text-red-700"></i>
+                            <span class="text-sm font-medium text-red-700 text-center">Berhenti</span>
+                            <span class="text-xs text-red-600">Adopsi</span>
+                        </button>
+                    {% else %}
+                        <div class="flex flex-col items-center p-4 bg-gray-100 rounded-lg border border-gray-200 cursor-not-allowed opacity-60">
+                            <i class="fas fa-times-circle text-2xl text-gray-400 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-500 text-center">Berhenti</span>
+                            <span class="text-xs text-gray-400">Adopsi Berakhir</span>
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <!-- Info -->
@@ -202,11 +232,17 @@
                         <div class="text-sm text-blue-700">
                             <p class="font-medium mb-1">Informasi Penting:</p>
                             <ul class="space-y-1">
-                                <li>• Laporan kondisi hewan diupdate secara berkala oleh tim medis</li>
-                                <li>• Sertifikat dapat diunduh dan dicetak sebagai bukti adopsi simbolis</li>
-                                <li>• Perpanjangan adopsi dapat dilakukan kapan saja sebelum masa berakhir</li>
-                                {% if adopsi.status_pembayaran != 'Lunas' %}
-                                <li class="text-yellow-600">• <strong>Selesaikan pembayaran terlebih dahulu untuk dapat memperpanjang adopsi</strong></li>
+                                {% if adopsi.tgl_berhenti_adopsi > now.date %}
+                                    <li>• Laporan kondisi hewan diupdate secara berkala oleh tim medis</li>
+                                    <li>• Sertifikat dapat diunduh dan dicetak sebagai bukti adopsi simbolis</li>
+                                    <li>• Perpanjangan adopsi dapat dilakukan kapan saja sebelum masa berakhir</li>
+                                    {% if adopsi.status_pembayaran != 'Lunas' %}
+                                    <li class="text-yellow-600">• <strong>Selesaikan pembayaran terlebih dahulu untuk dapat memperpanjang adopsi</strong></li>
+                                    {% endif %}
+                                {% else %}
+                                    <li>• <strong>Adopsi sudah berakhir</strong> - Hanya sertifikat yang dapat diakses</li>
+                                    <li>• Sertifikat dapat diunduh dan dicetak sebagai bukti adopsi simbolis</li>
+                                    <li>• Untuk mengadopsi kembali, silakan membuat adopsi baru</li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -217,7 +253,7 @@
     </div>
 </div>
 
-<!-- Sertifikat Modal -->
+<!-- Sertifikat Modal - SELALU TERSEDIA -->
 <div id="sertifikatModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen px-4">
         <div class="relative bg-white rounded-lg max-w-4xl w-full mx-auto shadow-xl">
@@ -233,7 +269,7 @@
             <div class="p-8">
                 <div class="border-2 border-gray-200 rounded-lg p-12 text-center bg-gray-50">
                     <div class="mb-8">
-                        <img src="{% static 'logo.png' %}" alt="Logo SIZOPI" class="h-16 mx-auto mb-4 opacity-80">
+                        <img src="{% static 'images/sizopi_logo.png' %}" alt="Logo SIZOPI" class="h-16 mx-auto mb-4 opacity-80">
                         <h1 class="text-3xl font-bold text-gray-800 mb-2">Sertifikat Adopsi Satwa</h1>
                         <div class="w-24 h-0.5 bg-gray-400 mx-auto"></div>
                     </div>
@@ -288,8 +324,39 @@
     </div>
 </div>
 
-<!-- Perpanjang Modal - Only show if payment is complete -->
-{% if adopsi.status_pembayaran == 'Lunas' %}
+<!-- Payment Reminder Modal -->
+<div id="paymentReminderModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2 text-yellow-500"></i>
+                    Pembayaran Belum Lunas
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <i class="fas fa-credit-card text-6xl text-yellow-500 mb-4"></i>
+                    <p class="text-gray-600 mb-4">Harap lunasi pembayaran adopsi terlebih dahulu sebelum melakukan perpanjangan.</p>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-yellow-700 font-medium mb-2">Status Pembayaran Saat Ini:</p>
+                        <p class="text-lg font-bold text-yellow-800">{{ adopsi.status_pembayaran|title }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button type="button" class="close-modal px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Perpanjang Modal - Hanya tampil jika adopsi masih aktif dan pembayaran lunas -->
+{% if adopsi.tgl_berhenti_adopsi > now.date and adopsi.status_pembayaran == 'Lunas' %}
 <div id="perpanjangModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen px-4">
         <div class="relative bg-white rounded-lg max-w-4xl w-full mx-auto shadow-xl">
@@ -404,7 +471,7 @@
                             <p><strong>Nama:</strong> {{ hewan.nama|default:"-" }}{% if not hewan.nama %} (tanpa nama){% endif %}</p>
                             <p><strong>Jenis:</strong> {{ hewan.spesies }}</p>
                             <p>Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa:</p>
-                            <p><strong>Nominal:</strong> Rp<span id="kontribusiDisplay">{{ adopsi.kontribusi_finansial }}</span></p>
+                            <p><strong>Nominal:</strong> Rp<span id="kontribusiDisplay">{{ adopsi.kontribusi_finansial|intcomma }}</span></p>
                             <p>untuk memperpanjang periode adopsi selama <span id="periodeDisplay">3</span> bulan.</p>
                         </div>
                     </div>
@@ -428,7 +495,8 @@
 </div>
 {% endif %}
 
-<!-- Terminate Modal -->
+<!-- Terminate Modal - Hanya tampil jika adopsi masih aktif -->
+{% if adopsi.tgl_berhenti_adopsi > now.date %}
 <div id="terminateModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen px-4">
         <div class="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl">
@@ -465,6 +533,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Print CSS -->
 <style>
@@ -487,29 +556,46 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Format number with thousand separators
+        function formatNumber(num) {
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+        
         // Update new end date for extension
         function updateNewEndDate() {
             const periodeDropdown = document.getElementById('periode');
+            if (!periodeDropdown) return;
+            
             const selectedPeriod = parseInt(periodeDropdown.value);
             
             // Update periode display in pernyataan
-            document.getElementById('periodeDisplay').textContent = selectedPeriod;
+            const periodeDisplay = document.getElementById('periodeDisplay');
+            if (periodeDisplay) {
+                periodeDisplay.textContent = selectedPeriod;
+            }
             
             const currentEndDate = new Date('{{ adopsi.tgl_berhenti_adopsi|date:"Y-m-d" }}');
             const newEndDate = new Date(currentEndDate);
             newEndDate.setMonth(newEndDate.getMonth() + selectedPeriod);
             
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            document.getElementById('newEndDate').textContent = newEndDate.toLocaleDateString('id-ID', options);
+            const newEndDateElement = document.getElementById('newEndDate');
+            if (newEndDateElement) {
+                newEndDateElement.textContent = newEndDate.toLocaleDateString('id-ID', options);
+            }
         }
         
-        // Update kontribusi display
+        // Update kontribusi display with proper formatting
         function updateKontribusiDisplay() {
             const kontribusiInput = document.getElementById('kontribusi');
-            const kontribusiValue = parseInt(kontribusiInput.value);
+            if (!kontribusiInput) return;
             
-            const formattedValue = new Intl.NumberFormat('id-ID').format(kontribusiValue);
-            document.getElementById('kontribusiDisplay').textContent = formattedValue;
+            const kontribusiValue = parseInt(kontribusiInput.value) || 0;
+            
+            const kontribusiDisplay = document.getElementById('kontribusiDisplay');
+            if (kontribusiDisplay) {
+                kontribusiDisplay.textContent = formatNumber(kontribusiValue);
+            }
         }
         
         // Event listeners
