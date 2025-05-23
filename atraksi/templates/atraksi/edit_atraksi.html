@@ -76,19 +76,17 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Pelatih</label>
-                                <select name="pelatih" class="form-select">
-                                    <option value="">Pilih Pelatih</option>
+                                <select name="pelatih" class="form-select select2" multiple required>
                                     {% for pelatih in pelatih_list %}
-                                    <option value="{{ pelatih.username_lh }}" {% if current_schedule and current_schedule.username_lh == pelatih.username_lh %}selected{% endif %}>{{ pelatih.nama_depan }} {{ pelatih.nama_belakang }}</option>
+                                    <option value="{{ pelatih.username_lh }}"
+                                        {% for current_trainer in current_trainers %}
+                                            {% if current_trainer.username_lh == pelatih.username_lh %}selected{% endif %}
+                                        {% endfor %}>
+                                        {{ pelatih.nama_depan }} {{ pelatih.nama_belakang }}
+                                    </option>
                                     {% endfor %}
                                 </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Jadwal Pelatih</label>
-                                <input type="datetime-local" name="jadwal_pelatih" class="form-control"
-                                    value="{% if current_schedule %}{{ current_schedule.tgl_penugasan|date:'Y-m-d\TH:i' }}{% endif %}">
-                                <div class="form-text">Pilih waktu penugasan untuk pelatih</div>
+                                <div class="form-text">Pilih satu atau lebih pelatih untuk atraksi ini</div>
                             </div>
 
                             <div class="text-end">
