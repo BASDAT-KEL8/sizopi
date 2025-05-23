@@ -38,21 +38,18 @@ def manage_atraksi(request):
         SELECT a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, 
                array_agg(DISTINCT h.nama) as hewan_names,
                array_agg(DISTINCT h.spesies) as hewan_species,
-               p.nama_depan, p.nama_belakang, jp.tgl_penugasan, jp.username_lh
+               array_agg(DISTINCT p.nama_depan) as pelatih_nama_depan,
+               array_agg(DISTINCT p.nama_belakang) as pelatih_nama_belakang,
+               array_agg(DISTINCT jp.tgl_penugasan) as tgl_penugasan,
+               array_agg(DISTINCT jp.username_lh) as username_lh
         FROM atraksi a
         JOIN fasilitas f ON a.nama_atraksi = f.nama
         LEFT JOIN berpartisipasi b ON f.nama = b.nama_fasilitas
         LEFT JOIN hewan h ON b.id_hewan = h.id
-        LEFT JOIN LATERAL (
-            SELECT jp1.*
-            FROM jadwal_penugasan jp1
-            WHERE jp1.nama_atraksi = a.nama_atraksi
-            ORDER BY jp1.tgl_penugasan DESC
-            LIMIT 1
-        ) jp ON TRUE
+        LEFT JOIN jadwal_penugasan jp ON jp.nama_atraksi = a.nama_atraksi
         LEFT JOIN pelatih_hewan ph ON jp.username_lh = ph.username_lh
         LEFT JOIN pengguna p ON ph.username_lh = p.username
-        GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal, p.nama_depan, p.nama_belakang, jp.tgl_penugasan, jp.username_lh
+        GROUP BY a.nama_atraksi, a.lokasi, f.kapasitas_max, f.jadwal
         ORDER BY a.nama_atraksi
     """)
     atraksi_rows = cur.fetchall()
@@ -70,14 +67,15 @@ def manage_atraksi(request):
                     'id_hewan': {'nama': nama_hewan, 'spesies': spesies}
                 })
         
-        # Format pelatih info
-        pelatih = None
-        if username_lh and pelatih_nama_depan and pelatih_nama_belakang:
-            pelatih = {
-                'nama': f"{pelatih_nama_depan} {pelatih_nama_belakang}",
-                'jadwal': tgl_penugasan,
-                'username': username_lh
-            }
+        # Format pelatih info (list)
+        pelatih = []
+        for u, depan, belakang, tgl in zip(username_lh, pelatih_nama_depan, pelatih_nama_belakang, tgl_penugasan):
+            if u and depan and belakang and tgl:
+                pelatih.append({
+                    'nama': f"{depan} {belakang}",
+                    'jadwal': tgl,
+                    'username': u
+                })
         
         atraksi_list.append({
             'atraksi': {
@@ -122,9 +120,8 @@ def tambah_atraksi(request):
         lokasi = request.POST.get('lokasi')
         kapasitas = request.POST.get('kapasitas')
         jadwal = request.POST.get('jadwal')
-        pelatih = request.POST.get('pelatih')
+        pelatih_list = request.POST.getlist('pelatih')
         hewan_list = request.POST.getlist('hewan')
-        jadwal_pelatih = request.POST.get('jadwal_pelatih')
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -152,12 +149,13 @@ def tambah_atraksi(request):
                     (nama, hewan_id)
                 )
 
-            # Create JadwalPenugasan for the trainer
-            if pelatih and jadwal_pelatih:
-                cur.execute(
-                    "INSERT INTO jadwal_penugasan (username_lh, tgl_penugasan, nama_atraksi) VALUES (%s, %s, %s)",
-                    (pelatih, jadwal_pelatih, nama)
-                )
+            # Create JadwalPenugasan for each selected trainer
+            if pelatih_list:
+                for pelatih in pelatih_list:
+                    cur.execute(
+                        "INSERT INTO jadwal_penugasan (username_lh, tgl_penugasan, nama_atraksi) VALUES (%s, %s, %s)",
+                        (pelatih, jadwal, nama)
+                    )
             
             # Commit transaction
             cur.execute("COMMIT")
@@ -226,8 +224,7 @@ def edit_atraksi(request, nama_atraksi):
     if request.method == 'POST':
         kapasitas = request.POST.get('kapasitas')
         jadwal = request.POST.get('jadwal')
-        pelatih = request.POST.get('pelatih')
-        jadwal_pelatih = request.POST.get('jadwal_pelatih')
+        pelatih_list = request.POST.getlist('pelatih')
         hewan_list = request.POST.getlist('hewan')
 
         try:
@@ -249,11 +246,12 @@ def edit_atraksi(request, nama_atraksi):
 
             # Update trainer schedule
             cur.execute("DELETE FROM jadwal_penugasan WHERE nama_atraksi = %s", (nama_atraksi,))
-            if pelatih and jadwal_pelatih:
-                cur.execute(
-                    "INSERT INTO jadwal_penugasan (username_lh, tgl_penugasan, nama_atraksi) VALUES (%s, %s, %s)",
-                    (pelatih, jadwal_pelatih, nama_atraksi)
-                )
+            if pelatih_list:
+                for pelatih in pelatih_list:
+                    cur.execute(
+                        "INSERT INTO jadwal_penugasan (username_lh, tgl_penugasan, nama_atraksi) VALUES (%s, %s, %s)",
+                        (pelatih, jadwal, nama_atraksi)
+                    )
 
             cur.execute("COMMIT")
             messages.success(request, 'Atraksi berhasil diperbarui')
@@ -281,17 +279,15 @@ def edit_atraksi(request, nama_atraksi):
         for row in cur.fetchall()
     ]
 
-    # Get current schedule
+    # Get all current trainers
     cur.execute("""
-        SELECT jp.username_lh, jp.tgl_penugasan, p.nama_depan, p.nama_belakang
+        SELECT DISTINCT jp.username_lh, p.nama_depan, p.nama_belakang
         FROM jadwal_penugasan jp
         JOIN pelatih_hewan ph ON jp.username_lh = ph.username_lh
         JOIN pengguna p ON ph.username_lh = p.username
         WHERE jp.nama_atraksi = %s
-        ORDER BY jp.tgl_penugasan DESC
-        LIMIT 1
     """, (nama_atraksi,))
-    current_schedule = cur.fetchone()
+    current_trainers = cur.fetchall()
 
     # Get all trainers for form options
     cur.execute("""
@@ -324,12 +320,13 @@ def edit_atraksi(request, nama_atraksi):
         'pelatih_list': pelatih_list,
         'hewan_list': hewan_list,
         'current_animals': current_animals,
-        'current_schedule': {
-            'username_lh': current_schedule[0],
-            'tgl_penugasan': current_schedule[1],
-            'nama_depan': current_schedule[2],
-            'nama_belakang': current_schedule[3]
-        } if current_schedule else None
+        'current_trainers': [
+            {
+                'username_lh': trainer[0],
+                'nama_depan': trainer[1],
+                'nama_belakang': trainer[2]
+            } for trainer in current_trainers
+        ] if current_trainers else []
     }
     return render(request, 'atraksi/edit_atraksi.html', context)
 

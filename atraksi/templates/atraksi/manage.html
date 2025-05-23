@@ -78,11 +78,15 @@
                                 <td>{{ item.kapasitas_max }} orang</td>
                                 <td>{{ item.jadwal|date:"H:i" }}</td>
                                 <td>
-                                    {% if item.pelatih %}
-                                        <div>{{ item.pelatih.nama }}</div>
-                                        {% if item.pelatih.jadwal %}
-                                            <small class="text-muted">{{ item.pelatih.jadwal|date:"d M Y H:i" }}</small>
-                                        {% endif %}
+                                    {% if item.pelatih and item.pelatih|length > 0 %}
+                                    {% for pelatih in item.pelatih %}
+                                        <div>
+                                            {{ pelatih.nama }}
+                                            {% if pelatih.jadwal %}
+                                                <small class="text-muted">{{ pelatih.jadwal|date:"d M Y H:i" }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
