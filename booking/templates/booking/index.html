@@ -175,12 +175,14 @@
                                     <a href="{% url 'detail_reservation' reservation.id %}" class="btn btn-sm btn-info" title="Lihat Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    {% if reservation.status != 'Dibatalkan' %}
                                     <a href="{% url 'edit_reservation' reservation.id %}" class="btn btn-sm btn-warning" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-sm btn-danger" title="Batal">
                                         <i class="bi bi-x-lg"></i>
                                     </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
