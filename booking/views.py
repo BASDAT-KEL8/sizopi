@@ -207,7 +207,7 @@ def create_reservation(request):
         if not facility:
             messages.error(request, f'Atraksi/Wahana "{nama_atraksi}" tidak ditemukan di database. Pastikan nama sesuai dengan data di tabel fasilitas/wahana.')
             status = 'Gagal'
-        elif jumlah_tiket <= facility[0]:
+        else:
             try:
                 cur.execute("BEGIN")
                 cur.execute("""
@@ -219,13 +219,15 @@ def create_reservation(request):
                 cur.close()
                 conn.close()
                 return redirect('booking_index')
-            except Exception as e:
+            except psycopg2.Error as e:
                 cur.execute("ROLLBACK")
-                messages.error(request, f'Terjadi kesalahan: {str(e)}')
+                error_msg = str(e)
+                # Tangkap pesan error dari trigger kapasitas
+                if 'Kapasitas tersisa' in error_msg:
+                    messages.error(request, error_msg.split('ERROR: ')[-1])
+                else:
+                    messages.error(request, f'Terjadi kesalahan: {error_msg}')
                 status = 'Gagal'
-        else:
-            messages.error(request, 'Reservasi gagal: Kapasitas tidak mencukupi')
-            status = 'Gagal'
         # Render detail view
         # return render(request, 'booking/detail_reservation.html', {...})
     
