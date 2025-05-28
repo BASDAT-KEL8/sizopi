@@ -98,42 +98,6 @@ def tambah_jadwal_pakan(request, id_hewan):
             return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
     return render(request, 'pakan/tambah_pakan.html', {'id_hewan': id_hewan})
 
-@check_penjaga_hewan
-def edit_pemberian_pakan(request, id_hewan, jadwal):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT jadwal, jenis, jumlah, status FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
-    row = cur.fetchone()
-    pakan = None
-    if row:
-        pakan = {
-            'id_hewan': id_hewan,
-            'jadwal': row[0],
-            'jenis': row[1],
-            'jumlah': row[2],
-            'status': row[3],
-        }
-    if request.method == 'POST':
-        jenis = request.POST.get('jenis')
-        jumlah = request.POST.get('jumlah')
-        jadwal_baru = request.POST.get('jadwal')
-        status = request.POST.get('status')
-        try:
-            cur.execute("UPDATE pakan SET jenis = %s, jumlah = %s, jadwal = %s, status = %s WHERE id_hewan = %s AND jadwal = %s", (jenis, jumlah, jadwal_baru, status, id_hewan, jadwal))
-            conn.commit()
-            cur.close()
-            conn.close()
-            messages.success(request, 'Jadwal pemberian pakan berhasil diperbarui')
-            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
-        except Exception as e:
-            conn.rollback()
-            cur.close()
-            conn.close()
-            messages.error(request, f'Gagal update jadwal: {str(e)}')
-            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
-    cur.close()
-    conn.close()
-    return render(request, 'pakan/edit_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})
 
 @check_penjaga_hewan
 def hapus_pemberian_pakan(request, id_hewan, jadwal):
@@ -248,3 +212,53 @@ def list_hewan_pakan(request):
     cur.close()
     conn.close()
     return render(request, 'pakan/list_hewan_pakan.html', {'hewan_list': hewan_list})
+
+@check_penjaga_hewan
+def edit_pemberian_pakan(request, id_hewan, jadwal):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT jadwal, jenis, jumlah, status FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
+    row = cur.fetchone()
+    pakan = None
+    if row:
+        pakan = {
+            'id_hewan': id_hewan,
+            'jadwal': row[0],
+            'jenis': row[1],
+            'jumlah': row[2],
+            'status': row[3],
+        }
+    if not pakan:
+        cur.close()
+        conn.close()
+        messages.error(request, 'Data pakan tidak ditemukan.')
+        return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+    if request.method == 'POST':
+        jenis = request.POST.get('jenis_pakan')
+        jumlah = request.POST.get('jumlah_pakan')
+        jadwal_baru = request.POST.get('jadwal')
+        status = request.POST.get('status') or pakan['status']
+        if not jenis or not jumlah or not jadwal_baru or not status:
+            messages.error(request, 'Semua field harus diisi!')
+            cur.close()
+            conn.close()
+            return render(request, 'pakan/edit_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})
+        try:
+            # Jika jadwal berubah, update tabel memberi dulu baru pakan
+            if jadwal_baru != str(jadwal):
+                cur.execute("UPDATE memberi SET jadwal = %s WHERE id_hewan = %s AND jadwal = %s", (jadwal_baru, id_hewan, jadwal))
+            cur.execute("UPDATE pakan SET jenis = %s, jumlah = %s, jadwal = %s, status = %s WHERE id_hewan = %s AND jadwal = %s", (jenis, jumlah, jadwal_baru, status, id_hewan, jadwal))
+            conn.commit()
+            cur.close()
+            conn.close()
+            messages.success(request, 'Data pemberian pakan berhasil diubah')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            messages.error(request, f'Gagal mengubah data: {str(e)}')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+    cur.close()
+    conn.close()
+    return render(request, 'pakan/edit_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})
