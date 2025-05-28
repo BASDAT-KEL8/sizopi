@@ -1,79 +1,176 @@
-from django.shortcuts import render, get_object_or_404, redirect
-import uuid
-from rekam_medis.models import CatatanMedis
-from .forms import TambahRekamMedisForm, RekamMedisEditForm
-from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+import psycopg2
 from django import forms
 
-# def list_rekam_medis(request):
-#     rekam_medis = CatatanMedis.objects.all().order_by('tanggal_pemeriksaan') 
-#     return render(request, 'rekam_medis/rekam_medis_list.html', {'rekam_medis': rekam_medis})
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=settings.DATABASES['default']['NAME'],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        host=settings.DATABASES['default']['HOST'],
+        port=settings.DATABASES['default']['PORT'],
+        sslmode='require',
+        options='-c search_path=sizopi'
+    )
 
-# pake dummy dulu 
+def is_dokter_hewan(request):
+    username = request.session.get('username')
+    if not username:
+        return False
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM dokter_hewan WHERE username_dh = %s", (username,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(result)
+
 def list_rekam_medis(request):
-    rekam_medis = [
-        {
-            'id_hewan': uuid.UUID('550e8400-e29b-41d4-a716-446655440000'),
-            'tanggal_pemeriksaan': '2025-04-22',
-            'nama_dokter': 'Brandon Charles Clark',
-            'status_kesehatan': 'Sakit',
-            'diagnosis': 'infeksi ringan',
-            'pengobatan': 'antibiotik 5 hari',
-            'catatan_tindak_lanjut': 'perlu observasi ulang',
-        },
-        {
-            'id_hewan': uuid.UUID('550e8400-e29b-41d4-a716-446655440001'),
-            'tanggal_pemeriksaan': '2025-04-19',
-            'nama_dokter': 'Shawn Jason Walton',
-            'status_kesehatan': 'Sehat',
-            'diagnosis': '-',
-            'pengobatan': '-',
-            'catatan_tindak_lanjut': '-',
-        },
-        {
-            'id_hewan': uuid.UUID('550e8400-e29b-41d4-a716-446655440002'),
-            'tanggal_pemeriksaan': '2025-04-15',
-            'nama_dokter': 'Tanya Robinson',
-            'status_kesehatan': 'Sakit',
-            'diagnosis': 'demam',
-            'pengobatan': 'obat penurun panas',
-            'catatan_tindak_lanjut': 'kontrol ulang 3 hari',
-        },
-        {
-            'id_hewan': uuid.UUID('550e8400-e29b-41d4-a716-446655440003'),
-            'tanggal_pemeriksaan': '2025-04-10',
-            'nama_dokter': 'Andrea Rachel Davis',
-            'status_kesehatan': 'Sehat',
-            'diagnosis': '-',
-            'pengobatan': '-',
-            'catatan_tindak_lanjut': '-',
-        },
-        {
-            'id_hewan': uuid.UUID('550e8400-e29b-41d4-a716-446655440004'),
-            'tanggal_pemeriksaan': '2025-04-05',
-            'nama_dokter': 'Michael Kaufman',
-            'status_kesehatan': 'Sehat',
-            'diagnosis': '-',
-            'pengobatan': '-',
-            'catatan_tindak_lanjut': '-',
-        },
-    ]
-    rekam_medis.sort(key=lambda x: x['tanggal_pemeriksaan'])
-    return render(request, 'rekam_medis/rekam_medis_list.html', {'rekam_medis': rekam_medis})
+    if not is_dokter_hewan(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Ambil semua hewan
+    cur.execute("SELECT id, nama, spesies FROM hewan ORDER BY nama")
+    hewan_rows = cur.fetchall()
+    daftar_hewan = []
+    for h in hewan_rows:
+        hewan_id, nama, spesies = h
+        # Ambil rekam medis untuk hewan ini
+        cur.execute("""
+            SELECT id_hewan, tanggal_pemeriksaan, username_dh, status_kesehatan, diagnosis, pengobatan, catatan_tindak_lanjut
+            FROM catatan_medis
+            WHERE id_hewan = %s
+            ORDER BY tanggal_pemeriksaan DESC
+        """, (hewan_id,))
+        rekam_medis = [
+            {
+                'id_hewan': row[0],
+                'tanggal_pemeriksaan': row[1],
+                'nama_dokter': row[2],
+                'status_kesehatan': row[3],
+                'diagnosis': row[4],
+                'pengobatan': row[5],
+                'catatan_tindak_lanjut': row[6],
+            }
+            for row in cur.fetchall()
+        ]
+        daftar_hewan.append({
+            'id': hewan_id,
+            'nama': nama,
+            'spesies': spesies,
+            'rekam_medis': rekam_medis
+        })
+    cur.close()
+    conn.close()
+    return render(request, 'rekam_medis/rekam_medis_list.html', {'daftar_hewan': daftar_hewan})
 
 # @login_required
 def tambah_rekam_medis(request):
-    if request.method == 'POST':
-        form = TambahRekamMedisForm(request.POST)
-        if form.is_valid():
-            rekam_medis = form.save(commit=False)
-            rekam_medis.username_dh = request.user.dokterhewan 
-            rekam_medis.save()
-            return redirect('rekam_medis:list_rekam_medis')
-    else:
-        form = TambahRekamMedisForm()
+    if not is_dokter_hewan(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
+    id_hewan = request.GET.get('id_hewan') or request.POST.get('id_hewan')
+    hewan_nama = hewan_spesies = None
+    context = {}
+    username = request.session.get('username')
+    if not username:
+        return redirect('login')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT nama_depan, nama_tengah, nama_belakang, username, email, no_telepon
+        FROM pengguna WHERE username = %s
+    """, (username,))
+    user = cur.fetchone()
+    if not user:
+        cur.close()
+        conn.close()
+        return redirect('login')
+    nama_depan, nama_tengah, nama_belakang, username, email, no_telepon = user
+    context['nama_lengkap'] = f"{nama_depan} {nama_tengah or ''} {nama_belakang}".strip()
+    context['username'] = username
+    context['email'] = email
+    context['no_telepon'] = no_telepon
+    cur.close()
+    conn.close()
 
-    return render(request, 'rekam_medis/rekam_medis_form.html', {'form': form})
+    if id_hewan:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT nama, spesies FROM hewan WHERE id = %s", (id_hewan,))
+        row = cur.fetchone()
+        if row:
+            hewan_nama, hewan_spesies = row
+        cur.close()
+        conn.close()
+    
+    if request.method == 'POST':
+        tanggal_pemeriksaan = request.POST.get('tanggal_pemeriksaan')
+        status_kesehatan = request.POST.get('status_kesehatan')
+        diagnosis = request.POST.get('diagnosis')
+        pengobatan = request.POST.get('pengobatan')
+        catatan_tindak_lanjut = request.POST.get('catatan_tindak_lanjut')
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT username_dh FROM dokter_hewan WHERE username_dh = %s", (username,))
+        dokter_row = cur.fetchone()
+        if not dokter_row:
+            cur.close()
+            conn.close()
+            return render(request, 'rekam_medis/rekam_medis_form.html', {
+                'error': 'Akun Anda tidak terdaftar sebagai dokter hewan.',
+                'id_hewan': id_hewan, 'hewan_nama': hewan_nama, 'hewan_spesies': hewan_spesies
+            })
+        username_dh = dokter_row[0]
+        
+        if not (id_hewan and tanggal_pemeriksaan and status_kesehatan):
+            cur.close()
+            conn.close()
+            return render(request, 'rekam_medis/rekam_medis_form.html', {
+                'error': 'ID Hewan, Tanggal Pemeriksaan, dan Status Kesehatan wajib diisi.',
+                'id_hewan': id_hewan, 'hewan_nama': hewan_nama, 'hewan_spesies': hewan_spesies
+            })
+        
+        try:
+            cur.execute("""
+                INSERT INTO catatan_medis (id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (id_hewan, username_dh, tanggal_pemeriksaan, diagnosis, pengobatan, status_kesehatan, catatan_tindak_lanjut))
+            # Update status_kesehatan di tabel hewan
+            cur.execute("UPDATE hewan SET status_kesehatan = %s WHERE id = %s", (status_kesehatan, id_hewan))
+            conn.commit()
+            # Ambil pesan NOTICE dari trigger jika ada
+            if hasattr(cur.connection, 'notices') and cur.connection.notices:
+                for notice in cur.connection.notices:
+                    messages.info(request, notice)
+                cur.connection.notices.clear()
+            if status_kesehatan == 'Sakit':
+                cur.execute("SELECT nama FROM hewan WHERE id = %s", (id_hewan,))
+                hewan_nama = cur.fetchone()[0]
+                messages.success(request, f'SUKSES: Jadwal pemeriksaan hewan "{hewan_nama}" telah diperbarui karena status kesehatan "Sakit".')
+            else:
+                messages.success(request, 'Rekam medis berhasil ditambahkan.')
+            
+            cur.close()
+            conn.close()
+            return redirect('rekam_medis:list_rekam_medis')
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return render(request, 'rekam_medis/rekam_medis_form.html', {
+                'error': f'Gagal menyimpan: {str(e)}',
+                'id_hewan': id_hewan, 'hewan_nama': hewan_nama, 'hewan_spesies': hewan_spesies
+            })
+    else:
+        return render(request, 'rekam_medis/rekam_medis_form.html', {'id_hewan': id_hewan, 'hewan_nama': hewan_nama, 'hewan_spesies': hewan_spesies})
 
 # @login_required
 # def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
@@ -94,6 +191,9 @@ class DummyEditForm(forms.Form):
     catatan_tindak_lanjut = forms.CharField(initial="Dummy Catatan", required=False)
 
 def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
+    if not is_dokter_hewan(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
     if request.method == 'POST':
         form = DummyEditForm(request.POST)
         if form.is_valid():
@@ -113,9 +213,27 @@ def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
 
 # delete dummy  ya
 def hapus_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
+    if not is_dokter_hewan(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
     if request.method == 'POST':
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("DELETE FROM catatan_medis WHERE id_hewan = %s AND tanggal_pemeriksaan = %s", (id_hewan, tanggal_pemeriksaan))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return render(request, 'rekam_medis/rekam_medis_confirm_delete.html', {
+                'id_hewan': id_hewan,
+                'tanggal_pemeriksaan': tanggal_pemeriksaan,
+                'error': f'Gagal menghapus: {str(e)}'
+            })
+        cur.close()
+        conn.close()
         return redirect('rekam_medis:list_rekam_medis')
-    
     # INI buat nampilin halaman konfirmasi
     return render(request, 'rekam_medis/rekam_medis_confirm_delete.html', {
         'id_hewan': id_hewan,
