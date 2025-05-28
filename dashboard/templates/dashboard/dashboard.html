@@ -253,8 +253,8 @@
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
+                                    <th>Nama Atraksi</th>
                                     <th>Tanggal</th>
-                                    <th>No. Tiket</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -262,8 +262,8 @@
                                 {% if riwayat_kunjungan %}
                                     {% for kunjungan in riwayat_kunjungan %}
                                     <tr>
-                                        <td>{{ kunjungan.tanggal_pembelian }}</td>
-                                        <td>{{ kunjungan.no_tiket }}</td>
+                                        <td>{{ kunjungan.nama_atraksi }}</td>
+                                        <td>{{ kunjungan.tanggal_kunjungan }}</td>
                                         <td>
                                             <span class="badge {% if kunjungan.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
                                                 {{ kunjungan.status }}
@@ -296,27 +296,21 @@
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
-                                    <th>No. Tiket</th>
+                                    <th>Nama Atraksi</th>
                                     <th>Tanggal Berlaku</th>
                                     <th>Status</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% if tiket %}
                                     {% for t in tiket %}
                                     <tr>
-                                        <td>{{ t.no_tiket }}</td>
-                                        <td>{{ t.tanggal_pembelian }}</td>
+                                        <td>{{ t.nama_atraksi }}</td>
+                                        <td>{{ t.tanggal_kunjungan }}</td>
                                         <td>
                                             <span class="badge {% if t.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
                                                 {{ t.status }}
                                             </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary rounded-pill">
-                                                <i class="bi bi-eye me-1"></i> Detail
-                                            </button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -402,12 +396,12 @@
                             <tbody>
                                 {% for hewan in hewan_dilatih %}
                                 <tr>
-                                    <td>{{ hewan.id_hewan.nama }}</td>
-                                    <td>{{ hewan.id_hewan.spesies }}</td>
+                                    <td>{{ hewan.nama }}</td>
+                                    <td>{{ hewan.spesies }}</td>
                                     <td>
                                         <span class="badge bg-info rounded-pill">
                                             <i class="bi bi-mortarboard me-1"></i>
-                                            {{ hewan.status_latihan|default:"Dalam Pelatihan" }}
+                                            {{ hewan.status_latihan }}
                                         </span>
                                     </td>
                                 </tr>
