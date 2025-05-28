@@ -87,7 +87,7 @@ def dashboard_view(request):
         context['role'] = 'Penjaga Hewan'
         context['id_staf'] = penjaga[0]
         # Jumlah hewan diberi pakan hari ini
-        cur.execute("SELECT COUNT(DISTINCT id_hewan) FROM memberi WHERE username_jh = %s AND jadwal = %s", (username, today))
+        cur.execute("SELECT COUNT(DISTINCT id_hewan) FROM memberi WHERE username_jh = %s", (username,))
         context['jumlah_hewan_diberi_pakan'] = cur.fetchone()[0]
         cur.close()
         conn.close()
