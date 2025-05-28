@@ -101,16 +101,31 @@ def dashboard_view(request):
         context['id_staf'] = pelatih[0]
         # Jadwal hari ini
         cur.execute("""
-            SELECT jp.tgl_penugasan, a.nama_atraksi
+            SELECT jp.tgl_penugasan, jp.nama_atraksi
             FROM jadwal_penugasan jp
-            JOIN atraksi a ON jp.nama_atraksi = a.nama_atraksi
-            WHERE jp.username_lh = %s AND jp.tgl_penugasan = %s
+            WHERE jp.username_lh = %s AND DATE(jp.tgl_penugasan) = %s
         """, (username, today))
+        jadwal_hari_ini = cur.fetchall()
         context['jadwal_hari_ini'] = [
-            {'tgl_penugasan': row[0], 'nama_atraksi': {'nama': row[1]}} for row in cur.fetchall()
+            {'tgl_penugasan': row[0], 'nama_atraksi': {'nama': row[1]}} for row in jadwal_hari_ini
         ]
-        # Hewan dilatih (dummy, since no table for training status in your schema)
-        context['hewan_dilatih'] = []
+        # Hewan yang dilatih oleh pelatih ini (berdasarkan semua atraksi yang dijadwalkan hari ini)
+        hewan_dilatih = []
+        for row in jadwal_hari_ini:
+            nama_atraksi = row[1]
+            cur.execute("""
+                SELECT h.id, h.nama, h.spesies
+                FROM berpartisipasi bp
+                JOIN hewan h ON h.id = bp.id_hewan
+                WHERE bp.nama_fasilitas = %s
+            """, (nama_atraksi,))
+            hewan_data = cur.fetchall()
+            if hewan_data:
+                for h in hewan_data:
+                    hewan_dilatih.append({'id': h[0], 'nama': h[1], 'spesies': h[2], 'nama_atraksi': nama_atraksi, 'status_latihan': 'Dalam Pelatihan'})
+            else:
+                hewan_dilatih.append({'nama': 'Tidak Ada Data', 'spesies': 'Tidak Ada Data', 'status_latihan': 'Tidak Ada Data', 'nama_atraksi': nama_atraksi})
+        context['hewan_dilatih'] = hewan_dilatih
         cur.close()
         conn.close()
         return render(request, 'dashboard/dashboard.html', context)

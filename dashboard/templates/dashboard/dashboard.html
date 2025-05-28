@@ -206,6 +206,11 @@
                                     <h4 class="mb-0">Rp {{ pendapatan_mingguan|floatformat:0 }}</h4>
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <a href="/atraksi/manage/" class="btn btn-primary w-100">
+                                    <i class="bi bi-gear-fill me-2"></i>Kelola Atraksi
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -234,7 +239,6 @@
 
         <!-- Role-specific Content -->
         {% if role == 'Pengunjung' %}
-            {% if riwayat_kunjungan %}
             <div class="card glass-card mb-4">
                 <div class="card-header bg-success bg-gradient">
                     <div class="d-flex align-items-center">
@@ -249,31 +253,35 @@
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
+                                    <th>Nama Atraksi</th>
                                     <th>Tanggal</th>
-                                    <th>No. Tiket</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for kunjungan in riwayat_kunjungan %}
-                                <tr>
-                                    <td>{{ kunjungan.tanggal_pembelian }}</td>
-                                    <td>{{ kunjungan.no_tiket }}</td>
-                                    <td>
-                                        <span class="badge {% if kunjungan.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
-                                            {{ kunjungan.status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                {% if riwayat_kunjungan %}
+                                    {% for kunjungan in riwayat_kunjungan %}
+                                    <tr>
+                                        <td>{{ kunjungan.nama_atraksi }}</td>
+                                        <td>{{ kunjungan.tanggal_kunjungan }}</td>
+                                        <td>
+                                            <span class="badge {% if kunjungan.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                                {{ kunjungan.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Belum ada riwayat kunjungan</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            {% endif %}
 
-            {% if tiket %}
             <div class="card glass-card">
                 <div class="card-header bg-primary bg-gradient">
                     <div class="d-flex align-items-center">
@@ -288,36 +296,34 @@
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
-                                    <th>No. Tiket</th>
+                                    <th>Nama Atraksi</th>
                                     <th>Tanggal Berlaku</th>
                                     <th>Status</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for t in tiket %}
-                                <tr>
-                                    <td>{{ t.no_tiket }}</td>
-                                    <td>{{ t.tanggal_pembelian }}</td>
-                                    <td>
-                                        <span class="badge {% if t.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
-                                            {{ t.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary rounded-pill">
-                                            <i class="bi bi-eye me-1"></i> Detail
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                {% if tiket %}
+                                    {% for t in tiket %}
+                                    <tr>
+                                        <td>{{ t.nama_atraksi }}</td>
+                                        <td>{{ t.tanggal_kunjungan }}</td>
+                                        <td>
+                                            <span class="badge {% if t.is_used %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                                {{ t.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Belum ada tiket yang dibeli</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            {% endif %}
-
         {% elif role == 'Staf Pelatih Pertunjukan' %}
             <div class="card glass-card mb-4">
                 <div class="card-header bg-primary bg-gradient">
@@ -390,12 +396,12 @@
                             <tbody>
                                 {% for hewan in hewan_dilatih %}
                                 <tr>
-                                    <td>{{ hewan.id_hewan.nama }}</td>
-                                    <td>{{ hewan.id_hewan.spesies }}</td>
+                                    <td>{{ hewan.nama }}</td>
+                                    <td>{{ hewan.spesies }}</td>
                                     <td>
                                         <span class="badge bg-info rounded-pill">
                                             <i class="bi bi-mortarboard me-1"></i>
-                                            {{ hewan.status_latihan|default:"Dalam Pelatihan" }}
+                                            {{ hewan.status_latihan }}
                                         </span>
                                     </td>
                                 </tr>
