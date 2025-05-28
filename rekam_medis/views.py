@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 import psycopg2
-from django import forms
 
 def get_db_connection():
     return psycopg2.connect(
@@ -172,46 +171,6 @@ def tambah_rekam_medis(request):
     else:
         return render(request, 'rekam_medis/rekam_medis_form.html', {'id_hewan': id_hewan, 'hewan_nama': hewan_nama, 'hewan_spesies': hewan_spesies})
 
-# @login_required
-# def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
-#     rekam_medis = CatatanMedis.objects.get(id_hewan=id_hewan, tanggal_pemeriksaan=tanggal_pemeriksaan)
-#     if request.method == 'POST':
-#         form = RekamMedisEditForm(request.POST, instance=rekam_medis)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('rekam_medis:list_rekam_medis')
-#     else:
-#         form = RekamMedisEditForm(instance=rekam_medis)
-#     return render(request, 'rekam_medis/rekam_medis_edit.html', {'form': form})
-
-# Dummy form untuk edit
-class DummyEditForm(forms.Form):
-    diagnosis = forms.CharField(initial="Dummy Diagnosis", required=False)
-    pengobatan = forms.CharField(initial="Dummy Pengobatan", required=False)
-    catatan_tindak_lanjut = forms.CharField(initial="Dummy Catatan", required=False)
-
-def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
-    if not is_dokter_hewan(request):
-        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
-        return redirect('login')
-    if request.method == 'POST':
-        form = DummyEditForm(request.POST)
-        if form.is_valid():
-            return redirect('rekam_medis:list_rekam_medis')
-    else:
-        form = DummyEditForm()
-
-    return render(request, 'rekam_medis/rekam_medis_edit.html', {'form': form})
-
-# @login_required
-# def hapus_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
-#     rekam_medis = get_object_or_404(CatatanMedis, id_hewan=id_hewan, tanggal_pemeriksaan=tanggal_pemeriksaan)
-#     if request.method == 'POST':
-#         rekam_medis.delete()
-#         return redirect('rekam_medis:list_rekam_medis')
-#     return render(request, 'rekam_medis/rekam_medis_confirm_delete.html', {'rekam_medis': rekam_medis})
-
-# delete dummy  ya
 def hapus_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
     if not is_dokter_hewan(request):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
@@ -239,3 +198,51 @@ def hapus_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
         'id_hewan': id_hewan,
         'tanggal_pemeriksaan': tanggal_pemeriksaan
     })
+
+def edit_rekam_medis(request, id_hewan, tanggal_pemeriksaan):
+    if not is_dokter_hewan(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT diagnosis, pengobatan, catatan_tindak_lanjut
+        FROM catatan_medis
+        WHERE id_hewan = %s AND tanggal_pemeriksaan = %s
+    """, (id_hewan, tanggal_pemeriksaan))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        messages.error(request, 'Data rekam medis tidak ditemukan.')
+        return redirect('rekam_medis:list_rekam_medis')
+
+    if request.method == 'POST':
+        diagnosis = request.POST.get('diagnosis', '')
+        pengobatan = request.POST.get('pengobatan', '')
+        catatan_tindak_lanjut = request.POST.get('catatan_tindak_lanjut', '')
+
+        try:
+            cur.execute("""
+                UPDATE catatan_medis
+                SET diagnosis = %s, pengobatan = %s, catatan_tindak_lanjut = %s
+                WHERE id_hewan = %s AND tanggal_pemeriksaan = %s
+            """, (diagnosis, pengobatan, catatan_tindak_lanjut, id_hewan, tanggal_pemeriksaan))
+            conn.commit()
+            messages.success(request, 'Rekam medis berhasil diperbarui.')
+            cur.close()
+            conn.close()
+            return redirect('rekam_medis:list_rekam_medis')
+        except Exception as e:
+            conn.rollback()
+            messages.error(request, f'Gagal memperbarui: {str(e)}')
+
+    context = {
+        'diagnosis': row[0] or '',
+        'pengobatan': row[1] or '',
+        'catatan_tindak_lanjut': row[2] or '',
+    }
+    cur.close()
+    conn.close()
+    return render(request, 'rekam_medis/rekam_medis_edit.html', context)

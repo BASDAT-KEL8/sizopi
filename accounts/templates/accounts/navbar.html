@@ -23,15 +23,16 @@
                 {% if user_role == "Dokter Hewan" %}
                     <a href="/rekam-medis/" class="hover:text-green-200 transition">Rekam Medis Hewan</a>
                 {% elif user_role == "Penjaga Hewan" %}
-                    <a href="/catatan-perawatan/" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
+                    <a href="/pakan/" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
                 {% elif user_role == "Staf Administrasi" %}
-                    <a href="/kelola-pengunjung/" class="hover:text-green-200 transition">Kelola Pengunjung</a>
+                    <a href="/booking/" class="hover:text-green-200 transition">Kelola Pengunjung</a>
                     <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopsi</a>
                     <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopter</a>
                 {% elif user_role == "Staf Pelatih Pertunjukan" %}
                     <a href="/jadwal-pertunjukan/" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
                 {% elif user_role == "Pengunjung" or user_role == "pengunjung_adopter" %}
                     <a href="/informasi-kebun/" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
+                    <a href="/booking/" class="hover:text-green-200 transition">Reservasi Tiket</a>
                 {% endif %}
 
                 {% if user_role == "pengunjung_adopter" %}
