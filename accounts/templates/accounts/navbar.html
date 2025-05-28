@@ -21,22 +21,24 @@
                 <a href="/dashboard/" class="hover:text-green-200 transition">Dashboard</a>
 
                 {% if user_role == "Dokter Hewan" %}
-                    <a href="/rekam-medis/" class="hover:text-green-200 transition">Rekam Medis Hewan</a>
+                    <a href="/rekam-medis/" class="hover:text-green-200 transition">Rekam Medis</a>
+                    <a href="{% url 'penjadwalan:list_jadwal_pemeriksaan' %}" class="hover:text-green-200 transition">Penjadwalan</a>
                     <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Mengelola Satwa</a>
                 {% elif user_role == "Penjaga Hewan" %} 
                     <a href="/pakan/" class="hover:text-green-200 transition">Catatan Perawatan Hewan</a>
+                    <a href="{% url 'pakan:list_hewan_pakan' %}" class="hover:text-green-200 transition">Beri Pakan</a>
                     <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Mengelola Satwa</a>
                     <a href="{% url 'habitat:view_habitat' %}" class="hover:text-green-200 transition">Mengelola Habitat</a>
-                {% elif user_role == "Staf Administrasi" %} # satwa, habitat
-                    <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Mengelola Satwa</a>
-                    <a href="{% url 'habitat:view_habitat' %}" class="hover:text-green-200 transition">Mengelola Habitat</a>
+                {% elif user_role == "Staf Administrasi" %} 
                     <a href="/booking/" class="hover:text-green-200 transition">Kelola Pengunjung</a>
                     <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopsi</a>
                     <a href="{% url 'adopsi:admin_dashboard' %}" class="hover:text-green-200 transition">Kelola Adopter</a>
+                    <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Mengelola Satwa</a>
+                    <a href="{% url 'habitat:view_habitat' %}" class="hover:text-green-200 transition">Mengelola Habitat</a>
                 {% elif user_role == "Staf Pelatih Pertunjukan" %}
                     <a href="/jadwal-pertunjukan/" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
                 {% elif user_role == "Pengunjung" or user_role == "pengunjung_adopter" %}
-                    <a href="/informasi-kebun/" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
+                    <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
                     <a href="/booking/" class="hover:text-green-200 transition">Reservasi Tiket</a>
                 {% endif %}
 
