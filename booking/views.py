@@ -222,9 +222,12 @@ def create_reservation(request):
             except psycopg2.Error as e:
                 cur.execute("ROLLBACK")
                 error_msg = str(e)
+                # Remove 'CONTEXT: ...' from error message if present
+                if 'CONTEXT:' in error_msg:
+                    error_msg = error_msg.split('CONTEXT:')[0].strip()
                 # Tangkap pesan error dari trigger kapasitas
                 if 'Kapasitas tersisa' in error_msg:
-                    messages.error(request, error_msg.split('ERROR: ')[-1])
+                    messages.error(request, error_msg)
                 else:
                     messages.error(request, f'Terjadi kesalahan: {error_msg}')
                 status = 'Gagal'
