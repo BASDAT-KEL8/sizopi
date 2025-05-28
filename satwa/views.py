@@ -1,7 +1,47 @@
 import uuid
+from django.contrib import messages
 from django.conf import settings
+from django.db import connection
 import psycopg2
 from django.shortcuts import render, redirect
+
+
+def is_dokter_hewan(request):
+    username = request.session.get('username')
+    if not username:
+        return False
+    conn = connection
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM dokter_hewan WHERE username_dh = %s", (username,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(result)
+
+def is_penjaga_hewan(request):
+    username = request.session.get('username')
+    if not username:
+        return False
+    conn = connection
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM penjaga_hewan WHERE username_dh = %s", (username,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(result)
+
+def is_staff_admin(request):
+    username = request.session.get('username')
+    if not username:
+        return False
+    conn = connection
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM staff_admin WHERE username_dh = %s", (username,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(result)
+
 
 def get_connection():
     return psycopg2.connect(
@@ -45,6 +85,10 @@ def get_user_role(request):
     return ""
 
 def view_satwa(request):
+    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
+
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -61,11 +105,14 @@ def view_satwa(request):
     } for row in rows]
 
     return render(request, 'view_satwa.html', {
-        "satwa_list": satwa_list,
-        "role": get_user_role(request)
+        "satwa_list": satwa_list, 
+        "user_role": get_user_role(request)
     })
 
 def create_satwa(request):
+    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
     if request.method == "POST":
         nama = request.POST.get("nama")
         spesies = request.POST.get("spesies")
@@ -96,7 +143,7 @@ def create_satwa(request):
 
     return render(request, 'create_satwa.html', {
         "habitat_options": habitat_options,
-        "role": get_user_role(request)
+        "user_role": get_user_role(request)
     })
 
 def delete_satwa(request, id):
@@ -109,6 +156,9 @@ def delete_satwa(request, id):
     return redirect('satwa:view_satwa')
 
 def edit_satwa(request, id):
+    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        return redirect('login')
     if request.method == "POST":
         nama = request.POST.get("nama")
         spesies = request.POST.get("spesies")
@@ -149,5 +199,5 @@ def edit_satwa(request, id):
             "tanggal_lahir": data[4], "status": data[5], "habitat": data[6], "foto": data[7]
         },
         "habitat_options": habitat_options,
-        "role": get_user_role(request)
+        "user_role": get_user_role(request)
     })
