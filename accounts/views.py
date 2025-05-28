@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
-from .models import Pengguna, Pengunjung, DokterHewan, PenjagaHewan, PelatihHewan, StafAdmin
-from adopsi.models import Adopter
 from django.db import connection
 import uuid
 
@@ -11,9 +9,10 @@ def choose_role_view(request):
 
 def register_pengunjung_view(request):
     if request.method == 'POST':
+        # Ambil data dari form POST
         username = request.POST['username']
         email = request.POST['email']
-        password = request.POST['password']
+        password = request.POST['password']  # Masih plaintext (bisa di-hash jika mau)
         nama_depan = request.POST['nama_depan']
         nama_tengah = request.POST.get('nama_tengah', '')
         nama_belakang = request.POST['nama_belakang']
@@ -21,63 +20,87 @@ def register_pengunjung_view(request):
         alamat = request.POST['alamat']
         tgl_lahir = request.POST['tgl_lahir']
 
-        # Simpan ke Pengguna
-        pengguna = Pengguna.objects.create(
-            username=username,
-            email=email,
-            password=password,
-            nama_depan=nama_depan,
-            nama_tengah=nama_tengah,
-            nama_belakang=nama_belakang,
-            no_telepon=no_telepon
-        )
+        try:
+            with connection.cursor() as cursor:
+                # Simpan ke tabel pengguna
+                cursor.execute("""
+                    INSERT INTO sizopi.pengguna (
+                        username, email, password, nama_depan, nama_tengah, nama_belakang, no_telepon
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, [
+                    username, email, password,
+                    nama_depan, nama_tengah, nama_belakang, no_telepon
+                ])
 
-        # Simpan ke Pengunjung
-        Pengunjung.objects.create(
-            username_p=pengguna,
-            alamat=alamat,
-            tgl_lahir=tgl_lahir
-        )
+                # Simpan ke tabel pengunjung
+                cursor.execute("""
+                    INSERT INTO sizopi.pengunjung (
+                        username_p, alamat, tgl_lahir
+                    ) VALUES (%s, %s, %s)
+                """, [
+                    username, alamat, tgl_lahir
+                ])
 
-        return redirect('login')
+            messages.success(request, "Registrasi berhasil! Silakan login.")
+            return redirect('login')
+
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat registrasi: {str(e)}")
 
     return render(request, 'accounts/register_pengunjung.html')
 
 def register_staff_view(request):
     if request.method == 'POST':
+        # Ambil data dari form
         username = request.POST['username']
         email = request.POST['email']
-        password = request.POST['password']
+        password = request.POST['password']  # masih plaintext
         nama_depan = request.POST['nama_depan']
         nama_tengah = request.POST.get('nama_tengah', '')
         nama_belakang = request.POST['nama_belakang']
         no_telepon = request.POST['no_telepon']
-        role_staff = request.POST['role_staff']
+        role_staff = request.POST['role_staff']  # Penjaga Hewan, Pelatih Hewan, Staf Administrasi
 
-        # Simpan ke Pengguna
-        pengguna = Pengguna.objects.create(
-            username=username,
-            email=email,
-            password=password,
-            nama_depan=nama_depan,
-            nama_tengah=nama_tengah,
-            nama_belakang=nama_belakang,
-            no_telepon=no_telepon
-        )
+        try:
+            with connection.cursor() as cursor:
+                # Simpan ke tabel pengguna
+                cursor.execute("""
+                    INSERT INTO sizopi.pengguna (
+                        username, email, password, nama_depan, nama_tengah, nama_belakang, no_telepon
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, [
+                    username, email, password,
+                    nama_depan, nama_tengah, nama_belakang, no_telepon
+                ])
 
-        # Generate UUID untuk ID staf
-        import uuid
-        id_staf = uuid.uuid4()
+                # Buat UUID untuk id_staf
+                id_staf = str(uuid.uuid4())
 
-        # Simpan ke tabel sesuai pilihan role staff
-        if role_staff == 'Penjaga Hewan':
-            PenjagaHewan.objects.create(username_jh=pengguna, id_staf=id_staf)
-        elif role_staff == 'Pelatih Hewan':
-            PelatihHewan.objects.create(username_lh=pengguna, id_staf=id_staf)
-        elif role_staff == 'Staf Administrasi':
-            StafAdmin.objects.create(username_sa=pengguna, id_staf=id_staf)
+                # Tentukan tabel tujuan berdasarkan role
+                if role_staff == 'Penjaga Hewan':
+                    cursor.execute("""
+                        INSERT INTO sizopi.penjaga_hewan (username_jh, id_staf)
+                        VALUES (%s, %s)
+                    """, [username, id_staf])
+                elif role_staff == 'Pelatih Hewan':
+                    cursor.execute("""
+                        INSERT INTO sizopi.pelatih_hewan (username_lh, id_staf)
+                        VALUES (%s, %s)
+                    """, [username, id_staf])
+                elif role_staff == 'Staf Administrasi':
+                    cursor.execute("""
+                        INSERT INTO sizopi.staf_admin (username_sa, id_staf)
+                        VALUES (%s, %s)
+                    """, [username, id_staf])
+                else:
+                    messages.error(request, "Role tidak dikenali.")
+                    return redirect('register_staff')
 
-        return redirect('login')
+            messages.success(request, "Registrasi staf berhasil! Silakan login.")
+            return redirect('login')
+
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat registrasi: {str(e)}")
 
     return render(request, 'accounts/register_staff.html')
 
@@ -86,18 +109,31 @@ def login_view(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
+            password = form.cleaned_data['password']  # plaintext (belum di-hash)
 
             try:
-                user = Pengguna.objects.get(email=email, password=password)
-                request.session['email'] = user.email
-                request.session['nama_lengkap'] = f"{user.nama_depan} {user.nama_belakang}"
-                request.session['username'] = user.username
+                with connection.cursor() as cursor:
+                    # Cari user berdasarkan email dan password
+                    cursor.execute("""
+                        SELECT username, nama_depan, nama_belakang 
+                        FROM sizopi.pengguna
+                        WHERE email = %s AND password = %s
+                    """, [email, password])
+                    
+                    user = cursor.fetchone()
 
-                messages.success(request, f"Selamat datang, {user.nama_depan}!")
-                return redirect('dashboard')  # <- langsung ke dashboard
-            except Pengguna.DoesNotExist:
-                messages.error(request, "Email atau password salah.")
+                    if user:
+                        username, nama_depan, nama_belakang = user
+                        request.session['email'] = email
+                        request.session['nama_lengkap'] = f"{nama_depan} {nama_belakang}"
+                        request.session['username'] = username
+                        messages.success(request, f"Selamat datang, {nama_depan}!")
+                        return redirect('dashboard')
+                    else:
+                        messages.error(request, "Email atau password salah.")
+
+            except Exception as e:
+                messages.error(request, f"Terjadi kesalahan saat login: {str(e)}")
         else:
             messages.error(request, "Form tidak valid.")
     else:
@@ -105,36 +141,42 @@ def login_view(request):
 
     return render(request, 'accounts/login.html', {'form': form})
 
-
 def register_dokter_view(request):
     if request.method == 'POST':
+        # Ambil data dari form POST
         username = request.POST['username']
         email = request.POST['email']
-        password = request.POST['password']
+        password = request.POST['password']  # masih plaintext
         nama_depan = request.POST['nama_depan']
         nama_tengah = request.POST.get('nama_tengah', '')
         nama_belakang = request.POST['nama_belakang']
         no_telepon = request.POST['no_telepon']
         no_str = request.POST['no_str']
 
-        # Simpan ke Pengguna
-        pengguna = Pengguna.objects.create(
-            username=username,
-            email=email,
-            password=password,
-            nama_depan=nama_depan,
-            nama_tengah=nama_tengah,
-            nama_belakang=nama_belakang,
-            no_telepon=no_telepon
-        )
+        try:
+            with connection.cursor() as cursor:
+                # Simpan ke tabel pengguna
+                cursor.execute("""
+                    INSERT INTO sizopi.pengguna (
+                        username, email, password, nama_depan, nama_tengah, nama_belakang, no_telepon
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, [
+                    username, email, password,
+                    nama_depan, nama_tengah, nama_belakang, no_telepon
+                ])
 
-        # Simpan ke Dokter Hewan
-        DokterHewan.objects.create(
-            username_dh=pengguna,
-            no_str=no_str
-        )
+                # Simpan ke tabel dokter_hewan
+                cursor.execute("""
+                    INSERT INTO sizopi.dokter_hewan (
+                        username_dh, no_str
+                    ) VALUES (%s, %s)
+                """, [username, no_str])
 
-        return redirect('login')
+            messages.success(request, "Registrasi dokter hewan berhasil! Silakan login.")
+            return redirect('login')
+
+        except Exception as e:
+            messages.error(request, f"Terjadi kesalahan saat registrasi: {str(e)}")
 
     return render(request, 'accounts/register_dokter.html')
 
@@ -159,46 +201,8 @@ def dashboard_view(request):
     return render(request, 'accounts/dashboard.html', context)
 
 def navbar_view(request):
-    user_role = "guest"
-    role = "guest"
-    username = request.session.get('username')
-    
-    if username:
-        try:
-            pengguna = Pengguna.objects.get(username=username)
-
-            # Cek role staff
-            if DokterHewan.objects.filter(username_dh__username=username).exists():
-                role = "Dokter Hewan"
-            elif PenjagaHewan.objects.filter(username_jh__username=username).exists():
-                role = "Penjaga Hewan"
-            elif StafAdmin.objects.filter(username_sa__username=username).exists():
-                role = "Staf Administrasi"
-            elif PelatihHewan.objects.filter(username_lh__username=username).exists():
-                role = "Staf Pelatih Pertunjukan"
-            else:
-                # Kalau bukan staff, cek apakah dia pengunjung
-                try:
-                    pengunjung = Pengunjung.objects.get(username_p__username=username)
-
-                    # Cek apakah pengunjung ini juga adopter
-                    if Adopter.objects.filter(username_adopter_id=pengunjung.id).exists():
-                        role = "pengunjung_adopter"
-                    else:
-                        role = "Pengunjung"
-                except Pengunjung.DoesNotExist:
-                    role = "guest"
-
-            user_role = role
-
-        except Pengguna.DoesNotExist:
-            role = "guest"
-            user_role = "guest"
-    
-    # Bisa print buat cek debug
-    print(f"[NAVBAR_VIEW] Username: {username} | Final Role: {role}")
-
-    return render(request, 'accounts/navbar.html', {'user_role': user_role, 'role': role})
+    # 'user_role' akan otomatis tersedia dari context_processor
+    return render(request, 'accounts/navbar.html')
 
 def profile_view(request):
     """Profile view dengan data tambahan untuk form profile"""
