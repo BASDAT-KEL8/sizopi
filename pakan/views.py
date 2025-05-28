@@ -1,211 +1,264 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.utils import timezone
-from datetime import datetime, timedelta
-import uuid
+import psycopg2
 
-# Dummy data for animals
-dummy_hewan_list = [
-    {
-        'id': uuid.UUID('96f41ce7-8bc9-4c81-8dbb-9f1240602aa4'),
-        'nama': 'Simba',
-        'spesies': 'Singa Afrika',
-        'asal_hewan': 'Kenya',
-        'tanggal_lahir': '2020-01-15',
-        'habitat': 'Savanna',
-        'status_kesehatan': 'Sehat'
-    },
-    {
-        'id': uuid.UUID('a7c52d8e-3f10-4d92-9e3b-6c8a90b23d45'),
-        'nama': 'Leo',
-        'spesies': 'Singa Afrika',
-        'asal_hewan': 'Tanzania',
-        'tanggal_lahir': '2019-06-20',
-        'habitat': 'Savanna',
-        'status_kesehatan': 'Sehat'
-    },
-    {
-        'id': uuid.UUID('b9d63f1a-5e22-4c83-af4b-7d9b12c34e67'),
-        'nama': 'Raja',
-        'spesies': 'Harimau Sumatera',
-        'asal_hewan': 'Indonesia',
-        'tanggal_lahir': '2021-03-10',
-        'habitat': 'Hutan Tropis',
-        'status_kesehatan': 'Sehat'
-    },
-    {
-        'id': uuid.UUID('c8e74f2b-6f33-5d94-bf5c-8e0c23d45f78'),
-        'nama': 'Gajah Kecil',
-        'spesies': 'Gajah Sumatera',
-        'asal_hewan': 'Indonesia',
-        'tanggal_lahir': '2022-05-15',
-        'habitat': 'Hutan Tropis',
-        'status_kesehatan': 'Sehat'
-    },
-    {
-        'id': uuid.UUID('d9f85a3c-7a44-6e05-cf6d-9f1d34e56a89'),
-        'nama': 'Koko',
-        'spesies': 'Orangutan',
-        'asal_hewan': 'Kalimantan',
-        'tanggal_lahir': '2018-08-22',
-        'habitat': 'Hutan Hujan',
-        'status_kesehatan': 'Dalam Perawatan'
-    }
-]
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=settings.DATABASES['default']['NAME'],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        host=settings.DATABASES['default']['HOST'],
+        port=settings.DATABASES['default']['PORT'],
+        sslmode='require',
+        options='-c search_path=sizopi'
+    )
 
-# Dummy data for feeding schedules
-dummy_pakan_list = [
-    {
-        'id': '1',
-        'id_hewan': uuid.UUID('96f41ce7-8bc9-4c81-8dbb-9f1240602aa4'),
-        'jenis': 'Daging Sapi',
-        'jumlah': 5000,
-        'jadwal': timezone.now(),
-        'status': 'Menunggu Pemberian'
-    },
-    {
-        'id': '2',
-        'id_hewan': uuid.UUID('96f41ce7-8bc9-4c81-8dbb-9f1240602aa4'),
-        'jenis': 'Daging Ayam',
-        'jumlah': 3000,
-        'jadwal': timezone.now() + timedelta(days=1),
-        'status': 'Menunggu Pemberian'
-    },
-    {
-        'id': '3',
-        'id_hewan': uuid.UUID('96f41ce7-8bc9-4c81-8dbb-9f1240602aa4'),
-        'jenis': 'Daging Kambing',
-        'jumlah': 4000,
-        'jadwal': timezone.now() - timedelta(days=1),
-        'status': 'Selesai Diberikan'
-    }
-]
+def is_penjaga_hewan(request):
+    username = request.session.get('username')
+    if not username:
+        return False
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM penjaga_hewan WHERE username_jh = %s", (username,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    return bool(result)
 
-# Dummy data for feeding history
-dummy_riwayat_pakan = [
-    {
-        'hewan': {
-            'nama': 'Simba',
-            'spesies': 'Singa Afrika',
-            'asal_hewan': 'Kenya',
-            'tanggal_lahir': '2020-01-15',
-            'habitat': 'Savanna', 
-            'status_kesehatan': 'Sehat'
-        },
-        'jenis': 'Daging Sapi',
-        'jumlah': 5000,
-        'jadwal': timezone.now() - timedelta(days=1),
-        'status': 'Selesai Diberikan'
-    },
-    {
-        'hewan': {
-            'nama': 'Leo',
-            'spesies': 'Singa Afrika',
-            'asal_hewan': 'Tanzania',
-            'tanggal_lahir': '2019-06-20',
-            'habitat': 'Savanna',
-            'status_kesehatan': 'Sehat'
-        },
-        'jenis': 'Daging Kambing',
-        'jumlah': 4000,
-        'jadwal': timezone.now() - timedelta(days=2),
-        'status': 'Selesai Diberikan'
-    },
-    {
-        'hewan': {
-            'nama': 'Raja',
-            'spesies': 'Harimau Sumatera',
-            'asal_hewan': 'Indonesia',
-            'tanggal_lahir': '2021-03-10',
-            'habitat': 'Hutan Tropis',
-            'status_kesehatan': 'Sehat'
-        },
-        'jenis': 'Daging Ayam',
-        'jumlah': 3000,
-        'jadwal': timezone.now() - timedelta(days=3),
-        'status': 'Selesai Diberikan'
-    },
-    {
-        'hewan': {
-            'nama': 'Gajah Kecil',
-            'spesies': 'Gajah Sumatera',
-            'asal_hewan': 'Indonesia',
-            'tanggal_lahir': '2022-05-15',
-            'habitat': 'Hutan Tropis',
-            'status_kesehatan': 'Sehat'
-        },
-        'jenis': 'Rumput Segar',
-        'jumlah': 15000,
-        'jadwal': timezone.now() - timedelta(days=1),
-        'status': 'Selesai Diberikan'
-    },
-    {
-        'hewan': {
-            'nama': 'Koko',
-            'spesies': 'Orangutan',
-            'asal_hewan': 'Kalimantan',
-            'tanggal_lahir': '2018-08-22',
-            'habitat': 'Hutan Hujan',
-            'status_kesehatan': 'Dalam Perawatan'
-        },
-        'jenis': 'Buah-buahan',
-        'jumlah': 2000,
-        'jadwal': timezone.now() - timedelta(days=1),
-        'status': 'Selesai Diberikan'
-    }
-]
+def check_penjaga_hewan(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_penjaga_hewan(request):
+            messages.error(request, 'Hanya penjaga hewan yang dapat mengakses fitur ini.')
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
+@check_penjaga_hewan
 def list_pemberian_pakan(request, id_hewan):
-    """
-    View function for listing feeding schedules for a specific animal
-    id_hewan is already a UUID object from URL routing
-    """
-    hewan = next((h for h in dummy_hewan_list if h['id'] == id_hewan), None)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nama, spesies, asal_hewan, tanggal_lahir, nama_habitat, status_kesehatan FROM hewan WHERE id = %s", (id_hewan,))
+    row = cur.fetchone()
+    hewan = None
+    if row:
+        hewan = {
+            'id': row[0],
+            'nama': row[1],
+            'spesies': row[2],
+            'asal_hewan': row[3],
+            'tanggal_lahir': row[4],
+            'habitat': row[5],
+            'status_kesehatan': row[6],
+        }
+    cur.execute("SELECT jadwal, jenis, jumlah, status FROM pakan WHERE id_hewan = %s ORDER BY jadwal DESC", (id_hewan,))
+    pakan_list = [
+        {
+            'id_hewan': id_hewan,
+            'jadwal': row[0],
+            'jenis': row[1],
+            'jumlah': row[2],
+            'status': row[3],
+        }
+        for row in cur.fetchall()
+    ]
+    cur.close()
+    conn.close()
     context = {
         'hewan': hewan,
-        'pakan_list': [p for p in dummy_pakan_list if p['id_hewan'] == id_hewan]
+        'pakan_list': pakan_list
     }
     return render(request, 'pakan/list_pemberian_pakan.html', context)
 
+@check_penjaga_hewan
 def tambah_jadwal_pakan(request, id_hewan):
     if request.method == 'POST':
-        messages.success(request, 'Jadwal pemberian pakan berhasil ditambahkan')
-        return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+        jenis = request.POST.get('jenis')
+        jumlah = request.POST.get('jumlah')
+        jadwal = request.POST.get('jadwal')
+        status = 'dijadwalkan'  # harus sama dengan di database
+        username = request.session.get('username')
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # Tambah ke tabel pakan
+            cur.execute("INSERT INTO pakan (id_hewan, jadwal, jenis, jumlah, status) VALUES (%s, %s, %s, %s, %s)", (id_hewan, jadwal, jenis, jumlah, status))
+            # Tambah ke tabel memberi
+            cur.execute("INSERT INTO memberi (id_hewan, jadwal, username_jh) VALUES (%s, %s, %s)", (id_hewan, jadwal, username))
+            conn.commit()
+            cur.close()
+            conn.close()
+            messages.success(request, 'Jadwal pemberian pakan berhasil ditambahkan')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            messages.error(request, f'Gagal menambah jadwal: {str(e)}')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
     return render(request, 'pakan/tambah_pakan.html', {'id_hewan': id_hewan})
 
-def edit_pemberian_pakan(request, id_hewan, pakan_id):
-    pakan = next((item for item in dummy_pakan_list if item['id'] == pakan_id), None)
-    if request.method == 'POST':
-        messages.success(request, 'Jadwal pemberian pakan berhasil diperbarui')
-        return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
-    return render(request, 'pakan/edit_pakan.html', {
-        'pakan': pakan,
-        'id_hewan': id_hewan  # Pass id_hewan separately
-    })
 
-def hapus_pemberian_pakan(request, id_hewan, pakan_id):
-    pakan = next((item for item in dummy_pakan_list if item['id'] == pakan_id), None)
+@check_penjaga_hewan
+def hapus_pemberian_pakan(request, id_hewan, jadwal):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT jadwal, jenis, jumlah, status FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
+    row = cur.fetchone()
+    pakan = None
+    if row:
+        pakan = {
+            'id_hewan': id_hewan,
+            'jadwal': row[0],
+            'jenis': row[1],
+            'jumlah': row[2],
+            'status': row[3],
+        }
     if request.method == 'POST':
-        messages.success(request, 'Data pemberian pakan berhasil dihapus')
-        return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
-    return render(request, 'pakan/hapus_pakan.html', {
-        'pakan': pakan,
-        'id_hewan': id_hewan  # Pass id_hewan separately
-    })
+        try:
+            cur.execute("DELETE FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
+            conn.commit()
+            cur.close()
+            conn.close()
+            messages.success(request, 'Data pemberian pakan berhasil dihapus')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            messages.error(request, f'Gagal hapus data: {str(e)}')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+    cur.close()
+    conn.close()
+    return render(request, 'pakan/hapus_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})
 
-def beri_pakan(request, id_hewan, pakan_id):
-    """Mark a feeding schedule as completed"""
-    pakan = next((item for item in dummy_pakan_list if item['id'] == pakan_id), None)
-    if pakan and pakan['status'] == 'Menunggu Pemberian':
-        pakan['status'] = 'Selesai Diberikan'
+@check_penjaga_hewan
+def beri_pakan(request, id_hewan, jadwal):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE pakan SET status = 'diberikan' WHERE id_hewan = %s AND jadwal = %s AND status = 'dijadwalkan'", (id_hewan, jadwal))
+        conn.commit()
+        cur.close()
+        conn.close()
         messages.success(request, 'Pemberian pakan berhasil dicatat')
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        messages.error(request, f'Gagal mencatat pemberian pakan: {str(e)}')
     return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
 
+@check_penjaga_hewan
 def riwayat_pemberian_pakan(request):
-    """
-    Menampilkan riwayat pemberian pakan yang dilakukan oleh penjaga hewan yang sedang login
-    """
+    username = request.session.get('username')
+    if not username:
+        messages.error(request, 'Silakan login terlebih dahulu.')
+        return redirect('login')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Ambil semua jadwal pakan yang pernah diberikan oleh user ini dari tabel memberi
+    cur.execute("SELECT id_hewan, jadwal FROM memberi WHERE username_jh = %s", (username,))
+    jadwal_list = cur.fetchall()
+    riwayat_pakan = []
+    if jadwal_list:
+        for id_hewan, jadwal in jadwal_list:
+            # Ambil data pakan (apapun statusnya) yang diberikan user ini
+            cur.execute("SELECT jenis, jumlah, status FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
+            pakan_row = cur.fetchone()
+            if pakan_row:
+                jenis, jumlah, status = pakan_row
+                # Ambil data hewan
+                cur.execute("SELECT nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat FROM hewan WHERE id = %s", (id_hewan,))
+                h = cur.fetchone()
+                hewan = None
+                if h:
+                    hewan = {
+                        'nama': h[0],
+                        'spesies': h[1],
+                        'asal_hewan': h[2],
+                        'tanggal_lahir': h[3],
+                        'status_kesehatan': h[4],
+                        'habitat': h[5],
+                    }
+                riwayat_pakan.append({
+                    'hewan': hewan,
+                    'jenis': jenis,
+                    'jumlah': jumlah,
+                    'jadwal': jadwal,
+                    'status': status,
+                })
+    cur.close()
+    conn.close()
     context = {
-        'riwayat_pakan': dummy_riwayat_pakan
+        'riwayat_pakan': riwayat_pakan
     }
     return render(request, 'pakan/riwayat_pemberian_pakan.html', context)
+
+@check_penjaga_hewan
+def list_hewan_pakan(request):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nama, spesies, nama_habitat FROM hewan ORDER BY nama ASC")
+    hewan_list = [
+        {
+            'id': row[0],
+            'nama': row[1],
+            'spesies': row[2],
+            'habitat': row[3],
+        }
+        for row in cur.fetchall()
+    ]
+    cur.close()
+    conn.close()
+    return render(request, 'pakan/list_hewan_pakan.html', {'hewan_list': hewan_list})
+
+@check_penjaga_hewan
+def edit_pemberian_pakan(request, id_hewan, jadwal):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT jadwal, jenis, jumlah, status FROM pakan WHERE id_hewan = %s AND jadwal = %s", (id_hewan, jadwal))
+    row = cur.fetchone()
+    pakan = None
+    if row:
+        pakan = {
+            'id_hewan': id_hewan,
+            'jadwal': row[0],
+            'jenis': row[1],
+            'jumlah': row[2],
+            'status': row[3],
+        }
+    if not pakan:
+        cur.close()
+        conn.close()
+        messages.error(request, 'Data pakan tidak ditemukan.')
+        return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+    if request.method == 'POST':
+        jenis = request.POST.get('jenis_pakan')
+        jumlah = request.POST.get('jumlah_pakan')
+        jadwal_baru = request.POST.get('jadwal')
+        status = request.POST.get('status') or pakan['status']
+        if not jenis or not jumlah or not jadwal_baru or not status:
+            messages.error(request, 'Semua field harus diisi!')
+            cur.close()
+            conn.close()
+            return render(request, 'pakan/edit_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})
+        try:
+            # Jika jadwal berubah, update tabel memberi dulu baru pakan
+            if jadwal_baru != str(jadwal):
+                cur.execute("UPDATE memberi SET jadwal = %s WHERE id_hewan = %s AND jadwal = %s", (jadwal_baru, id_hewan, jadwal))
+            cur.execute("UPDATE pakan SET jenis = %s, jumlah = %s, jadwal = %s, status = %s WHERE id_hewan = %s AND jadwal = %s", (jenis, jumlah, jadwal_baru, status, id_hewan, jadwal))
+            conn.commit()
+            cur.close()
+            conn.close()
+            messages.success(request, 'Data pemberian pakan berhasil diubah')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+        except Exception as e:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            messages.error(request, f'Gagal mengubah data: {str(e)}')
+            return redirect('pakan:list_pemberian_pakan', id_hewan=id_hewan)
+    cur.close()
+    conn.close()
+    return render(request, 'pakan/edit_pakan.html', {'pakan': pakan, 'id_hewan': id_hewan})

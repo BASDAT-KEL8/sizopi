@@ -6,31 +6,44 @@
     <title>Edit Rekam Medis</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+{% include 'accounts/navbar.html' %}
 <body class="bg-gray-100 p-8">
     <h1 class="text-2xl font-bold mb-4">Tambah Rekam Medis</h1>
     <form method="post" class="bg-white p-6 rounded shadow-md space-y-4">
         {% csrf_token %}
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
         <div>
-            <label>Tanggal Pemeriksaan:</label>
-            {{ form.tanggal_pemeriksaan }}
+            <label>Hewan:</label>
+            <input type="text" class="form-input bg-gray-100" value="{{ hewan_nama }} ({{ hewan_spesies }})" readonly>
+            <input type="hidden" name="id_hewan" value="{{ id_hewan }}">
         </div>
         <div>
-            <label>Nama Dokter:</label>
-            {{ form.nama_dokter }}
+            <label>Tanggal Pemeriksaan:</label>
+            <input type="date" name="tanggal_pemeriksaan" class="form-input" required>
         </div>
         <div>
             <label>Status Kesehatan:</label>
-            {{ form.status_kesehatan }}
+            <select name="status_kesehatan" class="form-input" required>
+                <option value="Sehat">Sehat</option>
+                <option value="Sakit">Sakit</option>
+            </select>
         </div>
         <div>
             <label>Diagnosis:</label>
-            {{ form.diagnosis }}
+            <input type="text" name="diagnosis" class="form-input" placeholder="Opsional">
         </div>
         <div>
             <label>Pengobatan:</label>
-            {{ form.pengobatan }}
+            <input type="text" name="pengobatan" class="form-input" placeholder="Opsional">
         </div>
-    
+        <div>
+            <label>Catatan Tindak Lanjut:</label>
+            <input type="text" name="catatan_tindak_lanjut" class="form-input" placeholder="Opsional">
+        </div>
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Simpan</button>
         <a href="{% url 'rekam_medis:list_rekam_medis' %}" class="text-green-700 font-semibold ml-4">Batal</a>
     </form>
