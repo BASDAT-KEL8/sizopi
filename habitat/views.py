@@ -1,19 +1,30 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.db import connection
-import uuid
 
-from accounts.models import DokterHewan, PenjagaHewan, StafAdmin
+def get_user_role(request):
+    username = request.session.get('username')
+    if not username:
+        return ""
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1 FROM penjaga_hewan WHERE username_jh = %s", [username])
+        if cursor.fetchone():
+            return 'Penjaga Hewan'
+        
+        cursor.execute("SELECT 1 FROM staf_admin WHERE username_sa = %s", [username])
+        if cursor.fetchone():
+            return 'Staf Administrasi'
+    
+    return ""
 
 def view_habitat(request):
-    # Jika POST dan mengandung nama untuk dihapus
     if request.method == "POST" and "delete_nama" in request.POST:
         nama_to_delete = request.POST.get("delete_nama")
         with connection.cursor() as cursor:
             cursor.execute("DELETE FROM HABITAT WHERE nama = %s", [nama_to_delete])
         return redirect('habitat:view_habitat')
 
-    # Jika GET biasa, ambil semua data habitat
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT nama, luas_area, kapasitas, status
@@ -79,7 +90,6 @@ def edit_habitat(request, nama):
 
         return redirect('habitat:view_habitat')
 
-    # GET method - fetch data
     with connection.cursor() as cursor:
         cursor.execute("SELECT nama, luas_area, kapasitas, status FROM HABITAT WHERE nama = %s", [nama])
         row = cursor.fetchone()
@@ -129,13 +139,3 @@ def detail_habitat(request, nama):
         'role': get_user_role(request)
     }
     return render(request, 'detail_habitat.html', context)
-
-def get_user_role(request):
-    username = request.session.get('username')
-    
-    if PenjagaHewan.objects.filter(username_jh=username).exists():
-        return 'Penjaga Hewan'
-    elif StafAdmin.objects.filter(username_sa=username).exists():
-        return 'Staf Administrasi'
-    
-    return ""

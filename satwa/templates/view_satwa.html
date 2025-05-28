@@ -44,10 +44,11 @@
             <td class="px-4 py-2">{{ satwa.habitat }}</td>
             <td class="px-4 py-2">
               {% if satwa.foto %}
-                <a href="{{ satwa.foto }}" class="text-blue-600 hover:underline" target="_blank">{{ satwa.foto }}</a>
-              {% else %}
-                <span class="text-gray-400 italic">Tidak ada URL</span>
-              {% endif %}
+  <img src="{{ satwa.foto }}" alt="Foto Satwa" class="w-40 h-auto rounded-md shadow-md" />
+{% else %}
+  <span class="text-gray-400 italic">Tidak ada foto</span>
+{% endif %}
+
             </td>
             <td class="px-4 py-2 flex flex-wrap gap-2">
               <a href="{% url 'satwa:edit_satwa' satwa.id %}" 
