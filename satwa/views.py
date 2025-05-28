@@ -9,7 +9,7 @@ from accounts.models import DokterHewan, PenjagaHewan, StafAdmin
 def view_satwa(request):
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat
+            SELECT id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto
             FROM HEWAN
             ORDER BY nama
         """)
@@ -24,6 +24,7 @@ def view_satwa(request):
             "tanggal_lahir": row[4],
             "status": row[5],
             "habitat": row[6],
+            "foto": row[7],
         }
         for row in rows
     ]
