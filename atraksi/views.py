@@ -247,17 +247,46 @@ def edit_atraksi(request, nama_atraksi):
                     (nama_atraksi, hewan_id)
                 )
 
-            # Update trainer schedule
-            cur.execute("DELETE FROM jadwal_penugasan WHERE nama_atraksi = %s", (nama_atraksi,))
+            # Update trainer schedule - ini akan trigger rotasi pelatih
             if pelatih_list:
                 for pelatih in pelatih_list:
                     cur.execute(
                         "INSERT INTO jadwal_penugasan (username_lh, tgl_penugasan, nama_atraksi) VALUES (%s, %s, %s)",
                         (pelatih, jadwal, nama_atraksi)
                     )
-
+            # cur.execute("DELETE FROM jadwal_penugasan WHERE nama_atraksi = %s", (nama_atraksi,))
             cur.execute("COMMIT")
-            messages.success(request, 'Atraksi berhasil diperbarui')
+            
+            # Ambil pesan NOTICE dari psycopg2 (rotasi pelatih)
+            rotation_messages = []
+            debug_messages = []
+            
+            # Debug: Print semua notices
+            print(f"Total notices: {len(conn.notices)}")
+            for i, notice in enumerate(conn.notices):
+                print(f"Notice {i}: {notice}")
+                
+                if 'SUKSES: Pelatih' in notice:
+                    # Ekstrak pesan yang bersih dari NOTICE
+                    clean_message = notice.split('NOTICE:  ')[-1].strip()
+                    rotation_messages.append(clean_message)
+                    messages.warning(request, clean_message)
+                elif 'DEBUG:' in notice:
+                    # Simpan debug messages untuk troubleshooting
+                    debug_messages.append(notice.split('NOTICE:  ')[-1].strip())
+            
+            conn.notices.clear()
+            
+            # Debug: Tampilkan debug messages jika dalam development
+            if debug_messages and settings.DEBUG:
+                for debug_msg in debug_messages:
+                    messages.info(request, f"Debug: {debug_msg}")
+            
+            # Pesan sukses utama
+            if rotation_messages:
+                messages.success(request, f'Atraksi berhasil diperbarui. {len(rotation_messages)} pelatih memerlukan rotasi.')
+            else:
+                messages.success(request, 'Atraksi berhasil diperbarui')
             
         except Exception as e:
             cur.execute("ROLLBACK")
