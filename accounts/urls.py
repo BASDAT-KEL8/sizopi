@@ -14,7 +14,7 @@ urlpatterns = [
     # path('dashboard/', views.dashboard_view, name='dashboard'),
     
 
-    path('profile/', views.profile_view, name='profile'),
+    path('profile/', views.profile, name='profile'),
     path('profile/update/', views.update_profile, name='update_profile'),
     
     path('', lambda request: redirect('/accounts/login/')),
