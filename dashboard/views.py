@@ -52,7 +52,13 @@ def dashboard_view(request):
         context['penjualan_tiket_hari_ini'] = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM reservasi WHERE tanggal_kunjungan = %s", (today,))
         context['jumlah_pengunjung_hari_ini'] = cur.fetchone()[0]
-        cur.execute("SELECT COALESCE(SUM(jumlah_tiket),0) FROM reservasi WHERE tanggal_kunjungan >= %s", (today-timedelta(days=7),))
+        # Pendapatan mingguan dari total kontribusi adopsi 7 hari terakhir
+        cur.execute("""
+            SELECT COALESCE(SUM(kontribusi_finansial), 0)
+            FROM adopsi
+            WHERE status_pembayaran = 'Lunas'
+              AND tgl_mulai_adopsi >= %s
+        """, (today - timedelta(days=7),))
         context['pendapatan_mingguan'] = cur.fetchone()[0]
         cur.close()
         conn.close()
