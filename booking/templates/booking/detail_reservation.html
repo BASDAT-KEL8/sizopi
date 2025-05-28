@@ -31,14 +31,14 @@
                             <h4>{{ nama_atraksi }}</h4>
                             <div class="text-muted">
                                 <div><i class="bi bi-geo-alt me-1"></i>{{ lokasi }}</div>
-                                <div><i class="bi bi-clock me-1"></i>{{ jam }}</div>
+                                <div><i class="bi bi-clock me-1"></i>{{ jam|date:"H:i" }}</div>
                             </div>
                         </div>
 
                         <table class="table">
                             <tr>
                                 <th width="140">Tanggal</th>
-                                <td>{{ tanggal }}</td>
+                                <td>{{ tanggal|date:"d F Y" }}</td>
                             </tr>
                             <tr>
                                 <th>Jumlah Tiket</th>

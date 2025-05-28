@@ -7,8 +7,6 @@ import uuid
 
 import psycopg2
 
-from accounts.models import DokterHewan
-
 def get_db_connection():
     return psycopg2.connect(
         dbname=settings.DATABASES['default']['NAME'],

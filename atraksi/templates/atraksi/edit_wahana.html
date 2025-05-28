@@ -40,15 +40,15 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label class="form-label">Nama Wahana</label>
-                                <input type="text" class="form-control" value="{{ wahana.nama_wahana.nama }}" disabled>
+                                <input type="text" name="nama" class="form-control" value="{{ wahana.nama_wahana.nama }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Kapasitas Maksimum</label>
-                                <input type="number" name="kapasitas" class="form-control" value="{{ wahana.nama_wahana.kapasitas_max }}" required>
+                                <input type="number" name="kapasitas" class="form-control" value="{{ wahana.kapasitas_max }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jadwal</label>
-                                <input type="time" name="jadwal" class="form-control" value="{{ wahana.nama_wahana.jadwal|date:'H:i' }}" required>
+                                <input type="datetime-local" name="jadwal" class="form-control" value="{{ wahana.jadwal|date:'Y-m-d\TH:i' }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Peraturan</label>

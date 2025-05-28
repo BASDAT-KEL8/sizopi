@@ -31,25 +31,36 @@
                         <form method="post">
                             {% csrf_token %}
                             <div class="mb-3">
-                                <label class="form-label">Nama Atraksi</label>
-                                <select name="nama_atraksi" class="form-select" required>
-                                    <option value="">Pilih Atraksi</option>
+                                <label class="form-label">Nama Atraksi/Wahana</label>
+                                <select name="nama_atraksi" class="form-select" required id="select-nama-atraksi">
+                                    <option value="">Pilih Atraksi/Wahana</option>
                                     {% for attraction in attractions %}
                                     <option value="{{ attraction.nama }}" 
-                                        data-lokasi="{{ attraction.lokasi }}"
-                                        data-jam="{{ attraction.jam }}">
-                                        {{ attraction.nama }}
+                                        data-lokasi="{{ attraction.lokasi|default_if_none:'-' }}"
+                                        data-jam="{{ attraction.jam }}"
+                                        data-tipe="{{ attraction.tipe }}"
+                                        data-peraturan="{{ attraction.peraturan|default_if_none:'' }}"
+                                        {% if prefill_nama_atraksi and prefill_nama_atraksi == attraction.nama %}selected{% endif %}>
+                                        {{ attraction.nama }}{% if attraction.tipe == 'wahana' %} (Wahana){% endif %}
                                     </option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Lokasi</label>
-                                <input type="text" id="lokasi" class="form-control" readonly>
+                            <div id="form-atraksi">
+                                <div class="mb-3">
+                                    <label class="form-label">Lokasi</label>
+                                    <input type="text" id="lokasi" class="form-control" readonly value="{% if prefill_lokasi %}{{ prefill_lokasi }}{% endif %}">
+                                </div>
+                            </div>
+                            <div id="form-wahana" style="display:none">
+                                <div class="mb-3">
+                                    <label class="form-label">Peraturan</label>
+                                    <textarea id="peraturan" class="form-control" readonly></textarea>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jam</label>
-                                <input type="text" id="jam" class="form-control" readonly>
+                                <input type="text" id="jam" class="form-control" readonly value="{% if prefill_jam %}{{ prefill_jam|time:'H:i' }}{% endif %}">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Tanggal</label>
@@ -75,11 +86,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        document.querySelector('select[name="nama_atraksi"]').addEventListener('change', function() {
+        var prefill = "{{ prefill_nama_atraksi|default:'' }}";
+        function showFormByType(type, peraturan) {
+            if (type === 'wahana') {
+                document.getElementById('form-wahana').style.display = '';
+                document.getElementById('form-atraksi').style.display = 'none';
+                document.getElementById('peraturan').value = peraturan || '';
+            } else {
+                document.getElementById('form-wahana').style.display = 'none';
+                document.getElementById('form-atraksi').style.display = '';
+                document.getElementById('peraturan').value = '';
+            }
+        }
+        const select = document.getElementById('select-nama-atraksi');
+        select.addEventListener('change', function() {
             const selected = this.options[this.selectedIndex];
             document.getElementById('lokasi').value = selected.dataset.lokasi || '';
             document.getElementById('jam').value = selected.dataset.jam || '';
+            showFormByType(selected.dataset.tipe, selected.dataset.peraturan);
         });
+        if (prefill) {
+            {% for attraction in attractions %}
+            {% if prefill_nama_atraksi == attraction.nama %}
+            showFormByType("{{ attraction.tipe }}", `{{ attraction.peraturan|default_if_none:'' }}`);
+            {% endif %}
+            {% endfor %}
+        }
     </script>
 </body>
 </html>
