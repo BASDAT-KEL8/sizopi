@@ -36,9 +36,9 @@
                     <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Mengelola Satwa</a>
                     <a href="{% url 'habitat:view_habitat' %}" class="hover:text-green-200 transition">Mengelola Habitat</a>
                 {% elif user_role == "Staf Pelatih Pertunjukan" %}
-                    <a href="/jadwal-pertunjukan/" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
+                    <a href="/dashboard/" class="hover:text-green-200 transition">Jadwal Pertunjukan</a>
                 {% elif user_role == "Pengunjung" or user_role == "pengunjung_adopter" %}
-                    <a href="{% url 'satwa:view_satwa' %}" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
+                    <a href="/dashboard/" class="hover:text-green-200 transition">Informasi Kebun Binatang</a>
                     <a href="/booking/" class="hover:text-green-200 transition">Reservasi Tiket</a>
                 {% endif %}
 
