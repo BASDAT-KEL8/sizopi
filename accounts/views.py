@@ -279,7 +279,7 @@ def profile(request):
                 'Perilaku Hewan'
             ]
             
-            # Combine standard and any additional from DB
+            # Combine standard and any additional from DB suususuoa
             all_spesialisasi = list(set(standard_spesialisasi))
             
             # Find "lainnya" specializations (not in standard list)
