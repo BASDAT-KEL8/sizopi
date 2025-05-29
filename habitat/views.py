@@ -43,7 +43,7 @@ def get_user_role(request):
     return ""
 
 def view_habitat(request):
-    if not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     if request.method == "POST" and "delete_nama" in request.POST:
@@ -77,7 +77,7 @@ def view_habitat(request):
     return render(request, 'view_habitat.html', context)
 
 def create_habitat(request):
-    if not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     if request.method == "POST":
@@ -106,7 +106,7 @@ def delete_habitat(request, nama):
     return redirect('habitat:view_habitat')
 
 def edit_habitat(request, nama):
-    if not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     if request.method == "POST":
@@ -143,7 +143,7 @@ def edit_habitat(request, nama):
     return render(request, 'edit_habitat.html', context)
 
 def detail_habitat(request, nama):
-    if not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     with connection.cursor() as cursor:

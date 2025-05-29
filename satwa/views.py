@@ -85,7 +85,7 @@ def get_user_role(request):
     return ""
 
 def view_satwa(request):
-    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
 
@@ -110,7 +110,7 @@ def view_satwa(request):
     })
 
 def create_satwa(request):
-    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     if request.method == "POST":
@@ -156,7 +156,7 @@ def delete_satwa(request, id):
     return redirect('satwa:view_satwa')
 
 def edit_satwa(request, id):
-    if not is_dokter_hewan(request) or not is_penjaga_hewan(request) or not is_staff_admin(request):
+    if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staff_admin(request)):
         messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
         return redirect('login')
     if request.method == "POST":
