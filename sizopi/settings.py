@@ -52,6 +52,10 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://sizopi-production-1083.up.railway.app',
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
