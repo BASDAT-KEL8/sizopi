@@ -127,10 +127,7 @@ def login_view(request):
                         request.session['email'] = email
                         request.session['nama_lengkap'] = f"{nama_depan} {nama_belakang}"
                         request.session['username'] = username
-                        # messages.success(request, f"Selamat datang, {nama_depan}!")
                         return redirect('dashboard')
-                    else:
-                        messages.error(request, "Email atau password salah.")
 
             except Exception as e:
                 messages.error(request, f"Terjadi kesalahan saat login: {str(e)}")
@@ -282,7 +279,7 @@ def profile(request):
                 'Perilaku Hewan'
             ]
             
-            # Combine standard and any additional from DB
+            # Combine standard and any additional from DB suususuoa
             all_spesialisasi = list(set(standard_spesialisasi))
             
             # Find "lainnya" specializations (not in standard list)
