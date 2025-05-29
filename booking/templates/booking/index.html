@@ -167,7 +167,7 @@
                                 <td>{{ reservation.tanggal_reservasi }}</td>
                                 <td>{{ reservation.jumlah_tiket }}</td>
                                 <td>
-                                    <span class="badge {% if reservation.status == 'Terjadwal' %}bg-success{% else %}bg-danger{% endif %}">
+                                    <span class="badge {% if reservation.status == 'Terjadwal' or reservation.status == 'berhasil' %}bg-success{% else %}bg-danger{% endif %}">
                                         {{ reservation.status }}
                                     </span>
                                 </td>
@@ -175,7 +175,7 @@
                                     <a href="{% url 'detail_reservation' reservation.id %}" class="btn btn-sm btn-info" title="Lihat Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    {% if reservation.status != 'Dibatalkan' %}
+                                    {% if reservation.status != 'Dibatalkan' and reservation.status != 'berhasil' %}
                                     <a href="{% url 'edit_reservation' reservation.id %}" class="btn btn-sm btn-warning" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>

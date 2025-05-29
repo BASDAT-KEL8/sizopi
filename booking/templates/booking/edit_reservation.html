@@ -51,8 +51,13 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Lokasi</label>
-                                <input type="text" id="lokasi" class="form-control" readonly value="{% for attraction in attractions %}{% if attraction.nama == nama_atraksi %}{{ attraction.lokasi }}{% endif %}{% endfor %}">
+                                {% if reservation.lokasi %}
+                                    <label class="form-label">Lokasi</label>
+                                    <input type="text" id="lokasi" class="form-control" readonly value="{% for attraction in attractions %}{% if attraction.nama == nama_atraksi %}{{ attraction.lokasi }}{% endif %}{% endfor %}">
+                                {% elif reservation.peraturan %}
+                                    <label class="form-label">Peraturan</label>
+                                    <input type="text" id="peraturan" class="form-control" readonly value="{% for attraction in attractions %}{% if attraction.nama == nama_atraksi %}{{ attraction.peraturan }}{% endif %}{% endfor %}">
+                                {% endif %}
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Jam</label>
