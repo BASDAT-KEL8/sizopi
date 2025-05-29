@@ -45,7 +45,7 @@
                                 {{ hewan.status_kesehatan }}
                             </span>
                         </p>
-                        <p class="text-gray-700"><span class="font-medium">Habitat:</span> {{ hewan.id_habitat.nama_habitat }}</p>
+                        <p class="text-gray-700"><span class="font-medium">Habitat:</span> {{ hewan.nama_habitat|default:"-" }}</p>
                         {% if hewan.tahun_lahir %}
                         <p class="text-gray-700"><span class="font-medium">Tahun Lahir:</span> {{ hewan.tahun_lahir }}</p>
                         {% endif %}
@@ -135,8 +135,8 @@
                         <div>
                             <label for="status_pembayaran" class="block mb-2 font-medium text-gray-700">Status Pembayaran <span class="text-red-600">*</span></label>
                             <select name="status_pembayaran" id="status_pembayaran" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                <option value="tertunda">Tertunda</option>
-                                <option value="lunas">Lunas</option>
+                                <option value="Tertunda">Tertunda</option>
+                                <option value="Lunas">Lunas</option>
                             </select>
                         </div>
                     </div>
@@ -193,8 +193,8 @@
                         <div>
                             <label for="status_pembayaran_organisasi" class="block mb-2 font-medium text-gray-700">Status Pembayaran <span class="text-red-600">*</span></label>
                             <select name="status_pembayaran_organisasi" id="status_pembayaran_organisasi" required class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                <option value="tertunda">Tertunda</option>
-                                <option value="lunas">Lunas</option>
+                                <option value="Tertunda">Tertunda</option>
+                                <option value="Lunas">Lunas</option>
                             </select>
                         </div>
                     </div>
@@ -214,89 +214,695 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const usernameInput = document.getElementById('username');
-        const verifyButton = document.getElementById('verify-username');
-        const usernameError = document.getElementById('username-error');
-        const adopterTypeSelection = document.getElementById('adopter-type-selection');
-        const formIndividu = document.getElementById('form-individu');
-        const formOrganisasi = document.getElementById('form-organisasi');
-        const cancelButtons = document.querySelectorAll('.cancel-form');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, initializing form handlers");
     
-        verifyButton.addEventListener('click', function() {
-            const username = usernameInput.value.trim();
+    const usernameInput = document.getElementById('username');
+    const verifyButton = document.getElementById('verify-username');
+    const usernameError = document.getElementById('username-error');
+    const adopterTypeSelection = document.getElementById('adopter-type-selection');
+    const formIndividu = document.getElementById('form-individu');
+    const formOrganisasi = document.getElementById('form-organisasi');
+    const cancelButtons = document.querySelectorAll('.cancel-form');
+
+    // Store user data globally for easy access
+    let userData = null;
+
+    // Convert the individual form to agreement format
+    const convertIndividuForm = () => {
+        console.log("Converting individu form to agreement format");
+        
+        // Clear any previous conversion
+        const existingAgreement = formIndividu.querySelector('.bg-gray-50.p-4');
+        if (existingAgreement) {
+            existingAgreement.remove();
+        }
+        
+        // Show all original sections first to ensure we have access to them
+        const origFormSections = formIndividu.querySelectorAll('.border-t, .grid');
+        origFormSections.forEach(section => {
+            section.style.display = '';
+        });
+        
+        // Store references to original form fields before hiding them
+        const origNama = document.getElementById('nama');
+        const origNik = document.getElementById('nik');
+        const origAlamat = document.getElementById('alamat');
+        const origKontribusi = document.getElementById('kontribusi');
+        const origPeriode = document.getElementById('periode');
+        const origStatusPembayaran = document.getElementById('status_pembayaran');
+        
+        // Save original values
+        const namaValue = origNama ? origNama.value : '';
+        const nikValue = origNik ? origNik.value : '';
+        const alamatValue = origAlamat ? origAlamat.value : '';
+        const kontribusiValue = origKontribusi ? origKontribusi.value : '500000';
+        const periodeValue = origPeriode ? origPeriode.value : '3';
+        
+        // Get phone number from user data
+        const phoneValue = userData && userData.pengguna && userData.pengguna.no_telepon ? userData.pengguna.no_telepon : '';
+        
+        // Now hide original form sections
+        origFormSections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Create agreement container
+        const agreementDiv = document.createElement('div');
+        agreementDiv.className = 'bg-gray-50 p-4 rounded-md mb-6 border border-gray-300';
+        
+        // Create agreement template with phone number included
+        const agreementTemplate = `
+            <h3 class="font-semibold mb-4 text-gray-800">Pernyataan Adopsi</h3>
+            <p class="mb-2">Pihak di bawah ini,</p>
+            <div class="mb-3">
+                <label class="font-medium">Nama:</label>
+                <input type="text" name="nama" id="nama-agreement" required class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${namaValue}">
+            </div>
+            <div class="mb-3">
+                <label class="font-medium">NIK:</label>
+                <input type="text" name="nik" id="nik-agreement" required pattern="[0-9]{16}" maxlength="16" class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${nikValue}">
+                <p class="text-xs text-gray-500 ml-14">NIK harus terdiri dari 16 digit</p>
+            </div>
+            <div class="mb-3">
+                <label class="font-medium">Alamat:</label>
+                <textarea name="alamat" id="alamat-agreement" rows="2" required class="ml-2 w-full border-gray-300 rounded-md focus:ring-green-500">${alamatValue}</textarea>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">Nomor telepon:</label>
+                <input type="text" name="no_telepon" id="no_telepon-agreement" class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${phoneValue}">
+                <span>(selanjutnya disebut sebagai Adopter)</span>
+            </div>
             
-            if (!username) {
-                usernameError.textContent = 'Username tidak boleh kosong.';
-                usernameError.classList.remove('hidden');
-                adopterTypeSelection.classList.add('hidden');
-                return;
+            <p class="mb-2">dengan ini menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa</p>
+            <div class="mb-3">
+                <label class="font-medium">Nama:</label>
+                <span id="hewan-nama" class="ml-2"></span>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">Jenis:</label>
+                <span id="hewan-jenis" class="ml-2"></span>
+            </div>
+            
+            <p class="mb-2">Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa:</p>
+            <div class="mb-3">
+                <label class="font-medium">Nominal:</label>
+                <div class="inline-block ml-2">
+                    <input type="number" name="kontribusi" id="kontribusi-agreement" required min="500000" value="${kontribusiValue}" class="w-32 border-gray-300 rounded-md focus:ring-green-500">
+                    <p class="text-xs text-gray-500">Minimal kontribusi Rp 500.000</p>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">untuk periode adopsi selama</label>
+                <div class="inline-block mx-2">
+                    <select name="periode" id="periode-agreement" required class="border-gray-300 rounded-md focus:ring-green-500">
+                        <option value="3" ${periodeValue === '3' ? 'selected' : ''}>3 Bulan</option>
+                        <option value="6" ${periodeValue === '6' ? 'selected' : ''}>6 Bulan</option>
+                        <option value="12" ${periodeValue === '12' ? 'selected' : ''}>12 Bulan</option>
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="status_pembayaran" id="status_pembayaran-agreement" value="Tertunda">
+        `;
+        
+        // Set the agreement HTML
+        agreementDiv.innerHTML = agreementTemplate;
+        
+        // Insert the agreement at the top of the form
+        formIndividu.prepend(agreementDiv);
+        
+        // Keep the original form submit/cancel buttons visible
+        const buttonContainer = formIndividu.querySelector('.flex.justify-end');
+        if (buttonContainer) {
+            buttonContainer.style.display = 'flex';
+        }
+        
+        // Get reference to the animal name and species elements
+        const hewanNama = document.querySelector('h3.text-xl.font-semibold.mb-4').textContent || '-';
+        document.getElementById('hewan-nama').textContent = hewanNama;
+        
+        // Find the species element and extract the text
+        const spesiesElements = document.querySelectorAll('p.text-gray-700');
+        let hewanSpesies = '-';
+        
+        spesiesElements.forEach(element => {
+            const spanElement = element.querySelector('span.font-medium');
+            if (spanElement && spanElement.textContent.includes('Spesies:')) {
+                hewanSpesies = element.textContent.replace('Spesies:', '').trim();
             }
+        });
+        
+        document.getElementById('hewan-jenis').textContent = hewanSpesies;
+        
+        // Sync fields on change
+        const newNama = document.getElementById('nama-agreement');
+        const newNik = document.getElementById('nik-agreement');
+        const newAlamat = document.getElementById('alamat-agreement');
+        const newKontribusi = document.getElementById('kontribusi-agreement');
+        const newPeriode = document.getElementById('periode-agreement');
+        const newStatusPembayaran = document.getElementById('status_pembayaran-agreement');
+        const newPhone = document.getElementById('no_telepon-agreement');
+        
+        // Update original hidden fields when agreement fields change
+        if (newNama && origNama) {
+            newNama.addEventListener('input', function() {
+                origNama.value = this.value;
+            });
+        }
+        
+        if (newNik && origNik) {
+            newNik.addEventListener('input', function() {
+                origNik.value = this.value;
+            });
+        }
+        
+        if (newAlamat && origAlamat) {
+            newAlamat.addEventListener('input', function() {
+                origAlamat.value = this.value;
+            });
+        }
+        
+        if (newKontribusi && origKontribusi) {
+            newKontribusi.addEventListener('input', function() {
+                origKontribusi.value = this.value;
+            });
+        }
+        
+        if (newPeriode && origPeriode) {
+            newPeriode.addEventListener('change', function() {
+                origPeriode.value = this.value;
+            });
+        }
+        
+        if (newStatusPembayaran && origStatusPembayaran) {
+            // Always keep status pembayaran as 'Tertunda'
+            origStatusPembayaran.value = 'Tertunda';
+        }
+        
+        // Create hidden phone field for original form if it doesn't exist
+        if (newPhone) {
+            let origPhoneField = document.getElementById('no_telepon');
+            if (!origPhoneField) {
+                origPhoneField = document.createElement('input');
+                origPhoneField.type = 'hidden';
+                origPhoneField.name = 'no_telepon';
+                origPhoneField.id = 'no_telepon';
+                formIndividu.appendChild(origPhoneField);
+            }
+            
+            // Sync phone field
+            newPhone.addEventListener('input', function() {
+                origPhoneField.value = this.value;
+            });
+            
+            // Set initial value
+            origPhoneField.value = phoneValue;
+        }
+    };
     
-            fetch(`/adopsi/api/verify-user/?username=${username}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                      
-                        usernameError.classList.add('hidden');
-                        adopterTypeSelection.classList.remove('hidden');
-                        document.getElementById('individu-username').value = username;
-                        document.getElementById('organisasi-username').value = username;
-    
-                     
-                        const oldSuccess = document.getElementById('username-success');
-                        if (oldSuccess) {
-                            oldSuccess.remove();
-                        }
-    
-                        const successMessage = document.createElement('div');
-                        successMessage.id = 'username-success';
-                        successMessage.textContent = 'Username terverifikasi sebagai pengunjung.';
-                        successMessage.className = 'text-green-600 text-sm mt-1';
-                        usernameInput.parentNode.parentNode.appendChild(successMessage);
-    
-                      
-                        usernameInput.disabled = true;
-                        verifyButton.disabled = true;
-                        verifyButton.classList.add('opacity-50', 'cursor-not-allowed');
-                    } else {
-                     
-                        usernameError.textContent = 'Username tidak ditemukan atau bukan role pengunjung.';
-                        usernameError.classList.remove('hidden');
-                        adopterTypeSelection.classList.add('hidden');
+    // Convert the organization form to agreement format
+    const convertOrganisasiForm = () => {
+        console.log("Converting organisasi form to agreement format");
+        
+        // Clear any previous conversion
+        const existingAgreement = formOrganisasi.querySelector('.bg-gray-50.p-4');
+        if (existingAgreement) {
+            existingAgreement.remove();
+        }
+        
+        // Show all original sections first to ensure we have access to them
+        const origFormSections = formOrganisasi.querySelectorAll('.border-t, .grid');
+        origFormSections.forEach(section => {
+            section.style.display = '';
+        });
+        
+        // Store references to original form fields before hiding them
+        const origNamaOrg = document.getElementById('nama_organisasi');
+        const origNpp = document.getElementById('npp');
+        const origAlamatOrg = document.getElementById('alamat_organisasi');
+        const origKontribusiOrg = document.getElementById('kontribusi_organisasi');
+        const origPeriodeOrg = document.getElementById('periode_organisasi');
+        const origStatusPembayaranOrg = document.getElementById('status_pembayaran_organisasi');
+        
+        // Save original values
+        const namaOrgValue = origNamaOrg ? origNamaOrg.value : '';
+        const nppValue = origNpp ? origNpp.value : '';
+        const alamatOrgValue = origAlamatOrg ? origAlamatOrg.value : '';
+        const kontribusiOrgValue = origKontribusiOrg ? origKontribusiOrg.value : '500000';
+        const periodeOrgValue = origPeriodeOrg ? origPeriodeOrg.value : '3';
+        
+        // Get phone number from user data
+        const phoneValue = userData && userData.pengguna && userData.pengguna.no_telepon ? userData.pengguna.no_telepon : '';
+        
+        // Now hide original form sections
+        origFormSections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Create agreement container
+        const agreementDiv = document.createElement('div');
+        agreementDiv.className = 'bg-gray-50 p-4 rounded-md mb-6 border border-gray-300';
+        
+        // Create agreement template with phone number included
+        const agreementTemplate = `
+            <h3 class="font-semibold mb-4 text-gray-800">Pernyataan Adopsi Organisasi</h3>
+            <p class="mb-2">Pihak di bawah ini, selaku organisasi/perusahaan</p>
+            <div class="mb-3">
+                <label class="font-medium">Nama:</label>
+                <input type="text" name="nama_organisasi" id="nama_organisasi-agreement" required class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${namaOrgValue}">
+            </div>
+            <div class="mb-3">
+                <label class="font-medium">NPP:</label>
+                <input type="text" name="npp" id="npp-agreement" required pattern="[A-Za-z0-9]{8}" maxlength="8" class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${nppValue}">
+                <p class="text-xs text-gray-500 ml-14">NPP harus terdiri dari 8 karakter</p>
+            </div>
+            <div class="mb-3">
+                <label class="font-medium">Alamat:</label>
+                <textarea name="alamat_organisasi" id="alamat_organisasi-agreement" rows="2" required class="ml-2 w-full border-gray-300 rounded-md focus:ring-green-500">${alamatOrgValue}</textarea>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">Kontak:</label>
+                <input type="text" name="no_telepon_organisasi" id="no_telepon_organisasi-agreement" class="ml-2 border-gray-300 rounded-md focus:ring-green-500" value="${phoneValue}">
+                <span>(selanjutnya disebut sebagai Adopter)</span>
+            </div>
+            
+            <p class="mb-2">dengan ini menyatakan kepedulian dan minat untuk mengadopsi secara simbolis satwa</p>
+            <div class="mb-3">
+                <label class="font-medium">Nama:</label>
+                <span id="hewan-org-nama" class="ml-2"></span>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">Jenis:</label>
+                <span id="hewan-org-jenis" class="ml-2"></span>
+            </div>
+            
+            <p class="mb-2">Adopter juga bersedia memberikan kontribusi finansial kepada pihak taman safari sebagai dukungan untuk pemeliharaan satwa:</p>
+            <div class="mb-3">
+                <label class="font-medium">Nominal:</label>
+                <div class="inline-block ml-2">
+                    <input type="number" name="kontribusi_organisasi" id="kontribusi_organisasi-agreement" required min="500000" value="${kontribusiOrgValue}" class="w-32 border-gray-300 rounded-md focus:ring-green-500">
+                    <p class="text-xs text-gray-500">Minimal kontribusi Rp 500.000</p>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="font-medium">untuk periode adopsi selama</label>
+                <div class="inline-block mx-2">
+                    <select name="periode_organisasi" id="periode_organisasi-agreement" required class="border-gray-300 rounded-md focus:ring-green-500">
+                        <option value="3" ${periodeOrgValue === '3' ? 'selected' : ''}>3 Bulan</option>
+                        <option value="6" ${periodeOrgValue === '6' ? 'selected' : ''}>6 Bulan</option>
+                        <option value="12" ${periodeOrgValue === '12' ? 'selected' : ''}>12 Bulan</option>
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="status_pembayaran_organisasi" id="status_pembayaran_organisasi-agreement" value="Tertunda">
+        `;
+        
+        // Set the agreement HTML
+        agreementDiv.innerHTML = agreementTemplate;
+        
+        // Insert the agreement at the top of the form
+        formOrganisasi.prepend(agreementDiv);
+        
+        // Keep the original form submit/cancel buttons visible
+        const buttonContainer = formOrganisasi.querySelector('.flex.justify-end');
+        if (buttonContainer) {
+            buttonContainer.style.display = 'flex';
+        }
+        
+        // Get reference to the animal name and species elements
+        const hewanNama = document.querySelector('h3.text-xl.font-semibold.mb-4').textContent || '-';
+        document.getElementById('hewan-org-nama').textContent = hewanNama;
+        
+        // Find the species element and extract the text
+        const spesiesElements = document.querySelectorAll('p.text-gray-700');
+        let hewanSpesies = '-';
+        
+        spesiesElements.forEach(element => {
+            const spanElement = element.querySelector('span.font-medium');
+            if (spanElement && spanElement.textContent.includes('Spesies:')) {
+                hewanSpesies = element.textContent.replace('Spesies:', '').trim();
+            }
+        });
+        
+        document.getElementById('hewan-org-jenis').textContent = hewanSpesies;
+        
+        // Sync fields on change
+        const newNamaOrg = document.getElementById('nama_organisasi-agreement');
+        const newNpp = document.getElementById('npp-agreement');
+        const newAlamatOrg = document.getElementById('alamat_organisasi-agreement');
+        const newKontribusiOrg = document.getElementById('kontribusi_organisasi-agreement');
+        const newPeriodeOrg = document.getElementById('periode_organisasi-agreement');
+        const newStatusPembayaranOrg = document.getElementById('status_pembayaran_organisasi-agreement');
+        const newPhoneOrg = document.getElementById('no_telepon_organisasi-agreement');
+        
+        // Update original hidden fields when agreement fields change
+        if (newNamaOrg && origNamaOrg) {
+            newNamaOrg.addEventListener('input', function() {
+                origNamaOrg.value = this.value;
+            });
+        }
+        
+        if (newNpp && origNpp) {
+            newNpp.addEventListener('input', function() {
+                origNpp.value = this.value;
+            });
+        }
+        
+        if (newAlamatOrg && origAlamatOrg) {
+            newAlamatOrg.addEventListener('input', function() {
+                origAlamatOrg.value = this.value;
+            });
+        }
+        
+        if (newKontribusiOrg && origKontribusiOrg) {
+            newKontribusiOrg.addEventListener('input', function() {
+                origKontribusiOrg.value = this.value;
+            });
+        }
+        
+        if (newPeriodeOrg && origPeriodeOrg) {
+            newPeriodeOrg.addEventListener('change', function() {
+                origPeriodeOrg.value = this.value;
+            });
+        }
+        
+        if (newStatusPembayaranOrg && origStatusPembayaranOrg) {
+            // Always keep status pembayaran as 'Tertunda'
+            origStatusPembayaranOrg.value = 'Tertunda';
+        }
+        
+        // Create hidden phone field for original form if it doesn't exist
+        if (newPhoneOrg) {
+            let origPhoneOrgField = document.getElementById('no_telepon_organisasi');
+            if (!origPhoneOrgField) {
+                origPhoneOrgField = document.createElement('input');
+                origPhoneOrgField.type = 'hidden';
+                origPhoneOrgField.name = 'no_telepon_organisasi';
+                origPhoneOrgField.id = 'no_telepon_organisasi';
+                formOrganisasi.appendChild(origPhoneOrgField);
+            }
+            
+            // Sync phone field
+            newPhoneOrg.addEventListener('input', function() {
+                origPhoneOrgField.value = this.value;
+            });
+            
+            // Set initial value
+            origPhoneOrgField.value = phoneValue;
+        }
+    };
+
+    // Auto-fill phone number function
+    const autoFillPhoneNumber = (phoneNumber) => {
+        if (!phoneNumber) return;
+        
+        console.log("Auto-filling phone number:", phoneNumber);
+        
+        // List of all possible phone number field IDs
+        const phoneFieldIds = [
+            'no_telepon',
+            'no_telepon_organisasi',
+            'no_telepon-agreement',
+            'no_telepon_organisasi-agreement'
+        ];
+        
+        // Fill all existing phone fields
+        phoneFieldIds.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = phoneNumber;
+                field.removeAttribute('readonly'); // Make editable
+                console.log(`Filled phone field: ${fieldId}`);
+            }
+        });
+    };
+
+    // Verify username handler
+    verifyButton.addEventListener('click', function() {
+        console.log("Verify button clicked");
+        const username = usernameInput.value.trim();
+        
+        if (!username) {
+            usernameError.textContent = 'Username tidak boleh kosong.';
+            usernameError.classList.remove('hidden');
+            adopterTypeSelection.classList.add('hidden');
+            return;
+        }
+
+        // Show loading indicator
+        verifyButton.disabled = true;
+        verifyButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memverifikasi...';
+        
+        fetch(`/adopsi/api/verify-user/?username=${username}`)
+            .then(response => {
+                console.log("API response status:", response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("User verification data:", data);
+                
+                // Store user data globally
+                userData = data;
+                
+                if (data.exists) {
+                    // Clear error and show adopter type selection
+                    usernameError.classList.add('hidden');
+                    adopterTypeSelection.classList.remove('hidden');
+                    
+                    // Set username field values
+                    document.getElementById('individu-username').value = username;
+                    document.getElementById('organisasi-username').value = username;
+                    
+                    // Auto-fill phone number immediately after verification
+                    if (data.pengguna && data.pengguna.no_telepon) {
+                        autoFillPhoneNumber(data.pengguna.no_telepon);
                     }
-                })
-                .catch(error => {
-                    console.error(error);
-                    usernameError.textContent = 'Terjadi kesalahan saat menghubungi server.';
+                    
+                    // Pre-fill data for existing individual adopter
+                    if (data.adopter && data.adopter.type === 'individu') {
+                        const radioIndividu = document.querySelector('input[name="adopter_type"][value="individu"]');
+                        if (radioIndividu) {
+                            radioIndividu.checked = true;
+                            // Trigger the change event
+                            const event = new Event('change');
+                            radioIndividu.dispatchEvent(event);
+                        }
+                        
+                        // Pre-fill data individu yang sudah ada
+                        const namaField = document.getElementById('nama');
+                        if (namaField && data.adopter.nama) {
+                            namaField.value = data.adopter.nama;
+                        }
+                        
+                        const nikField = document.getElementById('nik');
+                        if (nikField && data.adopter.nik) {
+                            nikField.value = data.adopter.nik;
+                            nikField.readOnly = true;
+                            
+                            // Tambahkan pesan jika belum ada
+                            if (!nikField.parentNode.querySelector('.text-blue-600.text-xs.mt-1')) {
+                                const nikInfo = document.createElement('div');
+                                nikInfo.className = 'text-blue-600 text-xs mt-1';
+                                nikInfo.textContent = 'NIK tidak dapat diubah karena sudah terdaftar';
+                                nikField.parentNode.appendChild(nikInfo);
+                            }
+                        }
+                    } else {
+                        // Default to individu if no selection yet
+                        const radioIndividu = document.querySelector('input[name="adopter_type"][value="individu"]');
+                        if (radioIndividu) {
+                            radioIndividu.checked = true;
+                            // Trigger the change event
+                            const event = new Event('change');
+                            radioIndividu.dispatchEvent(event);
+                        }
+                    }
+                    
+                    // Pre-fill alamat from pengunjung data
+                    if (data.pengunjung && data.pengunjung.alamat) {
+                        const alamatFields = ['alamat', 'alamat_organisasi'];
+                        alamatFields.forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) field.value = data.pengunjung.alamat;
+                        });
+                    }
+                    
+                    // Pre-fill nama from pengguna data for individual if not existing adopter
+                    if (data.pengguna && (!data.adopter || data.adopter.type !== 'individu')) {
+                        const namaLengkap = `${data.pengguna.nama_depan || ''} ${data.pengguna.nama_belakang || ''}`.trim();
+                        const namaField = document.getElementById('nama');
+                        if (namaField) {
+                            namaField.value = namaLengkap;
+                        }
+                    }
+                    
+                    // Convert forms to agreement format (this will also auto-fill phone in agreement fields)
+                    convertIndividuForm();
+                    convertOrganisasiForm();
+                    
+                    // Success message
+                    const oldSuccess = document.getElementById('username-success');
+                    if (oldSuccess) {
+                        oldSuccess.remove();
+                    }
+                    
+                    const successMessage = document.createElement('div');
+                    successMessage.id = 'username-success';
+                    successMessage.textContent = 'Username terverifikasi sebagai pengunjung.';
+                    
+                    if (data.adopter && data.adopter.type === 'individu') {
+                        successMessage.textContent += ` Adopter ini sudah terdaftar sebagai individu.`;
+                    }
+                    
+                    successMessage.className = 'text-green-600 text-sm mt-1';
+                    usernameInput.parentNode.parentNode.appendChild(successMessage);
+                    
+                    // Disable username input and verify button
+                    usernameInput.disabled = true;
+                    verifyButton.disabled = true;
+                    verifyButton.innerHTML = 'Terverifikasi';
+                    verifyButton.classList.add('opacity-50', 'cursor-not-allowed', 'bg-green-600');
+                } else {
+                    // Error message for non-existent username
+                    verifyButton.disabled = false;
+                    verifyButton.innerHTML = 'Verifikasi Akun';
+                    usernameError.textContent = 'Username tidak ditemukan atau bukan role pengunjung.';
                     usernameError.classList.remove('hidden');
                     adopterTypeSelection.classList.add('hidden');
-                });
-        });
-    
-        const radioButtons = document.querySelectorAll('input[name="adopter_type"]');
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'individu') {
-                    formIndividu.classList.remove('hidden');
-                    formOrganisasi.classList.add('hidden');
-                } else if (this.value === 'organisasi') {
-                    formIndividu.classList.add('hidden');
-                    formOrganisasi.classList.remove('hidden');
                 }
+            })
+            .catch(error => {
+                console.error("API error:", error);
+                verifyButton.disabled = false;
+                verifyButton.innerHTML = 'Verifikasi Akun';
+                usernameError.textContent = 'Terjadi kesalahan saat menghubungi server.';
+                usernameError.classList.remove('hidden');
+                adopterTypeSelection.classList.add('hidden');
             });
-        });
-   
-        cancelButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                formIndividu.classList.add('hidden');
+    });
+
+    // Event listeners for form selection
+    const radioButtons = document.querySelectorAll('input[name="adopter_type"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            console.log("Adopter type changed to:", this.value);
+            
+            if (this.value === 'individu') {
+                formIndividu.classList.remove('hidden');
                 formOrganisasi.classList.add('hidden');
-                radioButtons.forEach(radio => {
-                    radio.checked = false;
-                });
+                
+                // Convert to agreement format if not already
+                if (!formIndividu.querySelector('.bg-gray-50.p-4')) {
+                    convertIndividuForm();
+                }
+                
+                // Re-fill phone number after form conversion
+                if (userData && userData.pengguna && userData.pengguna.no_telepon) {
+                    setTimeout(() => {
+                        autoFillPhoneNumber(userData.pengguna.no_telepon);
+                    }, 100);
+                }
+            } else if (this.value === 'organisasi') {
+                formIndividu.classList.add('hidden');
+                formOrganisasi.classList.remove('hidden');
+                
+                // Convert to agreement format if not already
+                if (!formOrganisasi.querySelector('.bg-gray-50.p-4')) {
+                    convertOrganisasiForm();
+                }
+                
+                // Re-fill phone number after form conversion
+                if (userData && userData.pengguna && userData.pengguna.no_telepon) {
+                    setTimeout(() => {
+                        autoFillPhoneNumber(userData.pengguna.no_telepon);
+                    }, 100);
+                }
+            }
+        });
+    });
+
+    // Event listeners for form cancellation
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            console.log("Form cancelled");
+            formIndividu.classList.add('hidden');
+            formOrganisasi.classList.add('hidden');
+            radioButtons.forEach(radio => {
+                radio.checked = false;
             });
         });
     });
-    </script>
+    
+    // Add submit event handlers with debugging
+    const addFormSubmitHandler = (form) => {
+        if (!form) return;
+        
+        form.addEventListener('submit', function(event) {
+            console.log(`Form ${form.id} submission attempted`);
+            
+            // Log all field values for debugging
+            const formData = new FormData(this);
+            console.log("Form data to be submitted:");
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            
+            // Ensure status_pembayaran is included
+            const isIndividuForm = form.id === 'form-individu';
+            const statusFieldName = isIndividuForm ? 'status_pembayaran' : 'status_pembayaran_organisasi';
+            
+            if (!formData.has(statusFieldName)) {
+                console.log(`Adding missing ${statusFieldName} field`);
+                
+                // Add hidden status field if it doesn't exist
+                const statusField = document.createElement('input');
+                statusField.type = 'hidden';
+                statusField.name = statusFieldName;
+                statusField.value = 'Tertunda';
+                form.appendChild(statusField);
+            }
+            
+            // Ensure phone number is included in form data
+            const phoneFieldName = isIndividuForm ? 'no_telepon' : 'no_telepon_organisasi';
+            const phoneAgreementFieldName = isIndividuForm ? 'no_telepon-agreement' : 'no_telepon_organisasi-agreement';
+            
+            // Get phone value from agreement field
+            const phoneAgreementField = document.getElementById(phoneAgreementFieldName);
+            if (phoneAgreementField && phoneAgreementField.value) {
+                // Ensure the original hidden field exists and has the value
+                let originalPhoneField = document.getElementById(phoneFieldName);
+                if (!originalPhoneField) {
+                    originalPhoneField = document.createElement('input');
+                    originalPhoneField.type = 'hidden';
+                    originalPhoneField.name = phoneFieldName;
+                    originalPhoneField.id = phoneFieldName;
+                    form.appendChild(originalPhoneField);
+                }
+                originalPhoneField.value = phoneAgreementField.value;
+                console.log(`Phone number set: ${phoneFieldName} = ${phoneAgreementField.value}`);
+            }
+            
+            // Show loading state
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+            
+            // Add feedback message
+            const formContainer = this.closest('.bg-white');
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.className = 'bg-blue-100 text-blue-700 p-4 mt-4 rounded-md flex items-center';
+            feedbackDiv.innerHTML = '<i class="fas fa-info-circle mr-2"></i> Form adopsi sedang diproses. Mohon tunggu...';
+            formContainer.appendChild(feedbackDiv);
+            
+            console.log("Form submission proceeding");
+            // Form will be naturally submitted
+        });
+    };
+    
+    // Apply submit handlers to both forms
+    addFormSubmitHandler(formIndividu);
+    addFormSubmitHandler(formOrganisasi);
+});
+</script>
     
 {% endblock %}

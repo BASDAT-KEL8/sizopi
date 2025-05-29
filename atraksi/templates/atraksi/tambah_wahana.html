@@ -52,7 +52,14 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Peraturan</label>
-                                <textarea name="peraturan" class="form-control" rows="4" required></textarea>
+                                <div id="peraturan-list">
+                                    <div class="input-group mb-2 peraturan-item">
+                                        <input type="text" class="form-control" name="peraturan_multi" placeholder="Peraturan 1" required>
+                                        <button type="button" class="btn btn-danger btn-remove-peraturan" style="display:none"><i class="bi bi-x"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm" id="add-peraturan"><i class="bi bi-plus"></i> Tambah Peraturan</button>
+                                <input type="hidden" name="peraturan" id="peraturan-hidden">
                             </div>
                             <div class="text-end">
                                 <a href="{% url 'manage_atraksi' %}" class="btn btn-secondary">Batal</a>
@@ -66,5 +73,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let peraturanIdx = 2;
+            document.getElementById('add-peraturan').addEventListener('click', function() {
+                const peraturanList = document.getElementById('peraturan-list');
+                const div = document.createElement('div');
+                div.className = 'input-group mb-2 peraturan-item';
+                div.innerHTML = `<input type="text" class="form-control" name="peraturan_multi" placeholder="Peraturan ${peraturanIdx}" required>\n<button type="button" class="btn btn-danger btn-remove-peraturan"><i class="bi bi-x"></i></button>`;
+                peraturanList.appendChild(div);
+                peraturanIdx++;
+                updateRemoveButtons();
+            });
+            function updateRemoveButtons() {
+                document.querySelectorAll('.btn-remove-peraturan').forEach(btn => {
+                    btn.style.display = document.querySelectorAll('.peraturan-item').length > 1 ? '' : 'none';
+                    btn.onclick = function() {
+                        btn.parentElement.remove();
+                        updateRemoveButtons();
+                    };
+                });
+            }
+            updateRemoveButtons();
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const peraturanInputs = document.querySelectorAll('input[name="peraturan_multi"]');
+                const peraturanArr = Array.from(peraturanInputs).map(input => input.value.trim()).filter(Boolean);
+                document.getElementById('peraturan-hidden').value = peraturanArr.join('. ');
+            });
+        });
+    </script>
 </body>
 </html>

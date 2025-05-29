@@ -5,8 +5,26 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+        }
+        .container {
+            margin-top: 100px; /* memberi jarak agar konten tidak tertimpa navbar */
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-50">
+
+    <!-- NAVBAR GUEST -->
+    {% include 'accounts/navbar.html' %}
+
+    <!-- HALAMAN LOGIN -->
     <div class="container">
         <div class="login-section">
             <h2>Sign-In</h2>

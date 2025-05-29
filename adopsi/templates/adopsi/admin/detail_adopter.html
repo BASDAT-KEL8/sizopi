@@ -24,34 +24,46 @@
             <a href="{% url 'adopsi:admin_daftar_adopter' %}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
                 <i class="fas fa-arrow-left mr-2"></i> Kembali
             </a>
-            <h1 class="text-2xl font-bold text-gray-900">Detail Adopter</h1>
+            <h1 class="text-2xl font-bold text-gray-900">
+                Detail Adopter {{ adopter_type|title }}
+            </h1>
         </div>
     </div>
 
     <!-- Informasi Adopter -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-12">
-        <div class="bg-blue-600 px-6 py-4">
-            <h2 class="text-xl font-semibold text-white">Informasi Adopter</h2>
+        <div class="{% if adopter_type == 'individu' %}bg-blue-600{% elif adopter_type == 'organisasi' %}bg-purple-600{% else %}bg-gray-600{% endif %} px-6 py-4">
+            <h2 class="text-xl font-semibold text-white">
+                Informasi Adopter {{ adopter_type|title }}
+            </h2>
         </div>
         <div class="p-8 grid md:grid-cols-3 gap-8 items-center">
             <div class="text-center">
-                <div class="h-28 w-28 mx-auto rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-5xl">
-                    <i class="fas fa-user"></i>
+                <div class="h-28 w-28 mx-auto rounded-full {% if adopter_type == 'individu' %}bg-blue-100{% elif adopter_type == 'organisasi' %}bg-purple-100{% else %}bg-gray-200{% endif %} flex items-center justify-center text-5xl">
+                    {% if adopter_type == 'individu' %}
+                        <i class="fas fa-user text-blue-600"></i>
+                    {% elif adopter_type == 'organisasi' %}
+                        <i class="fas fa-building text-purple-600"></i>
+                    {% else %}
+                        <i class="fas fa-question text-gray-500"></i>
+                    {% endif %}
                 </div>
                 <h3 class="mt-4 text-xl font-bold text-gray-900">
-                    {% if adopter_type == 'individu' %}
+                    {% if adopter_type == 'individu' and adopter_detail %}
                         {{ adopter_detail.nama }}
-                    {% elif adopter_type == 'organisasi' %}
+                    {% elif adopter_type == 'organisasi' and adopter_detail %}
                         {{ adopter_detail.nama_organisasi }}
                     {% else %}
-                        {{ pengunjung.username_p }}
+                        {{ adopter.username_adopter }}
                     {% endif %}
                 </h3>
                 <span class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-semibold
                     {% if adopter_type == 'individu' %}
                         bg-blue-100 text-blue-800
-                    {% else %}
+                    {% elif adopter_type == 'organisasi' %}
                         bg-purple-100 text-purple-800
+                    {% else %}
+                        bg-gray-100 text-gray-800
                     {% endif %}
                 ">
                     {{ adopter_type|title }}
@@ -61,18 +73,20 @@
             <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Informasi Akun</h4>
-                    <p class="text-sm text-gray-600 mb-1">Username: <span class="font-bold text-gray-900">{{ pengunjung.username_p }}</span></p>
-                    <p class="text-sm text-gray-600 mb-1">Email: <span class="font-bold text-gray-900">{{ pengunjung.username_p.email }}</span></p>
-                    <p class="text-sm text-gray-600">No. Telepon: <span class="font-bold text-gray-900">{{ pengunjung.username_p.no_telepon }}</span></p>
+                    <p class="text-sm text-gray-600 mb-1">Username: <span class="font-bold text-gray-900">{{ adopter.username_adopter }}</span></p>
+                    <p class="text-sm text-gray-600 mb-1">Email: <span class="font-bold text-gray-900">{{ pengunjung.email|default:"-" }}</span></p>
+                    <p class="text-sm text-gray-600">Nama Lengkap: <span class="font-bold text-gray-900">{{ pengunjung.nama_lengkap|default:"-" }}</span></p>
                 </div>
                 <div>
                     <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Detail Adopter</h4>
-                    {% if adopter_type == 'individu' %}
+                    {% if adopter_type == 'individu' and adopter_detail %}
                         <p class="text-sm text-gray-600 mb-1">NIK: <span class="font-bold text-gray-900">{{ adopter_detail.nik }}</span></p>
-                    {% elif adopter_type == 'organisasi' %}
+                        <p class="text-sm text-gray-600 mb-1">Nama: <span class="font-bold text-gray-900">{{ adopter_detail.nama }}</span></p>
+                    {% elif adopter_type == 'organisasi' and adopter_detail %}
                         <p class="text-sm text-gray-600 mb-1">NPP: <span class="font-bold text-gray-900">{{ adopter_detail.npp }}</span></p>
+                        <p class="text-sm text-gray-600 mb-1">Nama Organisasi: <span class="font-bold text-gray-900">{{ adopter_detail.nama_organisasi }}</span></p>
                     {% endif %}
-                    <p class="text-sm text-gray-600 mb-1">Alamat: <span class="font-bold text-gray-900">{{ pengunjung.alamat }}</span></p>
+                    <p class="text-sm text-gray-600 mb-1">Alamat: <span class="font-bold text-gray-900">{{ pengunjung.alamat|default:"-" }}</span></p>
                     <p class="text-sm text-gray-600">Total Kontribusi: <span class="font-bold text-gray-900">Rp{{ adopter.total_kontribusi|floatformat:0|intcomma }}</span></p>
                 </div>
             </div>
@@ -81,9 +95,14 @@
 
     <!-- Riwayat Adopsi -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-        <div class="bg-green-600 px-6 py-4">
-            <h2 class="text-xl font-semibold text-white">Riwayat Adopsi</h2>
+        <div class="bg-green-600 px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-white">
+                Riwayat Adopsi {{ adopter_type|title }}
+                <span class="text-sm font-normal text-green-100">(Hanya status LUNAS yang ditampilkan)</span>
+            </h2>
+
         </div>
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -92,70 +111,93 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Tanggal Mulai</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Tanggal Berakhir</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Nominal Kontribusi</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status Pembayaran</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Aksi</th>
+<th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     {% for adoption in adoptions %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 flex items-center gap-4">
-                            <img src="{{ adoption.id_hewan__url_foto }}" alt="{{ adoption.id_hewan__nama }}" class="h-10 w-10 rounded object-cover">
-                            <div>
-                                <div class="font-bold text-gray-900 text-sm">{{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}</div>
-                                <div class="text-xs text-gray-500">{{ adoption.id_hewan__spesies }}</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">{{ adoption.tgl_mulai_adopsi|date:"d F Y" }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">{{ adoption.tgl_berhenti_adopsi|date:"d F Y" }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">Rp{{ adoption.kontribusi_finansial|floatformat:0|intcomma }}</td>
-                        <td class="px-6 py-4">
-                            {% if adoption.status_pembayaran == 'Lunas' %}
-                                <span class="inline-flex px-3 py-1 rounded-full text-xs bg-green-100 text-green-800">Lunas</span>
-                            {% else %}
-                                <span class="inline-flex px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Tertunda</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4">
-                            {% if adoption.tgl_berhenti_adopsi < now.date %}
-                                <span class="inline-flex px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800">Berakhir</span>
-                            {% else %}
-                                <span class="inline-flex px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Aktif</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 text-center space-x-2">
-                            <a href="{% url 'adopsi:admin_detail_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}" class="text-blue-600 hover:underline text-sm">Detail</a>
-                            
-                            {% if adoption.tgl_berhenti_adopsi <= now.date %}
-                            <button type="button" class="text-red-600 hover:text-red-800 show-modal text-sm" data-modal-target="endAdoptionModal-{{ adoption.id_hewan__id }}">
-                                Hapus
-                            </button>
-
-                            <!-- Modal Konfirmasi Hapus -->
-                            <div id="endAdoptionModal-{{ adoption.id_hewan__id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-                                <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                                    <h3 class="text-xl font-bold text-gray-900 mb-4">Hapus Adopsi?</h3>
-                                    <p class="text-gray-700 mb-6">Yakin ingin menghapus adopsi <span class="font-semibold">{{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}</span>?</p>
-                                    <div class="flex justify-end space-x-4">
-                                        <button type="button" class="close-modal bg-gray-200 text-gray-700 px-4 py-2 rounded font-medium">Batal</button>
-                                        <form method="post" action="{% url 'adopsi:berhenti_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium">Hapus</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
+<tr class="hover:bg-gray-50">
+    <td class="px-6 py-4 flex items-center gap-4">
+        <img src="{{ adoption.id_hewan__url_foto }}" alt="{{ adoption.id_hewan__nama }}" class="h-10 w-10 rounded object-cover">
+        <div>
+            <div class="font-bold text-gray-900 text-sm">{{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}</div>
+            <div class="text-xs text-gray-500">{{ adoption.id_hewan__spesies }}</div>
+        </div>
+    </td>
+    <td class="px-6 py-4 text-sm text-gray-900">{{ adoption.tgl_mulai_adopsi|date:"d F Y" }}</td>
+    <td class="px-6 py-4 text-sm text-gray-900">{{ adoption.tgl_berhenti_adopsi|date:"d F Y" }}</td>
+    <td class="px-6 py-4 text-sm text-gray-900">Rp{{ adoption.kontribusi_finansial|floatformat:0|intcomma }}</td>
+    <td class="px-6 py-4">
+        {% if adoption.tgl_berhenti_adopsi <= now.date %}
+            <span class="inline-flex px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800">Berakhir</span>
+        {% else %}
+            <span class="inline-flex px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Aktif</span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 text-center">
+        {% if adoption.tgl_berhenti_adopsi <= now.date %}
+        <button type="button" class="text-red-600 hover:text-red-800 show-modal text-sm" data-modal-target="endAdoptionModal-{{ adoption.id_hewan__id }}">
+            Hapus
+        </button>
+        <!-- Modal Konfirmasi Hapus Adopsi -->
+        <div id="endAdoptionModal-{{ adoption.id_hewan__id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Hapus Adopsi?</h3>
+                <p class="text-gray-700 mb-6">Yakin ingin menghapus adopsi <span class="font-semibold">{{ adoption.id_hewan__nama|default:adoption.id_hewan__spesies }}</span>?</p>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" class="close-modal bg-gray-200 text-gray-700 px-4 py-2 rounded font-medium">Batal</button>
+                    <form method="post" action="{% url 'adopsi:admin_hapus_adopsi' adoption.id_adopter__id_adopter adoption.id_hewan__id adoption.tgl_mulai_adopsi_str %}">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <span class="text-blue-500 text-sm font-medium">Sedang berlangsung</span>
+        {% endif %}
+    </td>
+</tr>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="px-6 py-10 text-center text-gray-400">Adopter ini belum memiliki riwayat adopsi.</td>
+                        <td colspan="5" class="px-6 py-10 text-center text-gray-400">
+                            Adopter {{ adopter_type }} ini belum memiliki riwayat adopsi dengan status lunas.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Adopter -->
+<div id="deleteAdopterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Hapus Adopter {{ adopter_type|title }}?</h3>
+        <p class="text-gray-700 mb-6">
+            Yakin ingin menghapus adopter {{ adopter_type }} 
+            "<span class="font-semibold">
+                {% if adopter_type == 'individu' and adopter_detail %}
+                    {{ adopter_detail.nama }}
+                {% elif adopter_type == 'organisasi' and adopter_detail %}
+                    {{ adopter_detail.nama_organisasi }}
+                {% else %}
+                    {{ adopter.username_adopter }}
+                {% endif %}
+            </span>"?
+            <br><br>
+            <span class="text-red-600 text-sm">
+                ⚠️ Ini akan menghapus semua riwayat adopsi untuk tipe {{ adopter_type }} ini, 
+                tetapi tidak akan menghapus akun pengunjung yang terkait.
+            </span>
+        </p>
+        <div class="flex justify-end space-x-4">
+            <button type="button" class="close-modal bg-gray-200 text-gray-700 px-4 py-2 rounded font-medium">Batal</button>
+            <a href="{% url 'adopsi:admin_hapus_adopter' adopter.id_adopter adopter_type %}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium">Hapus</a>
         </div>
     </div>
 </div>
@@ -171,6 +213,14 @@
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', function () {
                 this.closest('.modal-overlay').classList.add('hidden');
+            });
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function (e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
             });
         });
     });

@@ -13,7 +13,6 @@
         <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Detail Adopsi</h1>
     </div>
     
-    
     <!-- Card Info -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div class="bg-green-600 px-6 py-4">
@@ -52,7 +51,7 @@
                             {% elif adopter_type == 'organisasi' %}
                                 {{ adopter_detail.nama_organisasi }}
                             {% else %}
-                                {{ pengunjung.username_p }}
+                                {{ adopter.username_adopter }}
                             {% endif %}
                         </p>
                         <p class="text-gray-800"><span class="font-medium">Tipe:</span> 
@@ -74,8 +73,8 @@
                             <p class="text-gray-800"><span class="font-medium">NPP:</span> {{ adopter_detail.npp }}</p>
                         {% endif %}
                         <p class="text-gray-800"><span class="font-medium">ID Adopter:</span> {{ adopter.id_adopter|truncatechars:10 }}</p>
-                        <p class="text-gray-800"><span class="font-medium">Username:</span> {{ adopter.username_adopter.username_p }}</p>
-                        <p class="text-gray-800"><span class="font-medium">Email:</span> {{ adopter.username_adopter.username_p.email }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Username:</span> {{ adopter.username_adopter }}</p>
+                        <p class="text-gray-800"><span class="font-medium">Email:</span> -</p>
                         <a href="{% url 'adopsi:admin_detail_adopter' adopter.id_adopter %}" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-medium py-2 rounded-md transition mt-4">
                             Lihat Detail Adopter
                         </a>
@@ -89,13 +88,13 @@
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">Status Adopsi:</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if adoption.tgl_berhenti_adopsi < now.date %}
+                                {% if adoption.tgl_berhenti_adopsi <= now.date %}
                                     bg-gray-100 text-gray-800
                                 {% else %}
                                     bg-green-100 text-green-800
                                 {% endif %}
                             ">
-                                {% if adoption.tgl_berhenti_adopsi < now.date %}
+                                {% if adoption.tgl_berhenti_adopsi <= now.date %}
                                     Berakhir
                                 {% else %}
                                     Aktif
@@ -105,7 +104,7 @@
                         <div class="flex justify-between items-center">
                             <span class="font-medium text-gray-800">Status Pembayaran:</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if adoption.status_adopsi == 'lunas' %}
+                                {% if adoption.status_adopsi == 'Lunas' %}
                                     bg-green-100 text-green-800
                                 {% else %}
                                     bg-yellow-100 text-yellow-800
@@ -128,12 +127,12 @@
                     
                     <!-- Action Buttons -->
                     <div class="space-y-3 mt-6">
-                        <!-- Update Payment Status Button with Dropdown -->
+                        <!-- Update Payment Status Button -->
                         <button type="button" class="modal-trigger block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-medium py-2 rounded-md transition" data-modal="updatePaymentModal">
                             <i class="fas fa-money-check-alt mr-1"></i> Update Status Pembayaran
                         </button>
                         
-                        {% if adoption.tgl_berhenti_adopsi >= now.date %}
+                        {% if adoption.tgl_berhenti_adopsi > now.date %}
                         <button type="button" class="modal-trigger block w-full bg-red-600 hover:bg-red-700 text-white text-center font-medium py-2 rounded-md transition" data-modal="terminateModal">
                             <i class="fas fa-times-circle mr-1"></i> Hentikan Adopsi
                         </button>
@@ -143,7 +142,7 @@
             </div>
         </div>
     </div>
-    
+</div>
 
 <!-- Update Payment Status Modal -->
 <div id="updatePaymentModal" class="modal-container hidden fixed inset-0 z-50">
@@ -158,8 +157,8 @@
                 <div class="mb-4">
                     <label for="status_pembayaran" class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
                     <select name="status_pembayaran" id="status_pembayaran" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="tertunda" {% if adoption.status_adopsi == 'tertunda' %}selected{% endif %}>Tertunda</option>
-                        <option value="lunas" {% if adoption.status_adopsi == 'lunas' %}selected{% endif %}>Lunas</option>
+                        <option value="Tertunda" {% if adoption.status_adopsi == 'Tertunda' %}selected{% endif %}>Tertunda</option>
+                        <option value="Lunas" {% if adoption.status_adopsi == 'Lunas' %}selected{% endif %}>Lunas</option>
                     </select>
                 </div>
                 
@@ -201,7 +200,7 @@
     </div>
 </div>
 
-<!-- Add JavaScript for Modal Functionality -->
+<!-- JavaScript for Modal Functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Get all modal trigger buttons
