@@ -282,38 +282,35 @@ def edit_reservation(request, id):
         messages.error(request, 'Format ID reservasi tidak valid')
         return redirect('booking_index')
     
-    # Get reservation details
+    # Get reservation details (support both atraksi & wahana)
     cur.execute("""
         SELECT r.username_p, r.nama_atraksi, r.tanggal_kunjungan, r.jumlah_tiket, r.status,
-               a.lokasi, f.jadwal
+               COALESCE(a.lokasi, '') as lokasi, f.jadwal, w.peraturan
         FROM reservasi r
-        JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
-        JOIN fasilitas f ON a.nama_atraksi = f.nama
+        LEFT JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
+        LEFT JOIN wahana w ON r.nama_atraksi = w.nama_wahana
+        JOIN fasilitas f ON r.nama_atraksi = f.nama
         WHERE r.nama_atraksi = %s 
         AND r.username_p = %s
         AND r.tanggal_kunjungan::text = %s
         AND r.jumlah_tiket::text = %s
     """, (nama_atraksi, username_p, tanggal_str, jumlah_tiket))
-    
     reservation = cur.fetchone()
     if not reservation:
         messages.error(request, 'Reservasi tidak ditemukan')
         cur.close()
         conn.close()
         return redirect('booking_index')
-    
     if request.method == 'POST':
         nama_atraksi = request.POST.get('nama_atraksi')
         tanggal = request.POST.get('tanggal')
         jumlah_tiket = int(request.POST.get('jumlah_tiket'))
-        
         # Check capacity from fasilitas table
         cur.execute("""
             SELECT kapasitas_max
             FROM fasilitas
             WHERE nama = %s
         """, (nama_atraksi,))
-        
         kapasitas = cur.fetchone()[0]
         if jumlah_tiket <= kapasitas:
             try:
@@ -325,59 +322,57 @@ def edit_reservation(request, id):
                 """, (nama_atraksi, tanggal, jumlah_tiket, reservation[1], reservation[0], str(reservation[2]), str(reservation[3])))
                 cur.execute("COMMIT")
                 messages.success(request, 'Reservasi berhasil diperbarui!')
-                
-                # Get updated attraction info
+                # Get updated info (support both atraksi & wahana)
                 cur.execute("""
-                    SELECT a.lokasi, f.jadwal
-                    FROM atraksi a
-                    JOIN fasilitas f ON a.nama_atraksi = f.nama
-                    WHERE a.nama_atraksi = %s
+                    SELECT COALESCE(a.lokasi, ''), f.jadwal, w.peraturan
+                    FROM fasilitas f
+                    LEFT JOIN atraksi a ON f.nama = a.nama_atraksi
+                    LEFT JOIN wahana w ON f.nama = w.nama_wahana
+                    WHERE f.nama = %s
                 """, (nama_atraksi,))
                 attr_info = cur.fetchone()
-                
                 cur.close()
                 conn.close()
-                return render(request, 'booking/detail_reservation.html', {
-                    'id': id,
-                    'nama_atraksi': nama_atraksi,
-                    'lokasi': attr_info[0],
-                    'jam': attr_info[1],
-                    'tanggal': tanggal,
-                    'jumlah_tiket': jumlah_tiket,
-                    'status': reservation[4]
-                })
+                new_id = f"{nama_atraksi}_{reservation[0]}_{tanggal}_{jumlah_tiket}"
+                return redirect('detail_reservation', id=new_id)
             except Exception as e:
                 cur.execute("ROLLBACK")
                 messages.error(request, f'Terjadi kesalahan: {str(e)}')
         else:
             messages.error(request, 'Update gagal: Kapasitas tidak mencukupi')
-    
-    # Get list of attractions for form
+    # Get list of attractions & wahana for form
     cur.execute("""
-        SELECT a.nama_atraksi, a.lokasi, f.jadwal, f.kapasitas_max
+        SELECT a.nama_atraksi, a.lokasi, f.jadwal, f.kapasitas_max, 'atraksi' as tipe, NULL as peraturan
         FROM atraksi a
         JOIN fasilitas f ON a.nama_atraksi = f.nama
+        UNION ALL
+        SELECT w.nama_wahana, '' as lokasi, f.jadwal, f.kapasitas_max, 'wahana' as tipe, w.peraturan
+        FROM wahana w
+        JOIN fasilitas f ON w.nama_wahana = f.nama
     """)
     attractions = [
         {
             'nama': row[0],
             'lokasi': row[1],
             'jam': row[2],
-            'kapasitas': row[3]
+            'kapasitas': row[3],
+            'tipe': row[4],
+            'peraturan': row[5]
         } for row in cur.fetchall()
     ]
-    
     context = {
         'reservation': {
             'nama_atraksi': reservation[1],
             'tanggal_reservasi': reservation[2],
             'jumlah_tiket': reservation[3],
-            'status': reservation[4]
+            'status': reservation[4],
+            'lokasi': reservation[5],
+            'jam': reservation[6],
+            'peraturan': reservation[7]
         },
         'attractions': attractions,
         'nama_atraksi': reservation[1]
     }
-    
     cur.close()
     conn.close()
     return render(request, 'booking/edit_reservation.html', context)
@@ -398,23 +393,22 @@ def detail_reservation(request, id):
         
     cur.execute("""
         SELECT r.nama_atraksi, r.tanggal_kunjungan, r.jumlah_tiket, r.status,
-               a.lokasi, f.jadwal
+               COALESCE(a.lokasi, '') as lokasi, f.jadwal, w.peraturan
         FROM reservasi r
-        JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
-        JOIN fasilitas f ON a.nama_atraksi = f.nama
+        LEFT JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
+        LEFT JOIN wahana w ON r.nama_atraksi = w.nama_wahana
+        JOIN fasilitas f ON r.nama_atraksi = f.nama
         WHERE r.nama_atraksi = %s 
         AND r.username_p = %s
         AND r.tanggal_kunjungan::text = %s
         AND r.jumlah_tiket::text = %s
     """, (nama_atraksi, username_p, tanggal_str, jumlah_tiket))
-    
     reservation = cur.fetchone()
     if not reservation:
         messages.error(request, 'Reservasi tidak ditemukan')
         cur.close()
         conn.close()
         return redirect('booking_index')
-    
     context = {
         'id': id,
         'nama_atraksi': reservation[0],
@@ -422,7 +416,8 @@ def detail_reservation(request, id):
         'jam': reservation[5],
         'tanggal': reservation[1],
         'jumlah_tiket': reservation[2],
-        'status': reservation[3]
+        'status': reservation[3],
+        'peraturan': reservation[6]
     }
     
     cur.close()
@@ -446,10 +441,11 @@ def cancel_reservation(request, id):
     # Get reservation details for confirmation
     cur.execute("""
         SELECT r.nama_atraksi, r.tanggal_kunjungan, r.jumlah_tiket,
-               a.lokasi, f.jadwal
+               COALESCE(a.lokasi, '') as lokasi, f.jadwal, w.peraturan
         FROM reservasi r
-        JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
-        JOIN fasilitas f ON a.nama_atraksi = f.nama
+        LEFT JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
+        LEFT JOIN wahana w ON r.nama_atraksi = w.nama_wahana
+        JOIN fasilitas f ON r.nama_atraksi = f.nama
         WHERE r.nama_atraksi = %s 
         AND r.username_p = %s
         AND r.tanggal_kunjungan::text = %s
@@ -487,7 +483,8 @@ def cancel_reservation(request, id):
         },
         'attraction': {
             'lokasi': reservation[3],
-            'jam': reservation[4]
+            'jam': reservation[4],
+            'peraturan': reservation[5]
         }
     }
     

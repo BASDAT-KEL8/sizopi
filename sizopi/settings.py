@@ -26,11 +26,13 @@ SECRET_KEY = 'django-insecure-41e&n%8+b0jnsu@m53ov8+va#&6_k&y4+vu!19j@)hw)o^cuks
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "sizopi-production-1083.up.railway.app",  
 ]
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sizopi-production-1083.up.railway.app",  
@@ -56,6 +58,10 @@ INSTALLED_APPS = [
     'booking',
     'adopsi',
     'dashboard',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://sizopi-production-1083.up.railway.app',
 ]
 
 MIDDLEWARE = [
@@ -154,8 +160,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-import os
+# Aktifkan WhiteNoise storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]

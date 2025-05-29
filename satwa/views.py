@@ -111,8 +111,9 @@ def view_satwa(request):
 
 def create_satwa(request):
     if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staff_admin(request)):
-        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        messages.error(request, 'Hanya petugas yang berwenang yang dapat mengakses fitur ini.')
         return redirect('login')
+
     if request.method == "POST":
         nama = request.POST.get("nama")
         spesies = request.POST.get("spesies")
@@ -125,15 +126,24 @@ def create_satwa(request):
 
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO HEWAN (id, nama, spesies, asal_hewan, tanggal_lahir, status_kesehatan, nama_habitat, url_foto)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (id_baru, nama, spesies, asal, tanggal, status, habitat, url_foto))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return redirect('satwa:view_satwa')
+        try:
+            cur.execute("""
+                INSERT INTO HEWAN (
+                    id, nama, spesies, asal_hewan, tanggal_lahir,
+                    status_kesehatan, nama_habitat, url_foto
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (id_baru, nama, spesies, asal, tanggal, status, habitat, url_foto))
+            conn.commit()
+            messages.success(request, "Data satwa berhasil ditambahkan.")
+            return redirect('satwa:view_satwa')
+        except Exception as e:
+            conn.rollback()
+            messages.error(request, f"Gagal menambahkan satwa: {str(e)}")
+        finally:
+            cur.close()
+            conn.close()
 
+    # Ambil daftar habitat untuk opsi dropdown
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT nama FROM HABITAT ORDER BY nama")
@@ -157,8 +167,9 @@ def delete_satwa(request, id):
 
 def edit_satwa(request, id):
     if not (is_dokter_hewan(request) or is_penjaga_hewan(request) or is_staff_admin(request)):
-        messages.error(request, 'Hanya dokter hewan yang dapat mengakses fitur ini.')
+        messages.error(request, 'Hanya petugas yang berwenang yang dapat mengakses fitur ini.')
         return redirect('login')
+
     if request.method == "POST":
         nama = request.POST.get("nama")
         spesies = request.POST.get("spesies")
@@ -170,16 +181,24 @@ def edit_satwa(request, id):
 
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
-            UPDATE HEWAN SET nama = %s, spesies = %s, asal_hewan = %s, tanggal_lahir = %s,
-            status_kesehatan = %s, nama_habitat = %s, url_foto = %s WHERE id = %s
-        """, (nama, spesies, asal, tanggal, status, habitat, foto, id))
-        conn.commit()
-        cur.close()
-        conn.close()
+        try:
+            cur.execute("""
+                UPDATE HEWAN
+                SET nama = %s, spesies = %s, asal_hewan = %s, tanggal_lahir = %s,
+                    status_kesehatan = %s, nama_habitat = %s, url_foto = %s
+                WHERE id = %s
+            """, (nama, spesies, asal, tanggal, status, habitat, foto, id))
+            conn.commit()
+            messages.success(request, "Data satwa berhasil diperbarui.")
+            return redirect('satwa:view_satwa')
+        except Exception as e:
+            conn.rollback()
+            messages.error(request, f"Gagal mengupdate data satwa: {str(e)}")
+        finally:
+            cur.close()
+            conn.close()
 
-        return redirect('satwa:view_satwa')
-
+    # GET method: ambil data satwa & habitat
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
