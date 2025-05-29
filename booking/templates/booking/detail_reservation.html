@@ -30,7 +30,11 @@
                         <div class="mb-4">
                             <h4>{{ nama_atraksi }}</h4>
                             <div class="text-muted">
-                                <div><i class="bi bi-geo-alt me-1"></i>{{ lokasi }}</div>
+                                {% if lokasi %}
+                                    <div><i class="bi bi-geo-alt me-1"></i>{{ lokasi }}</div>
+                                {% elif peraturan %}
+                                    <div><i class="bi bi-info-circle me-1"></i><b>Peraturan:</b> {{ peraturan }}</div>
+                                {% endif %}
                                 <div><i class="bi bi-clock me-1"></i>{{ jam|date:"H:i" }}</div>
                             </div>
                         </div>
