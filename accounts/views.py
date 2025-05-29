@@ -179,7 +179,7 @@ def register_dokter_view(request):
 
 def logout_view(request):
     request.session.flush()  # Clear semua session
-    messages.success(request, "Berhasil logout.")
+    # messages.success(request, "Berhasil logout.")
     return redirect('login')
 
 def choose_role_view(request):
@@ -200,119 +200,6 @@ def dashboard_view(request):
 def navbar_view(request):
     # 'user_role' akan otomatis tersedia dari context_processor
     return render(request, 'accounts/navbar.html')
-
-# def profile_view(request):
-#     """Profile view dengan data tambahan untuk form profile"""
-#     if 'username' not in request.session:
-#         messages.error(request, "Silakan login terlebih dahulu.")
-#         return redirect('login')
-    
-#     username = request.session['username']
-    
-#     with connection.cursor() as cursor:
-#         try:
-#             # Get complete user data untuk form profile
-#             user_data = get_complete_user_data(username)
-            
-#             if not user_data:
-#                 messages.error(request, "User tidak ditemukan.")
-#                 return redirect('login')
-            
-#             return render(request, 'accounts/profile.html', user_data)
-            
-#         except Exception as e:
-#             messages.error(request, f"Terjadi kesalahan: {str(e)}")
-#             return redirect('login')
-
-# def update_profile(request):
-#     """Update profile menggunakan raw SQL"""
-#     if 'username' not in request.session:
-#         messages.error(request, "Silakan login terlebih dahulu.")
-#         return redirect('login')
-    
-#     username = request.session['username']
-    
-#     if request.method == 'POST':
-#         action = request.POST.get('action', '')
-        
-#         with connection.cursor() as cursor:
-#             try:
-#                 # Handle profile update
-#                 if action == 'update_profile':
-#                     # Update basic user information
-#                     cursor.execute("""
-#                         UPDATE sizopi.pengguna 
-#                         SET email = %s, nama_depan = %s, nama_tengah = %s, 
-#                             nama_belakang = %s, no_telepon = %s
-#                         WHERE username = %s
-#                     """, [
-#                         request.POST.get('email', ''),
-#                         request.POST.get('nama_depan', ''),
-#                         request.POST.get('nama_tengah', ''),
-#                         request.POST.get('nama_belakang', ''),
-#                         request.POST.get('no_telepon', ''),
-#                         username
-#                     ])
-                    
-#                     # Check if user is pengunjung and update specific data
-#                     cursor.execute("""
-#                         SELECT username_p FROM sizopi.pengunjung WHERE username_p = %s
-#                     """, [username])
-                    
-#                     if cursor.fetchone():
-#                         tgl_lahir = request.POST.get('tgl_lahir')
-#                         alamat = request.POST.get('alamat', '')
-                        
-#                         if tgl_lahir:
-#                             cursor.execute("""
-#                                 UPDATE sizopi.pengunjung 
-#                                 SET alamat = %s, tgl_lahir = %s
-#                                 WHERE username_p = %s
-#                             """, [alamat, tgl_lahir, username])
-#                         else:
-#                             cursor.execute("""
-#                                 UPDATE sizopi.pengunjung 
-#                                 SET alamat = %s
-#                                 WHERE username_p = %s
-#                             """, [alamat, username])
-                    
-#                     messages.success(request, "Profil berhasil diperbarui.")
-                
-#                 # Handle password change
-#                 elif action == 'change_password':
-#                     password_lama = request.POST.get('password_lama')
-#                     password_baru = request.POST.get('password_baru')
-#                     konfirmasi_password = request.POST.get('konfirmasi_password')
-                    
-#                     # Verify old password
-#                     cursor.execute("""
-#                         SELECT username FROM sizopi.pengguna 
-#                         WHERE username = %s AND password = %s
-#                     """, [username, password_lama])
-                    
-#                     if not cursor.fetchone():
-#                         messages.error(request, "Password lama tidak sesuai.")
-#                         return redirect('profile')
-                    
-#                     # Check if new password and confirmation match
-#                     if password_baru != konfirmasi_password:
-#                         messages.error(request, "Password baru dan konfirmasi tidak cocok.")
-#                         return redirect('profile')
-                    
-#                     # Update password
-#                     cursor.execute("""
-#                         UPDATE sizopi.pengguna 
-#                         SET password = %s 
-#                         WHERE username = %s
-#                     """, [password_baru, username])
-                    
-#                     messages.success(request, "Password berhasil diubah.")
-                    
-#             except Exception as e:
-#                 messages.error(request, f"Terjadi kesalahan: {str(e)}")
-#                 return redirect('profile')
-        
-#     return redirect('profile')
 
 def profile(request):
     """Profile view with proper specialization handling"""
