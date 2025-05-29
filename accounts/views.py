@@ -109,26 +109,41 @@ def login_view(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            password = form.cleaned_data['password']  # plaintext (belum di-hash)
+            password = form.cleaned_data['password']
 
             try:
                 with connection.cursor() as cursor:
-                    # Cari user berdasarkan email dan password
+                    # Pertama, ambil username berdasarkan email
                     cursor.execute("""
-                        SELECT username, nama_depan, nama_belakang 
-                        FROM sizopi.pengguna
-                        WHERE email = %s AND password = %s
-                    """, [email, password])
-                    
-                    user = cursor.fetchone()
+                        SELECT username FROM sizopi.pengguna WHERE email = %s
+                    """, [email])
+                    result = cursor.fetchone()
 
-                    if user:
-                        username, nama_depan, nama_belakang = user
-                        request.session['email'] = email
-                        request.session['nama_lengkap'] = f"{nama_depan} {nama_belakang}"
-                        request.session['username'] = username
-                        return redirect('dashboard')
+                    if result:
+                        username = result[0]
 
+                        # Panggil stored function verify_credentials
+                        cursor.execute("SELECT verify_credentials(%s, %s)", [username, password])
+                        status = cursor.fetchone()[0]  # Hasilnya 'OK' atau pesan error
+
+                        if status == 'OK':
+                            # Ambil nama lengkap pengguna
+                            cursor.execute("""
+                                SELECT nama_depan, nama_belakang FROM sizopi.pengguna WHERE username = %s
+                            """, [username])
+                            nama = cursor.fetchone()
+                            nama_lengkap = f"{nama[0]} {nama[1]}" if nama else ""
+
+                            # Set session dan redirect
+                            request.session['email'] = email
+                            request.session['username'] = username
+                            request.session['nama_lengkap'] = nama_lengkap
+                            messages.success(request, "Login berhasil.")
+                            return redirect('dashboard')
+                        else:
+                            messages.error(request, status)
+                    else:
+                        messages.error(request, "Email tidak ditemukan.")
             except Exception as e:
                 messages.error(request, f"Terjadi kesalahan saat login: {str(e)}")
         else:
