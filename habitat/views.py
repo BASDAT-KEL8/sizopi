@@ -8,7 +8,7 @@ def is_penjaga_hewan(request):
         return False
     conn = connection
     cur = conn.cursor()
-    cur.execute("SELECT 1 FROM penjaga_hewan WHERE username_dh = %s", (username,))
+    cur.execute("SELECT 1 FROM penjaga_hewan WHERE username_jh = %s", (username,))
     result = cur.fetchone()
     cur.close()
     conn.close()
@@ -20,7 +20,7 @@ def is_staff_admin(request):
         return False
     conn = connection
     cur = conn.cursor()
-    cur.execute("SELECT 1 FROM staff_admin WHERE username_dh = %s", (username,))
+    cur.execute("SELECT 1 FROM staf_admin WHERE username_sa =%s", (username,))
     result = cur.fetchone()
     cur.close()
     conn.close()
