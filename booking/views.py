@@ -398,23 +398,22 @@ def detail_reservation(request, id):
         
     cur.execute("""
         SELECT r.nama_atraksi, r.tanggal_kunjungan, r.jumlah_tiket, r.status,
-               a.lokasi, f.jadwal
+               COALESCE(a.lokasi, '') as lokasi, f.jadwal, w.peraturan
         FROM reservasi r
-        JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
-        JOIN fasilitas f ON a.nama_atraksi = f.nama
+        LEFT JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
+        LEFT JOIN wahana w ON r.nama_atraksi = w.nama_wahana
+        JOIN fasilitas f ON r.nama_atraksi = f.nama
         WHERE r.nama_atraksi = %s 
         AND r.username_p = %s
         AND r.tanggal_kunjungan::text = %s
         AND r.jumlah_tiket::text = %s
     """, (nama_atraksi, username_p, tanggal_str, jumlah_tiket))
-    
     reservation = cur.fetchone()
     if not reservation:
         messages.error(request, 'Reservasi tidak ditemukan')
         cur.close()
         conn.close()
         return redirect('booking_index')
-    
     context = {
         'id': id,
         'nama_atraksi': reservation[0],
@@ -422,7 +421,8 @@ def detail_reservation(request, id):
         'jam': reservation[5],
         'tanggal': reservation[1],
         'jumlah_tiket': reservation[2],
-        'status': reservation[3]
+        'status': reservation[3],
+        'peraturan': reservation[6]
     }
     
     cur.close()
@@ -446,10 +446,11 @@ def cancel_reservation(request, id):
     # Get reservation details for confirmation
     cur.execute("""
         SELECT r.nama_atraksi, r.tanggal_kunjungan, r.jumlah_tiket,
-               a.lokasi, f.jadwal
+               COALESCE(a.lokasi, '') as lokasi, f.jadwal, w.peraturan
         FROM reservasi r
-        JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
-        JOIN fasilitas f ON a.nama_atraksi = f.nama
+        LEFT JOIN atraksi a ON r.nama_atraksi = a.nama_atraksi
+        LEFT JOIN wahana w ON r.nama_atraksi = w.nama_wahana
+        JOIN fasilitas f ON r.nama_atraksi = f.nama
         WHERE r.nama_atraksi = %s 
         AND r.username_p = %s
         AND r.tanggal_kunjungan::text = %s
@@ -487,7 +488,8 @@ def cancel_reservation(request, id):
         },
         'attraction': {
             'lokasi': reservation[3],
-            'jam': reservation[4]
+            'jam': reservation[4],
+            'peraturan': reservation[5]
         }
     }
     
