@@ -1,0 +1,291 @@
+:root {
+    --primary-green: #3f6f21;
+    --secondary-green: #4d8526;
+    --dark-green: #173b12;
+    --light-green: #e4f0d8;
+    --yellow: #ffc107;
+    --beige: #f5f2e9;
+    --white: #ffffff;
+    --black: #212529;
+    --gray: #6c757d;
+    --light-gray: #f8f9fa;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--black);
+    background-color: var(--beige);
+    line-height: 1.6;
+}
+
+/* Navigation */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+    padding: 0;
+}
+
+.navbar .nav-link {
+    color: var(--black);
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: var(--primary-green);
+}
+
+.btn-warning {
+    background-color: var(--yellow);
+    border-color: var(--yellow);
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+}
+
+/* Adopt cards */
+.card {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 240px;
+    object-fit: cover;
+}
+
+.card-title {
+    font-weight: 600;
+    color: var(--dark-green);
+}
+
+.adoption-card .badge {
+    font-size: 0.75rem;
+    padding: 0.5em 0.75em;
+}
+
+/* Membership styles */
+.membership-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border: none;
+}
+
+.membership-header {
+    background-color: var(--primary-green);
+    color: white;
+    padding: 1.5rem;
+}
+
+.membership-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-green);
+}
+
+.membership-benefits li {
+    margin-bottom: 0.75rem;
+    position: relative;
+    padding-left: 1.75rem;
+}
+
+.membership-benefits li::before {
+    content: "✓";
+    color: var(--primary-green);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* Step progress for registration */
+.step-progress {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+}
+
+.step-progress-item {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.step-progress-item::after {
+    content: "";
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: 1;
+}
+
+.step-progress-item:last-child::after {
+    display: none;
+}
+
+.step-progress-item .step-number {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-weight: 600;
+    font-size: 1.25rem;
+    position: relative;
+    z-index: 2;
+}
+
+.step-progress-item.active .step-number {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+.step-progress-item.active::after {
+    background-color: var(--primary-green);
+}
+
+/* Certificate design */
+.certificate-container {
+    border: 3px solid var(--primary-green);
+    padding: 2rem;
+    position: relative;
+    background-color: #fff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.certificate-container::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid var(--primary-green);
+    pointer-events: none;
+}
+
+.certificate-title {
+    font-family: 'Montserrat', serif;
+    font-size: 1.75rem;
+    color: var(--primary-green);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+/* Custom section styles */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: var(--gray);
+    margin-bottom: 3rem;
+}
+
+.bg-light-green {
+    background-color: var(--light-green);
+}
+
+.text-primary-green {
+    color: var(--primary-green);
+}
+
+/* Hero section */
+.hero-section {
+    background-color: var(--light-green);
+    padding: 5rem 0;
+    position: relative;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--dark-green);
+    margin-bottom: 1.5rem;
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    color: var(--dark-green);
+    margin-bottom: 2rem;
+}
+
+.hero-img {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.hero-img img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .navbar .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section p {
+        font-size: 1.125rem;
+    }
+    
+    .hero-img {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .step-progress-item::after {
+        display: none;
+    }
+    
+    .step-progress-item .step-number {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+    
+    .certificate-title {
+        font-size: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+}
