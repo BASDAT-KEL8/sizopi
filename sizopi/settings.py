@@ -26,10 +26,18 @@ SECRET_KEY = 'django-insecure-41e&n%8+b0jnsu@m53ov8+va#&6_k&y4+vu!19j@)hw)o^cuks
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "sizopi-production-1083.up.railway.app"]
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "sizopi-production-1083.up.railway.app",  
+]
 
 
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+    "https://sizopi-production-1083.up.railway.app",  
+]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -147,6 +155,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
